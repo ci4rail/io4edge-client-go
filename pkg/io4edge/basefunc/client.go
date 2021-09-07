@@ -25,7 +25,7 @@ func (c *Client) Command(cmd *BaseFuncCommand, res *BaseFuncResponse, timeout ti
 	}
 	err = c.ch.ReadMessage(res, timeout)
 	if err != nil {
-		return err
+		return errors.New("Failed to receive device response: " + err.Error())
 	}
 	if res.Status != BaseFuncStatus_OK {
 		return errors.New("Device reported error status: " + res.Status.String())
