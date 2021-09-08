@@ -5,8 +5,8 @@ option go_package = "pkg/io4edge/basefunc";
 
 
 message SerialNumber {
-    uint64 hi = 1;
-    uint64 lo = 2;
+    fixed64 hi = 1;
+    fixed64 lo = 2;
 }
 
 enum BaseFuncCommandId {
@@ -39,7 +39,7 @@ message CmdLoadFirmwareChunk {
 }
 
 message CmdProgramHardwareIdentification {
-    string password = 1;
+    string signature = 1;
     string root_article = 2;
     uint32 major_version = 3;
     SerialNumber serial_number = 4;
