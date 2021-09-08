@@ -2,6 +2,7 @@ package basefunc
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -9,6 +10,8 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/ci4rail/io4edge-client-go/pkg/io4edge/fwpkg"
 )
 
 // IdentifyFirmware gets the firmware name and version from the device
@@ -23,9 +26,63 @@ func (c *Client) IdentifyFirmware(timeout time.Duration) (*ResIdentifyFirmware, 
 	return res.GetIdentifyFirmware(), nil
 }
 
-// LoadFirmwareFromFile loads new firmware from file into the device device
+// LoadFirmware loads a binary from a firmware package to the device
+//
 // timeout is for each chunk
-func (c *Client) LoadFirmwareFromFile(file string, chunkSize uint, timeout time.Duration) error {
+func (c *Client) LoadFirmware(file string, chunkSize uint, timeout time.Duration) error {
+
+	pkg, err := fwpkg.NewFirmwarePackageFromFile(file)
+	if err != nil {
+		return err
+	}
+	manifest := pkg.Manifest()
+
+	// get currently running firmware
+	currentFWID, err := c.IdentifyFirmware(timeout)
+	if err != nil {
+		return err
+	}
+
+	// get devices hardware id
+	hwID, err := c.IdentifyHardware(timeout)
+	if err != nil {
+		return err
+	}
+
+	// check compatibility
+	err = AssertFirmwareIsCompatibleWithHardware(
+		manifest.Compatibility.HW,
+		manifest.Compatibility.MajorRevs,
+		hwID.RootArticle,
+		int(hwID.MajorVersion),
+	)
+	if err != nil {
+		return err
+	}
+
+	// check if fw already running
+	curVer := fmt.Sprintf("%d.%d.%d", currentFWID.MajorVersion, currentFWID.MinorVersion, currentFWID.PatchVersion)
+
+	if currentFWID.Name == manifest.Name && curVer == manifest.Version {
+		return errors.New("firmware variant/version is already active on device")
+	}
+
+	fwFile := new(bytes.Buffer)
+	err = pkg.File(fwFile)
+	if err != nil {
+		return err
+	}
+
+	err = c.LoadFirmwareBinary(bufio.NewReader(fwFile), chunkSize, timeout)
+	if err != nil {
+		return err
+	}
+	return err
+}
+
+// LoadFirmwareBinaryFromFile loads new firmware from file into the device device
+// timeout is for each chunk
+func (c *Client) LoadFirmwareBinaryFromFile(file string, chunkSize uint, timeout time.Duration) error {
 	f, err := os.Open(file)
 	if err != nil {
 		return errors.New("cannot open file " + file + " : " + err.Error())
@@ -34,12 +91,12 @@ func (c *Client) LoadFirmwareFromFile(file string, chunkSize uint, timeout time.
 	defer f.Close()
 
 	r := bufio.NewReader(f)
-	return c.LoadFirmware(r, chunkSize, timeout)
+	return c.LoadFirmwareBinary(r, chunkSize, timeout)
 }
 
-// LoadFirmware loads new firmware via r into the device device
+// LoadFirmwareBinary loads new firmware via r into the device device
 // timeout is for each chunk
-func (c *Client) LoadFirmware(r *bufio.Reader, chunkSize uint, timeout time.Duration) error {
+func (c *Client) LoadFirmwareBinary(r *bufio.Reader, chunkSize uint, timeout time.Duration) error {
 
 	cmd := &BaseFuncCommand{
 		Id: BaseFuncCommandId_LOAD_FIRMWARE_CHUNK,
