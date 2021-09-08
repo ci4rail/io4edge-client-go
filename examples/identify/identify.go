@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/ci4rail/io4edge-client-go/pkg/io4edge/basefunc"
+	"github.com/ci4rail/io4edge-client-go/pkg/io4edge/uuid"
 )
 
 func main() {
@@ -31,5 +32,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to identify hardware: %v\n", err)
 	}
-	fmt.Printf("Hardware name: %s, serial: %16x-%16x, rev: %d\n", hwID.RootArticle, hwID.SerialNumber.Hi, hwID.SerialNumber.Lo, hwID.MajorVersion)
+
+	u, err := uuid.FromSerial(hwID.SerialNumber.Hi, hwID.SerialNumber.Lo)
+	if err != nil {
+		log.Fatalf("Failed to make uuid from serial: %v\n", err)
+	}
+	fmt.Printf("SerHi %08x\n", hwID.SerialNumber.Hi)
+	fmt.Printf("Hardware name: %s, serial: %s, rev: %d\n", hwID.RootArticle, u.String(), hwID.MajorVersion)
 }
