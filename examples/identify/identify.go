@@ -37,6 +37,5 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to make uuid from serial: %v\n", err)
 	}
-	fmt.Printf("SerHi %08x\n", hwID.SerialNumber.Hi)
 	fmt.Printf("Hardware name: %s, serial: %s, rev: %d\n", hwID.RootArticle, u.String(), hwID.MajorVersion)
 }
