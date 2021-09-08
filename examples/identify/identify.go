@@ -26,4 +26,10 @@ func main() {
 	}
 
 	fmt.Printf("Firmware name: %s, Version %d.%d.%d\n", fwID.Name, fwID.MajorVersion, fwID.MinorVersion, fwID.PatchVersion)
+
+	hwID, err := c.IdentifyHardware(5 * time.Second)
+	if err != nil {
+		log.Fatalf("Failed to identify hardware: %v\n", err)
+	}
+	fmt.Printf("Hardware name: %s, serial: %s, rev: %d\n", hwID.RootArticle, hwID.SerialNumber, hwID.MajorVersion)
 }
