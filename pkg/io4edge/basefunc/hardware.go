@@ -20,7 +20,7 @@ func (c *Client) IdentifyHardware(timeout time.Duration) (*ResIdentifyHardware, 
 // Intended to be used during hardware manufacturing process only
 func (c *Client) ProgramHardwareIdentification(id *CmdProgramHardwareIdentification, timeout time.Duration) error {
 	cmd := &BaseFuncCommand{
-		Id: BaseFuncCommandId_IDENTIFY_HARDWARE,
+		Id: BaseFuncCommandId_PROGRAM_HARDWARE_IDENTIFICATION,
 		Data: &BaseFuncCommand_ProgramHardwareIdentification{
 			ProgramHardwareIdentification: id,
 		},
