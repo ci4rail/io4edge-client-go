@@ -15,3 +15,19 @@ func (c *Client) IdentifyHardware(timeout time.Duration) (*ResIdentifyHardware, 
 	}
 	return res.GetIdentifyHardware(), nil
 }
+
+// ProgramHardwareIdentification programs hardware inventory data into the device.
+// Intended to be used during hardware manufacturing process only
+func (c *Client) ProgramHardwareIdentification(id *CmdProgramHardwareIdentification, timeout time.Duration) error {
+	cmd := &BaseFuncCommand{
+		Id: BaseFuncCommandId_IDENTIFY_HARDWARE,
+		Data: &BaseFuncCommand_ProgramHardwareIdentification{
+			ProgramHardwareIdentification: id,
+		},
+	}
+	res := &BaseFuncResponse{}
+	if err := c.Command(cmd, res, timeout); err != nil {
+		return err
+	}
+	return nil
+}

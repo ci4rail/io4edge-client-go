@@ -31,5 +31,5 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to identify hardware: %v\n", err)
 	}
-	fmt.Printf("Hardware name: %s, serial: %s, rev: %d\n", hwID.RootArticle, hwID.SerialNumber, hwID.MajorVersion)
+	fmt.Printf("Hardware name: %s, serial: %16x-%16x, rev: %d\n", hwID.RootArticle, hwID.SerialNumber.Hi, hwID.SerialNumber.Lo, hwID.MajorVersion)
 }

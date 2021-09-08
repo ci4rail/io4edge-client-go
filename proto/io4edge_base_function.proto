@@ -13,6 +13,7 @@ enum BaseFuncCommandId {
     IDENTIFY_HARDWARE = 0;
     IDENTIFY_FIRMWARE = 1;
     LOAD_FIRMWARE_CHUNK = 2;
+    PROGRAM_HARDWARE_IDENTIFICATION = 3;
 }
 
 
@@ -37,6 +38,13 @@ message CmdLoadFirmwareChunk {
     bytes data = 3;
 }
 
+message CmdProgramHardwareIdentification {
+    string password = 1;
+    string root_article = 2;
+    uint32 major_version = 3;
+    SerialNumber serial_number = 4;
+}
+
 message ResIdentifyHardware {
     string root_article = 1;
     uint32 major_version = 2;
@@ -55,6 +63,7 @@ message BaseFuncCommand {
     BaseFuncCommandId id = 1;
     oneof data {
         CmdLoadFirmwareChunk load_firmware_chunk = 2;
+        CmdProgramHardwareIdentification program_hardware_identification = 3;
     }
 }
 
