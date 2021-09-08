@@ -1,3 +1,19 @@
+/*
+Copyright © 2021 Ci4Rail GmbH <engineering@ci4rail.com>
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package basefunc
 
 import (
@@ -6,13 +22,21 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/ci4rail/io4edge-client-go/pkg/io4edge/fwpkg"
 )
+
+// FirmwareAlreadyPresentError is returned by LoadFirmware as a dummy error
+type FirmwareAlreadyPresentError struct {
+}
+
+// Error returns the error string for FirmwareAlreadyPresentError
+func (e *FirmwareAlreadyPresentError) Error() string {
+	return "Requested Firmware already present"
+}
 
 // IdentifyFirmware gets the firmware name and version from the device
 func (c *Client) IdentifyFirmware(timeout time.Duration) (*ResIdentifyFirmware, error) {
@@ -63,8 +87,8 @@ func (c *Client) LoadFirmware(file string, chunkSize uint, timeout time.Duration
 	// check if fw already running
 	curVer := fmt.Sprintf("%d.%d.%d", currentFWID.MajorVersion, currentFWID.MinorVersion, currentFWID.PatchVersion)
 
-	if currentFWID.Name == manifest.Name && curVer == manifest.Version {
-		return errors.New("firmware variant/version is already active on device")
+	if strings.EqualFold(currentFWID.Name, manifest.Name) && curVer == manifest.Version {
+		return &FirmwareAlreadyPresentError{}
 	}
 
 	fwFile := new(bytes.Buffer)
@@ -113,7 +137,7 @@ func (c *Client) LoadFirmwareBinary(r *bufio.Reader, chunkSize uint, timeout tim
 	for {
 		atEOF := false
 
-		n, err := r.Read(data)
+		_, err := r.Read(data)
 		if err != nil {
 			return errors.New("read firmware failed: " + err.Error())
 		}
@@ -123,7 +147,6 @@ func (c *Client) LoadFirmwareBinary(r *bufio.Reader, chunkSize uint, timeout tim
 		if err == io.EOF {
 			atEOF = true
 		}
-		log.Printf("Read %d bytes at_eof=%v chunk %d\n", n, atEOF, chunkNumber)
 
 		cmd.GetLoadFirmwareChunk().IsLastChunk = atEOF
 		cmd.GetLoadFirmwareChunk().ChunkNumber = chunkNumber
@@ -139,7 +162,6 @@ func (c *Client) LoadFirmwareBinary(r *bufio.Reader, chunkSize uint, timeout tim
 		}
 		chunkNumber++
 	}
-	log.Printf("Device accepted all chunks.\n")
 
 	return nil
 }

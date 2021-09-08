@@ -22,16 +22,29 @@ import (
 	"time"
 
 	"github.com/ci4rail/io4edge-client-go/pkg/io4edge/basefunc"
-	"github.com/ci4rail/io4edge-client-go/pkg/io4edge/uuid"
 )
 
 func main() {
-	if len(os.Args) != 2 {
-		log.Fatalf("Usage: identify <device-address>\n")
+	if len(os.Args) != 3 {
+		log.Fatalf("Usage: load  <device-address> <fwpkg>\n")
 	}
 	address := os.Args[1]
+	file := os.Args[2]
 
 	c, err := basefunc.NewClientFromSocketAddress(address)
+	if err != nil {
+		log.Fatalf("Failed to create basefunc client: %v\n", err)
+	}
+
+	err = c.LoadFirmware(file, 1024, 5*time.Second)
+	if err != nil {
+		log.Fatalf("Failed to load firmware package: %v\n", err)
+	}
+
+	log.Printf("Load succeeded. Reading back firmware ID\n")
+
+	// must create a new client, device has rebooted
+	c, err = basefunc.NewClientFromSocketAddress(address)
 	if err != nil {
 		log.Fatalf("Failed to create basefunc client: %v\n", err)
 	}
@@ -43,14 +56,4 @@ func main() {
 
 	fmt.Printf("Firmware name: %s, Version %d.%d.%d\n", fwID.Name, fwID.MajorVersion, fwID.MinorVersion, fwID.PatchVersion)
 
-	hwID, err := c.IdentifyHardware(5 * time.Second)
-	if err != nil {
-		log.Fatalf("Failed to identify hardware: %v\n", err)
-	}
-
-	u, err := uuid.FromSerial(hwID.SerialNumber.Hi, hwID.SerialNumber.Lo)
-	if err != nil {
-		log.Fatalf("Failed to make uuid from serial: %v\n", err)
-	}
-	fmt.Printf("Hardware name: %s, serial: %s, rev: %d\n", hwID.RootArticle, u.String(), hwID.MajorVersion)
 }
