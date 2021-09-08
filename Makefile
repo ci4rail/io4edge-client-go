@@ -5,4 +5,4 @@ proto:
 	go install google.golang.org/protobuf/cmd/protoc-gen-go
 	protoc -I=./proto ./proto/io4edge_base_function.proto --go_out=.
 
-.PHONY: all build clean test io4edge-devsim io4edge-cli proto
+.PHONY: all build clean test proto
