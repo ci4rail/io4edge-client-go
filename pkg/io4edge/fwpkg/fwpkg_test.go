@@ -1,6 +1,7 @@
 package fwpkg
 
 import (
+	"bytes"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -23,9 +24,9 @@ func TestDecodeManifestOk(t *testing.T) {
 	`
 	m, err := decodeManifest([]byte(s))
 	assert.Nil(t, err)
-	assert.Equal(t, m.Name, "cpu01-tty_accdl")
-	assert.Equal(t, m.Compatibility.HW, "s101-cpu01")
-	assert.Equal(t, m.Compatibility.MajorRevs, []int{1, 2})
+	assert.Equal(t, "cpu01-tty_accdl", m.Name)
+	assert.Equal(t, "s101-cpu01", m.Compatibility.HW)
+	assert.Equal(t, []int{1, 2}, m.Compatibility.MajorRevs)
 }
 
 func TestDecodeManifestBrokenJSON(t *testing.T) {
@@ -81,4 +82,16 @@ func TestDecodeManifestMissingRevs(t *testing.T) {
 	_, err := decodeManifest([]byte(s))
 	assert.NotNil(t, err)
 	assert.Contains(t, err.Error(), "missing \"compatibility.major_revs\"")
+}
+
+func TestNewFirmwarePackageFromFile(t *testing.T) {
+	p, err := NewFirmwarePackageFromFile("testdata/t1.fwpkg")
+	assert.Nil(t, err)
+	m := p.Manifest()
+	assert.Equal(t, "cpu01-tty_accdl", m.Name)
+
+	fwFile := new(bytes.Buffer)
+	err = p.File(fwFile)
+	assert.Nil(t, err)
+	assert.Equal(t, 155688, fwFile.Len())
 }

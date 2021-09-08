@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 )
 
@@ -27,7 +28,7 @@ type FirmwarePackage struct {
 }
 
 // NewFirmwarePackageFromFile creates an object to work with the firmware package in fileName
-// The file is opened and the manifest is parsed and checed for validity
+// The file is opened and the manifest is parsed and checed for validity. If not valid, an error is returned
 func NewFirmwarePackageFromFile(fileName string) (*FirmwarePackage, error) {
 	p := new(FirmwarePackage)
 	p.fileName = fileName
@@ -51,10 +52,28 @@ func (p *FirmwarePackage) Manifest() (manifest *FwManifest) {
 	return p.manifest
 }
 
+// File extracts the firmware binary file from the firmware package and writes it to w
+func (p *FirmwarePackage) File(w io.Writer) error {
+
+	_, err := p.file.Seek(0, 0)
+	if err != nil {
+		return err
+	}
+	err = untarFileContent(p.file, "./"+p.manifest.File, w)
+	if err != nil {
+		return errors.New("can't untar firmware binary " + p.manifest.File + ": " + err.Error())
+	}
+	return nil
+}
+
 func (p *FirmwarePackage) getManifest() (*FwManifest, error) {
 	mJSON := new(bytes.Buffer)
 
-	err := untarFileContent(p.file, "./manifest.json", mJSON)
+	_, err := p.file.Seek(0, 0)
+	if err != nil {
+		return nil, err
+	}
+	err = untarFileContent(p.file, "./manifest.json", mJSON)
 	if err != nil {
 		return nil, errors.New("can't untar manifest: " + err.Error())
 	}
@@ -75,9 +94,6 @@ func decodeManifest(b []byte) (*FwManifest, error) {
 	err := json.Unmarshal(b, &m)
 	if err != nil {
 		return nil, errors.New("can't decode manifest: " + err.Error())
-	}
-	if m == nil {
-		fmt.Printf("m is nil")
 	}
 	if m.Name == "" {
 		return nil, errors.New("missing \"name\" in manifest")
