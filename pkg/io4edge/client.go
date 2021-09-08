@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+// Package io4edge provides the API for io4edge I/O devices
 package io4edge
 
 import (
