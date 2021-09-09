@@ -14,18 +14,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package basefunc
+package core
 
 import (
 	"time"
+
+	api "github.com/ci4rail/io4edge-client-go/core/v1alpha1"
 )
 
 // IdentifyHardware gets the hardware inventory data from the device
-func (c *Client) IdentifyHardware(timeout time.Duration) (*ResIdentifyHardware, error) {
-	cmd := &BaseFuncCommand{
-		Id: BaseFuncCommandId_IDENTIFY_HARDWARE,
+func (c *Client) IdentifyHardware(timeout time.Duration) (*api.IdentifyHardwareResponse, error) {
+	cmd := &api.CoreCommand{
+		Id: api.CommandId_IDENTIFY_HARDWARE,
 	}
-	res := &BaseFuncResponse{}
+	res := &api.CoreResponse{}
 	if err := c.Command(cmd, res, timeout); err != nil {
 		return nil, err
 	}
@@ -34,14 +36,14 @@ func (c *Client) IdentifyHardware(timeout time.Duration) (*ResIdentifyHardware, 
 
 // ProgramHardwareIdentification programs hardware inventory data into the device.
 // Intended to be used during hardware manufacturing process only
-func (c *Client) ProgramHardwareIdentification(id *CmdProgramHardwareIdentification, timeout time.Duration) error {
-	cmd := &BaseFuncCommand{
-		Id: BaseFuncCommandId_PROGRAM_HARDWARE_IDENTIFICATION,
-		Data: &BaseFuncCommand_ProgramHardwareIdentification{
+func (c *Client) ProgramHardwareIdentification(id *api.ProgramHardwareIdentificationCommand, timeout time.Duration) error {
+	cmd := &api.CoreCommand{
+		Id: api.CommandId_PROGRAM_HARDWARE_IDENTIFICATION,
+		Data: &api.CoreCommand_ProgramHardwareIdentification{
 			ProgramHardwareIdentification: id,
 		},
 	}
-	res := &BaseFuncResponse{}
+	res := &api.CoreResponse{}
 	if err := c.Command(cmd, res, timeout); err != nil {
 		return err
 	}

@@ -1,4 +1,4 @@
-package basefunc
+package core
 
 import (
 	"testing"

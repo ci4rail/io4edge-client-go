@@ -15,8 +15,8 @@ limitations under the License.
 */
 syntax = "proto3";
 
-package io4edgeBaseFunction;
-option go_package = "pkg/io4edge/basefunc";
+package io4edgeCoreApi;
+option go_package = "core/v1alpha1";
 
 
 message SerialNumber {
@@ -24,7 +24,7 @@ message SerialNumber {
     fixed64 lo = 2;
 }
 
-enum BaseFuncCommandId {
+enum CommandId {
     IDENTIFY_HARDWARE = 0;
     IDENTIFY_FIRMWARE = 1;
     LOAD_FIRMWARE_CHUNK = 2;
@@ -32,7 +32,7 @@ enum BaseFuncCommandId {
 }
 
 
-enum BaseFuncStatus {
+enum Status {
     OK = 0;
     UNKNOWN_COMMAND = 1;
     PROGRAMMING_ERROR = 2;
@@ -47,26 +47,26 @@ enum BaseFuncStatus {
 // chunk numbers. Clients defines chunk size.
 // Server must acknowledge each chunk with Response.
 // Last chunk has is_last_chunk set to True, so server knows that programming has finished
-message CmdLoadFirmwareChunk {
+message LoadFirmwareChunkCommand {
     uint32 chunk_number = 1;
     bool is_last_chunk = 2;
     bytes data = 3;
 }
 
-message CmdProgramHardwareIdentification {
+message ProgramHardwareIdentificationCommand {
     string signature = 1;
     string root_article = 2;
     uint32 major_version = 3;
     SerialNumber serial_number = 4;
 }
 
-message ResIdentifyHardware {
+message IdentifyHardwareResponse {
     string root_article = 1;
     uint32 major_version = 2;
     SerialNumber serial_number = 3;
 }
 
-message ResIdentifyFirmware {
+message IdentifyFirmwareResponse {
     string name = 1;
     uint32 major_version = 2;
     uint32 minor_version = 3;
@@ -74,19 +74,19 @@ message ResIdentifyFirmware {
 }
 
 // The common messages
-message BaseFuncCommand {
-    BaseFuncCommandId id = 1;
+message CoreCommand {
+    CommandId id = 1;
     oneof data {
-        CmdLoadFirmwareChunk load_firmware_chunk = 2;
-        CmdProgramHardwareIdentification program_hardware_identification = 3;
+        LoadFirmwareChunkCommand load_firmware_chunk = 2;
+        ProgramHardwareIdentificationCommand program_hardware_identification = 3;
     }
 }
 
-message BaseFuncResponse {
-    BaseFuncCommandId id = 1;
-    BaseFuncStatus status = 2;
+message CoreResponse {
+    CommandId id = 1;
+    Status status = 2;
     oneof data {
-        ResIdentifyHardware identify_hardware = 3;
-        ResIdentifyFirmware identify_firmware = 4;
+        IdentifyHardwareResponse identify_hardware = 3;
+        IdentifyFirmwareResponse identify_firmware = 4;
     }
 }

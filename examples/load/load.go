@@ -21,7 +21,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/ci4rail/io4edge-client-go/pkg/io4edge/basefunc"
+	"github.com/ci4rail/io4edge-client-go/core"
 )
 
 func main() {
@@ -31,7 +31,7 @@ func main() {
 	address := os.Args[1]
 	file := os.Args[2]
 
-	c, err := basefunc.NewClientFromSocketAddress(address)
+	c, err := core.NewClientFromSocketAddress(address)
 	if err != nil {
 		log.Fatalf("Failed to create basefunc client: %v\n", err)
 	}
@@ -44,7 +44,7 @@ func main() {
 	log.Printf("Load succeeded. Reading back firmware ID\n")
 
 	// must create a new client, device has rebooted
-	c, err = basefunc.NewClientFromSocketAddress(address)
+	c, err = core.NewClientFromSocketAddress(address)
 	if err != nil {
 		log.Fatalf("Failed to create basefunc client: %v\n", err)
 	}

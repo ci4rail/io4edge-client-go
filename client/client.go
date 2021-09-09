@@ -14,39 +14,34 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package basefunc provides the API for the io4edge base functions
-// i.e. firmware and hardware id management
-package basefunc
+// Package client provides the API for io4edge I/O devices
+package client
 
 import (
-	"errors"
 	"time"
 
-	"github.com/ci4rail/io4edge-client-go/pkg/io4edge"
+	"google.golang.org/protobuf/proto"
 )
 
 // Client represents a client for the io4edge base function
 type Client struct {
-	ch *io4edge.Channel
+	ch *Channel
 }
 
 // NewClient creates a new client for the base function
-func NewClient(c *io4edge.Channel) (*Client, error) {
+func NewClient(c *Channel) (*Client, error) {
 	return &Client{ch: c}, nil
 }
 
-// Command issues a command cmd to a base function channel, waits for the devices response and returns it in res
-func (c *Client) Command(cmd *BaseFuncCommand, res *BaseFuncResponse, timeout time.Duration) error {
-	err := c.ch.WriteMessage(cmd)
+// Command issues a command cmd to a channel, waits for the devices response and returns it in res
+func (c *Channel) Command(cmd proto.Message, res proto.Message, timeout time.Duration) error {
+	err := c.WriteMessage(cmd)
 	if err != nil {
 		return err
 	}
-	err = c.ch.ReadMessage(res, timeout)
+	err = c.ReadMessage(res, timeout)
 	if err != nil {
-		return errors.New("Failed to receive device response: " + err.Error())
-	}
-	if res.Status != BaseFuncStatus_OK {
-		return errors.New("Device reported error status: " + res.Status.String())
+		return err
 	}
 	return err
 }

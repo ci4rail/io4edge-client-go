@@ -21,8 +21,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/ci4rail/io4edge-client-go/pkg/io4edge/basefunc"
-	"github.com/ci4rail/io4edge-client-go/pkg/io4edge/uuid"
+	"github.com/ci4rail/hw-inventory-go/serno"
+	"github.com/ci4rail/io4edge-client-go/core"
 )
 
 func main() {
@@ -31,7 +31,7 @@ func main() {
 	}
 	address := os.Args[1]
 
-	c, err := basefunc.NewClientFromSocketAddress(address)
+	c, err := core.NewClientFromSocketAddress(address)
 	if err != nil {
 		log.Fatalf("Failed to create basefunc client: %v\n", err)
 	}
@@ -48,7 +48,7 @@ func main() {
 		log.Fatalf("Failed to identify hardware: %v\n", err)
 	}
 
-	u, err := uuid.FromSerial(hwID.SerialNumber.Hi, hwID.SerialNumber.Lo)
+	u, err := serno.FromSerial(hwID.SerialNumber.Hi, hwID.SerialNumber.Lo)
 	if err != nil {
 		log.Fatalf("Failed to make uuid from serial: %v\n", err)
 	}
