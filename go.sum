@@ -1,3 +1,5 @@
+github.com/ci4rail/firmware-packaging-go v0.0.0-20210909190301-caf7c09b5936 h1:e8298j5PZgTMLRBZTA2HiPXedUrqHSFaqtt6QDHQ+n4=
+github.com/ci4rail/firmware-packaging-go v0.0.0-20210909190301-caf7c09b5936/go.mod h1:SuaeirmoxRxyIcfU9op5OyAEvmHym43bFIE60U+8nvw=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/gofrs/uuid v4.0.0+incompatible h1:1SD/1F5pU8p29ybwgQSwpQk+mwdRrXCYuPhW6m+TnJw=

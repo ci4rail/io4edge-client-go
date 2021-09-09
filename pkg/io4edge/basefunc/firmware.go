@@ -26,7 +26,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ci4rail/io4edge-client-go/pkg/io4edge/fwpkg"
+	fwpkg "github.com/ci4rail/firmware-packaging-go"
 )
 
 // FirmwareAlreadyPresentError is returned by LoadFirmware as a dummy error
@@ -55,7 +55,7 @@ func (c *Client) IdentifyFirmware(timeout time.Duration) (*ResIdentifyFirmware, 
 // timeout is for each chunk
 func (c *Client) LoadFirmware(file string, chunkSize uint, timeout time.Duration) error {
 
-	pkg, err := fwpkg.NewFirmwarePackageFromFile(file)
+	pkg, err := fwpkg.NewFirmwarePackageConsumerFromFile(file)
 	if err != nil {
 		return err
 	}
