@@ -16,7 +16,7 @@ limitations under the License.
 
 package transport
 
-// Transport is the interface used by Channel to communicate with the underlying stream
+// Transport is the interface used by message stream to communicate with the underlying transport layer
 // e.g. socket, websocket...
 type Transport interface {
 	Read(p []byte) (n int, err error)

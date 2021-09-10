@@ -32,6 +32,13 @@ type FramedStream struct {
 	Trans Transport
 }
 
+// NewFramedStreamFromTransport creates a message stream from transport t
+func NewFramedStreamFromTransport(t Transport) (*FramedStream, error) {
+	return &FramedStream{
+		Trans: t,
+	}, nil
+}
+
 // WriteMsg writes io4edge standard message to the transport stream
 func (fs *FramedStream) WriteMsg(payload []byte) error {
 	// make sure we have the magic bytes

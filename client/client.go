@@ -18,6 +18,7 @@ limitations under the License.
 package client
 
 import (
+	"errors"
 	"time"
 
 	"google.golang.org/protobuf/proto"
@@ -41,7 +42,7 @@ func (c *Channel) Command(cmd proto.Message, res proto.Message, timeout time.Dur
 	}
 	err = c.ReadMessage(res, timeout)
 	if err != nil {
-		return err
+		return errors.New("Failed to receive device response: " + err.Error())
 	}
 	return err
 }

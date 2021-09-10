@@ -20,6 +20,7 @@ import (
 	"errors"
 
 	"github.com/ci4rail/io4edge-client-go/client"
+	"github.com/ci4rail/io4edge-client-go/transport"
 	"github.com/ci4rail/io4edge-client-go/transport/socket"
 )
 
@@ -29,7 +30,7 @@ func NewClientFromSocketAddress(address string) (*Client, error) {
 	if err != nil {
 		return nil, errors.New("can't create connection: " + err.Error())
 	}
-	ms, err := socket.NewMsgStreamFromConnection(t)
+	ms, err := transport.NewFramedStreamFromTransport(t)
 	if err != nil {
 		return nil, errors.New("can't create msg stream: " + err.Error())
 	}

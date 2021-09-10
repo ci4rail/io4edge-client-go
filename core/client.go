@@ -38,13 +38,9 @@ func NewClient(c *client.Channel) (*Client, error) {
 
 // Command issues a command cmd to a base function channel, waits for the devices response and returns it in res
 func (c *Client) Command(cmd *api.CoreCommand, res *api.CoreResponse, timeout time.Duration) error {
-	err := c.ch.WriteMessage(cmd)
+	err := c.ch.Command(cmd, res, timeout)
 	if err != nil {
 		return err
-	}
-	err = c.ch.ReadMessage(res, timeout)
-	if err != nil {
-		return errors.New("Failed to receive device response: " + err.Error())
 	}
 	if res.Status != api.Status_OK {
 		return errors.New("Device reported error status: " + res.Status.String())

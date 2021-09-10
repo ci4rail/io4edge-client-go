@@ -18,8 +18,6 @@ package socket
 
 import (
 	"net"
-
-	"github.com/ci4rail/io4edge-client-go/transport"
 )
 
 // NewSocketListener creates a Listener on a socket on a TCP socket
@@ -62,11 +60,4 @@ func NewSocketConnection(address string) (*net.TCPConn, error) {
 	}
 
 	return conn, nil
-}
-
-// NewMsgStreamFromConnection creates a message stream from TCP connection
-func NewMsgStreamFromConnection(conn *net.TCPConn) (*transport.FramedStream, error) {
-	return &transport.FramedStream{
-		Trans: conn,
-	}, nil
 }
