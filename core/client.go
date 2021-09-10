@@ -14,34 +14,36 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package io4edge provides the API for io4edge I/O devices
-package io4edge
+// Package core provides the API for the io4edge core functions
+// i.e. firmware and hardware id management
+package core
 
 import (
+	"errors"
 	"time"
 
-	"google.golang.org/protobuf/proto"
+	"github.com/ci4rail/io4edge-client-go/client"
+	api "github.com/ci4rail/io4edge-client-go/core/v1alpha1"
 )
 
 // Client represents a client for the io4edge base function
 type Client struct {
-	ch *Channel
+	ch *client.Channel
 }
 
 // NewClient creates a new client for the base function
-func NewClient(c *Channel) (*Client, error) {
+func NewClient(c *client.Channel) (*Client, error) {
 	return &Client{ch: c}, nil
 }
 
-// Command issues a command cmd to a channel, waits for the devices response and returns it in res
-func (c *Channel) Command(cmd proto.Message, res proto.Message, timeout time.Duration) error {
-	err := c.WriteMessage(cmd)
+// Command issues a command cmd to a base function channel, waits for the devices response and returns it in res
+func (c *Client) Command(cmd *api.CoreCommand, res *api.CoreResponse, timeout time.Duration) error {
+	err := c.ch.Command(cmd, res, timeout)
 	if err != nil {
 		return err
 	}
-	err = c.ReadMessage(res, timeout)
-	if err != nil {
-		return err
+	if res.Status != api.Status_OK {
+		return errors.New("Device reported error status: " + res.Status.String())
 	}
 	return err
 }

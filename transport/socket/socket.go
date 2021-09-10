@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package transport
+package socket
 
 import (
 	"net"
@@ -60,11 +60,4 @@ func NewSocketConnection(address string) (*net.TCPConn, error) {
 	}
 
 	return conn, nil
-}
-
-// NewMsgStreamFromConnection creates a message stream from TCP connection
-func NewMsgStreamFromConnection(conn *net.TCPConn) (*FramedStream, error) {
-	return &FramedStream{
-		trans: conn,
-	}, nil
 }

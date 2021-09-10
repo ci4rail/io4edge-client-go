@@ -21,22 +21,25 @@ import (
 	"os"
 	"time"
 
-	"github.com/ci4rail/io4edge-client-go/pkg/io4edge/basefunc"
+	"github.com/ci4rail/io4edge-client-go/core"
 )
 
 func main() {
+	const timeout = 5 * time.Second
+	const chunkSize = 1024
+
 	if len(os.Args) != 3 {
 		log.Fatalf("Usage: load  <device-address> <fwpkg>\n")
 	}
 	address := os.Args[1]
 	file := os.Args[2]
 
-	c, err := basefunc.NewClientFromSocketAddress(address)
+	c, err := core.NewClientFromSocketAddress(address)
 	if err != nil {
 		log.Fatalf("Failed to create basefunc client: %v\n", err)
 	}
 
-	err = c.LoadFirmware(file, 1024, 5*time.Second)
+	err = c.LoadFirmware(file, chunkSize, timeout)
 	if err != nil {
 		log.Fatalf("Failed to load firmware package: %v\n", err)
 	}
@@ -44,12 +47,12 @@ func main() {
 	log.Printf("Load succeeded. Reading back firmware ID\n")
 
 	// must create a new client, device has rebooted
-	c, err = basefunc.NewClientFromSocketAddress(address)
+	c, err = core.NewClientFromSocketAddress(address)
 	if err != nil {
 		log.Fatalf("Failed to create basefunc client: %v\n", err)
 	}
 
-	fwID, err := c.IdentifyFirmware(5 * time.Second)
+	fwID, err := c.IdentifyFirmware(timeout)
 	if err != nil {
 		log.Fatalf("Failed to identify firmware: %v\n", err)
 	}

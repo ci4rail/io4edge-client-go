@@ -14,13 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io4edge
+package client
 
 import (
 	"errors"
 	"time"
 
-	"github.com/ci4rail/io4edge-client-go/pkg/io4edge/transport"
+	"github.com/ci4rail/io4edge-client-go/transport"
 	"google.golang.org/protobuf/proto"
 )
 

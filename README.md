@@ -20,8 +20,6 @@ $ go get github.com/ci4rail/io4edge-client-go/pkg/io4edge
 
 ### Indentify currently running firmware
 
-Pass the `device-address` as an IP address with port, e.g. `192.168.7.1:9999`
-
 ```go
 package main
 
@@ -31,21 +29,20 @@ import (
 	"os"
 	"time"
 
-	"github.com/ci4rail/io4edge-client-go/pkg/io4edge/basefunc"
+	"github.com/ci4rail/io4edge-client-go/core"
 )
 
 func main() {
-	if len(os.Args) != 2 {
-		log.Fatalf("Usage: identify <device-address>\n")
-	}
-	address := os.Args[1]
+	const timeout = 5 * time.Second
 
-	c, err := basefunc.NewClientFromSocketAddress(address)
+	address := "192.168.7.1:9999"
+
+	c, err := core.NewClientFromSocketAddress(address)
 	if err != nil {
 		log.Fatalf("Failed to create basefunc client: %v\n", err)
 	}
 
-	fwID, err := c.IdentifyFirmware(5 * time.Second)
+	fwID, err := c.IdentifyFirmware(timeout)
 	if err != nil {
 		log.Fatalf("Failed to identify firmware: %v\n", err)
 	}
@@ -69,22 +66,22 @@ import (
 	"os"
 	"time"
 
-	"github.com/ci4rail/io4edge-client-go/pkg/io4edge/basefunc"
+	"github.com/ci4rail/io4edge-client-go/core"
 )
 
 func main() {
-	if len(os.Args) != 3 {
-		log.Fatalf("Usage: load  <device-address> <fwpkg>\n")
-	}
-	address := os.Args[1]
-	file := os.Args[2]
+	const timeout = 5 * time.Second
+	const chunkSize = 1024
 
-	c, err := basefunc.NewClientFromSocketAddress(address)
+	address := "192.168.7.1:9999"
+	file := "myfirmware.fwpkg"
+
+	c, err := core.NewClientFromSocketAddress(address)
 	if err != nil {
 		log.Fatalf("Failed to create basefunc client: %v\n", err)
 	}
 
-	err = c.LoadFirmware(file, 1024, 5*time.Second)
+	err = c.LoadFirmware(file, chunkSize, timeout)
 	if err != nil {
 		log.Fatalf("Failed to load firmware package: %v\n", err)
 	}

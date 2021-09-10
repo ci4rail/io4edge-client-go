@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package basefunc
+package core
 
 import (
 	"bufio"
@@ -26,7 +26,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ci4rail/io4edge-client-go/pkg/io4edge/fwpkg"
+	fwpkg "github.com/ci4rail/firmware-packaging-go"
+	api "github.com/ci4rail/io4edge-client-go/core/v1alpha1"
 )
 
 // FirmwareAlreadyPresentError is returned by LoadFirmware as a dummy error
@@ -39,11 +40,11 @@ func (e *FirmwareAlreadyPresentError) Error() string {
 }
 
 // IdentifyFirmware gets the firmware name and version from the device
-func (c *Client) IdentifyFirmware(timeout time.Duration) (*ResIdentifyFirmware, error) {
-	cmd := &BaseFuncCommand{
-		Id: BaseFuncCommandId_IDENTIFY_FIRMWARE,
+func (c *Client) IdentifyFirmware(timeout time.Duration) (*api.IdentifyFirmwareResponse, error) {
+	cmd := &api.CoreCommand{
+		Id: api.CommandId_IDENTIFY_FIRMWARE,
 	}
-	res := &BaseFuncResponse{}
+	res := &api.CoreResponse{}
 	if err := c.Command(cmd, res, timeout); err != nil {
 		return nil, err
 	}
@@ -55,7 +56,7 @@ func (c *Client) IdentifyFirmware(timeout time.Duration) (*ResIdentifyFirmware, 
 // timeout is for each chunk
 func (c *Client) LoadFirmware(file string, chunkSize uint, timeout time.Duration) error {
 
-	pkg, err := fwpkg.NewFirmwarePackageFromFile(file)
+	pkg, err := fwpkg.NewFirmwarePackageConsumerFromFile(file)
 	if err != nil {
 		return err
 	}
@@ -122,10 +123,10 @@ func (c *Client) LoadFirmwareBinaryFromFile(file string, chunkSize uint, timeout
 // timeout is for each chunk
 func (c *Client) LoadFirmwareBinary(r *bufio.Reader, chunkSize uint, timeout time.Duration) error {
 
-	cmd := &BaseFuncCommand{
-		Id: BaseFuncCommandId_LOAD_FIRMWARE_CHUNK,
-		Data: &BaseFuncCommand_LoadFirmwareChunk{
-			LoadFirmwareChunk: &CmdLoadFirmwareChunk{
+	cmd := &api.CoreCommand{
+		Id: api.CommandId_LOAD_FIRMWARE_CHUNK,
+		Data: &api.CoreCommand_LoadFirmwareChunk{
+			LoadFirmwareChunk: &api.LoadFirmwareChunkCommand{
 				Data: make([]byte, chunkSize),
 			},
 		},
@@ -151,7 +152,7 @@ func (c *Client) LoadFirmwareBinary(r *bufio.Reader, chunkSize uint, timeout tim
 		cmd.GetLoadFirmwareChunk().IsLastChunk = atEOF
 		cmd.GetLoadFirmwareChunk().ChunkNumber = chunkNumber
 
-		res := &BaseFuncResponse{}
+		res := &api.CoreResponse{}
 		err = c.Command(cmd, res, timeout)
 		if err != nil {
 			return errors.New("load firmware chunk command failed: " + err.Error())

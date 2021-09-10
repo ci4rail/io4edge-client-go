@@ -29,7 +29,14 @@ import (
 
 // FramedStream represents a stream with message semantics
 type FramedStream struct {
-	trans Transport
+	Trans Transport
+}
+
+// NewFramedStreamFromTransport creates a message stream from transport t
+func NewFramedStreamFromTransport(t Transport) (*FramedStream, error) {
+	return &FramedStream{
+		Trans: t,
+	}, nil
 }
 
 // WriteMsg writes io4edge standard message to the transport stream
@@ -83,7 +90,7 @@ func (fs *FramedStream) writePayload(payload []byte) error {
 // writeBytesSafe retries writing to transport stream until all bytes are written
 func (fs *FramedStream) writeBytesSafe(payload []byte) error {
 	for {
-		written, err := fs.trans.Write(payload)
+		written, err := fs.Trans.Write(payload)
 		if err != nil {
 			return err
 		}
@@ -121,7 +128,7 @@ func (fs *FramedStream) readMagicBytes() error {
 		for i := 0; i < 2; i++ {
 			b := make([]byte, 1)
 
-			_, err := fs.trans.Read(b)
+			_, err := fs.Trans.Read(b)
 			if err != nil {
 				return err
 			}
@@ -136,7 +143,7 @@ func (fs *FramedStream) readMagicBytes() error {
 // readLength reads 4 bytes from transport stream and returns the length as uint of the message.
 func (fs *FramedStream) readLength() (uint, error) {
 	lengthBytes := make([]byte, 4)
-	_, err := fs.trans.Read(lengthBytes)
+	_, err := fs.Trans.Read(lengthBytes)
 	if err != nil {
 		return 0, err
 	}
@@ -150,7 +157,7 @@ func (fs *FramedStream) readLength() (uint, error) {
 // readPayload reads the payload from transport stream and returns it as []byte.
 func (fs *FramedStream) readPayload(length uint) ([]byte, error) {
 	payload := make([]byte, length)
-	n, err := fs.trans.Read(payload)
+	n, err := fs.Trans.Read(payload)
 	if err != nil {
 		return nil, err
 	}
@@ -162,5 +169,5 @@ func (fs *FramedStream) readPayload(length uint) ([]byte, error) {
 
 // Close closes the transport stream
 func (fs *FramedStream) Close() error {
-	return fs.trans.Close()
+	return fs.Trans.Close()
 }
