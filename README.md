@@ -1,7 +1,7 @@
 # io4edge-client-go
 go client sdk for io4edge
 
-io4edge devices are intelligent I/O devices invented by [Ci4Rail](www.ci4rail.com), connected to the host via network.
+io4edge devices are intelligent I/O devices invented by [Ci4Rail](https://www.ci4rail.com), connected to the host via network.
 
 This package currently provides a Go API to manage those devices, such as:
 * Identify the currently running firmware
