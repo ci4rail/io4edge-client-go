@@ -14,7 +14,7 @@ Current version uses TCP sockets for communication. May be later extended to fur
 ## Installation
 
 ```bash
-$ go get github.com/ci4rail/io4edge-client-go/pkg/io4edge
+$ go get github.com/ci4rail/io4edge-client-go
 ```
 
 ## Examples
