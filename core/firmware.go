@@ -51,8 +51,9 @@ func (c *Client) IdentifyFirmware(timeout time.Duration) (*api.IdentifyFirmwareR
 	return res.GetIdentifyFirmware(), nil
 }
 
-// LoadFirmware loads a binary from a firmware package to the device
-//
+// LoadFirmware loads a binary from a firmware package to the device.
+// Checks first if the firmware is compatible with the device.
+// Checks then if the device's firmware version is the same
 // timeout is for each chunk
 func (c *Client) LoadFirmware(file string, chunkSize uint, timeout time.Duration) error {
 

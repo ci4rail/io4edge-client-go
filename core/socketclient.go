@@ -30,18 +30,9 @@ func NewClientFromSocketAddress(address string) (*Client, error) {
 	if err != nil {
 		return nil, errors.New("can't create connection: " + err.Error())
 	}
-	ms, err := transport.NewFramedStreamFromTransport(t)
-	if err != nil {
-		return nil, errors.New("can't create msg stream: " + err.Error())
-	}
+	ms := transport.NewFramedStreamFromTransport(t)
+	ch := client.NewChannel(ms)
+	c := NewClient(ch)
 
-	ch, err := client.NewChannel(ms)
-	if err != nil {
-		return nil, errors.New("can't create channel: " + err.Error())
-	}
-	c, err := NewClient(ch)
-	if err != nil {
-		return nil, errors.New("can't basefunc create client: " + err.Error())
-	}
 	return c, nil
 }

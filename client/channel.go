@@ -24,17 +24,17 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// Channel represents a io4edge channel
+// Channel represents a connection between the host and the device used to exchange protobuf messages
 type Channel struct {
 	ms transport.MsgStream
 }
 
 // NewChannel creates a new channel using the transport mechanism in t
-func NewChannel(ms transport.MsgStream) (*Channel, error) {
-	return &Channel{ms: ms}, nil
+func NewChannel(ms transport.MsgStream) *Channel {
+	return &Channel{ms: ms}
 }
 
-// Close closes the message stream
+// Close terminates the message stream
 func (c *Channel) Close() {
 	c.ms.Close()
 }

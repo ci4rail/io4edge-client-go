@@ -32,8 +32,8 @@ type Client struct {
 }
 
 // NewClient creates a new client for the base function
-func NewClient(c *client.Channel) (*Client, error) {
-	return &Client{ch: c}, nil
+func NewClient(c *client.Channel) *Client {
+	return &Client{ch: c}
 }
 
 // Command issues a command cmd to a base function channel, waits for the devices response and returns it in res

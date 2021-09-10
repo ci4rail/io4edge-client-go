@@ -7,6 +7,7 @@ This package currently provides a Go API to manage those devices, such as:
 * Identify the currently running firmware
 * Load new firmware
 * Identify HW (name, revision, serial number)
+* Program HW identification
 
 Current version uses TCP sockets for communication. May be later extended to further transport protocols such as websockets.
 
@@ -37,11 +38,13 @@ func main() {
 
 	address := "192.168.7.1:9999"
 
+	// Create a client object to work with the io4edge device at <address>
 	c, err := core.NewClientFromSocketAddress(address)
 	if err != nil {
 		log.Fatalf("Failed to create basefunc client: %v\n", err)
 	}
 
+	// Get the active firmware version from the device
 	fwID, err := c.IdentifyFirmware(timeout)
 	if err != nil {
 		log.Fatalf("Failed to identify firmware: %v\n", err)
@@ -76,11 +79,15 @@ func main() {
 	address := "192.168.7.1:9999"
 	file := "myfirmware.fwpkg"
 
+	// Create a client object to work with the io4edge device at <address>
 	c, err := core.NewClientFromSocketAddress(address)
 	if err != nil {
 		log.Fatalf("Failed to create basefunc client: %v\n", err)
 	}
 
+	// Load the firmware package into the device
+	// Loading happens in chunks of <chunkSize>. 1024 should work with each device
+	// <timeout> is the time to wait for responses from device
 	err = c.LoadFirmware(file, chunkSize, timeout)
 	if err != nil {
 		log.Fatalf("Failed to load firmware package: %v\n", err)

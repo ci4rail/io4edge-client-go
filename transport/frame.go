@@ -33,10 +33,10 @@ type FramedStream struct {
 }
 
 // NewFramedStreamFromTransport creates a message stream from transport t
-func NewFramedStreamFromTransport(t Transport) (*FramedStream, error) {
+func NewFramedStreamFromTransport(t Transport) *FramedStream {
 	return &FramedStream{
 		Trans: t,
-	}, nil
+	}
 }
 
 // WriteMsg writes io4edge standard message to the transport stream

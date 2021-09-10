@@ -33,11 +33,13 @@ func main() {
 	}
 	address := os.Args[1]
 
+	// Create a client object to work with the io4edge device at <address>
 	c, err := core.NewClientFromSocketAddress(address)
 	if err != nil {
 		log.Fatalf("Failed to create basefunc client: %v\n", err)
 	}
 
+	// Get the active firmware version from the device
 	fwID, err := c.IdentifyFirmware(timeout)
 	if err != nil {
 		log.Fatalf("Failed to identify firmware: %v\n", err)
@@ -45,11 +47,13 @@ func main() {
 
 	fmt.Printf("Firmware name: %s, Version %d.%d.%d\n", fwID.Name, fwID.MajorVersion, fwID.MinorVersion, fwID.PatchVersion)
 
+	// Get the hardware name and version from the device
 	hwID, err := c.IdentifyHardware(timeout)
 	if err != nil {
 		log.Fatalf("Failed to identify hardware: %v\n", err)
 	}
 
+	// device reports its serial number into two 64 bit values. Convert it to UUID
 	u, err := serno.UUIDFromInt(hwID.SerialNumber.Hi, hwID.SerialNumber.Lo)
 	if err != nil {
 		log.Fatalf("Failed to make uuid from serial: %v\n", err)

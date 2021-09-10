@@ -39,7 +39,6 @@ func NewSocketListener(port string) (*net.TCPListener, error) {
 // WaitForSocketConnect waits for a client to connect to the TCP socket and returns the TCP connection
 // There is no timeout
 func WaitForSocketConnect(l *net.TCPListener) (*net.TCPConn, error) {
-
 	conn, err := l.AcceptTCP()
 	if err != nil {
 		return nil, err
