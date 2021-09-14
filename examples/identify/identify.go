@@ -45,7 +45,7 @@ func main() {
 		log.Fatalf("Failed to identify firmware: %v\n", err)
 	}
 
-	fmt.Printf("Firmware name: %s, Version %d.%d.%d\n", fwID.Name, fwID.MajorVersion, fwID.MinorVersion, fwID.PatchVersion)
+	fmt.Printf("Firmware name: %s, Version %s\n", fwID.Name, fwID.Version)
 
 	// Get the hardware name and version from the device
 	hwID, err := c.IdentifyHardware(timeout)

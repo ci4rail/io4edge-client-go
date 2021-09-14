@@ -87,9 +87,7 @@ func (c *Client) LoadFirmware(file string, chunkSize uint, timeout time.Duration
 	}
 
 	// check if fw already running
-	curVer := fmt.Sprintf("%d.%d.%d", currentFWID.MajorVersion, currentFWID.MinorVersion, currentFWID.PatchVersion)
-
-	if strings.EqualFold(currentFWID.Name, manifest.Name) && curVer == manifest.Version {
+	if strings.EqualFold(currentFWID.Name, manifest.Name) && currentFWID.Version == manifest.Version {
 		return &FirmwareAlreadyPresentError{}
 	}
 

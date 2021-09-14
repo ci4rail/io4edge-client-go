@@ -38,6 +38,9 @@ enum Status {
     PROGRAMMING_ERROR = 2;
     CHUNK_SEQ_ERROR = 3;
     NOT_COMPATIBLE = 4;
+    CHUNK_SIZE_ERROR = 5;
+    INTERNAL_ERROR = 6;
+    THIS_VERSION_FAILED_ALREADY = 7;
 }
 
 // Individual Commands and Responses
@@ -68,9 +71,7 @@ message IdentifyHardwareResponse {
 
 message IdentifyFirmwareResponse {
     string name = 1;
-    uint32 major_version = 2;
-    uint32 minor_version = 3;
-    uint32 patch_version = 4;
+    string version = 2;
 }
 
 // The common messages
