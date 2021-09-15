@@ -36,7 +36,7 @@ func main() {
 	// Create a client object to work with the io4edge device at <address>
 	c, err := core.NewClientFromSocketAddress(address)
 	if err != nil {
-		log.Fatalf("Failed to create basefunc client: %v\n", err)
+		log.Fatalf("Failed to create core client: %v\n", err)
 	}
 
 	// Get the active firmware version from the device

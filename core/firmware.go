@@ -55,24 +55,25 @@ func (c *Client) IdentifyFirmware(timeout time.Duration) (*api.IdentifyFirmwareR
 // Checks first if the firmware is compatible with the device.
 // Checks then if the device's firmware version is the same
 // timeout is for each chunk
-func (c *Client) LoadFirmware(file string, chunkSize uint, timeout time.Duration) error {
+func (c *Client) LoadFirmware(file string, chunkSize uint, timeout time.Duration) (restartingNow bool, err error) {
+	restartingNow = false
 
 	pkg, err := fwpkg.NewFirmwarePackageConsumerFromFile(file)
 	if err != nil {
-		return err
+		return restartingNow, err
 	}
 	manifest := pkg.Manifest()
 
 	// get currently running firmware
 	currentFWID, err := c.IdentifyFirmware(timeout)
 	if err != nil {
-		return err
+		return restartingNow, err
 	}
 
 	// get devices hardware id
 	hwID, err := c.IdentifyHardware(timeout)
 	if err != nil {
-		return err
+		return restartingNow, err
 	}
 
 	// check compatibility
@@ -83,33 +84,30 @@ func (c *Client) LoadFirmware(file string, chunkSize uint, timeout time.Duration
 		int(hwID.MajorVersion),
 	)
 	if err != nil {
-		return err
+		return restartingNow, err
 	}
 
 	// check if fw already running
 	if strings.EqualFold(currentFWID.Name, manifest.Name) && currentFWID.Version == manifest.Version {
-		return &FirmwareAlreadyPresentError{}
+		return restartingNow, &FirmwareAlreadyPresentError{}
 	}
 
 	fwFile := new(bytes.Buffer)
 	err = pkg.File(fwFile)
 	if err != nil {
-		return err
+		return restartingNow, err
 	}
 
-	err = c.LoadFirmwareBinary(bufio.NewReader(fwFile), chunkSize, timeout)
-	if err != nil {
-		return err
-	}
-	return err
+	restartingNow, err = c.LoadFirmwareBinary(bufio.NewReader(fwFile), chunkSize, timeout)
+	return restartingNow, err
 }
 
 // LoadFirmwareBinaryFromFile loads new firmware from file into the device device
 // timeout is for each chunk
-func (c *Client) LoadFirmwareBinaryFromFile(file string, chunkSize uint, timeout time.Duration) error {
+func (c *Client) LoadFirmwareBinaryFromFile(file string, chunkSize uint, timeout time.Duration) (restartingNow bool, err error) {
 	f, err := os.Open(file)
 	if err != nil {
-		return errors.New("cannot open file " + file + " : " + err.Error())
+		return false, errors.New("cannot open file " + file + " : " + err.Error())
 	}
 
 	defer f.Close()
@@ -120,7 +118,7 @@ func (c *Client) LoadFirmwareBinaryFromFile(file string, chunkSize uint, timeout
 
 // LoadFirmwareBinary loads new firmware via r into the device device
 // timeout is for each chunk
-func (c *Client) LoadFirmwareBinary(r *bufio.Reader, chunkSize uint, timeout time.Duration) error {
+func (c *Client) LoadFirmwareBinary(r *bufio.Reader, chunkSize uint, timeout time.Duration) (restartingNow bool, err error) {
 
 	cmd := &api.CoreCommand{
 		Id: api.CommandId_LOAD_FIRMWARE_CHUNK,
@@ -133,13 +131,14 @@ func (c *Client) LoadFirmwareBinary(r *bufio.Reader, chunkSize uint, timeout tim
 	data := cmd.GetLoadFirmwareChunk().Data
 
 	chunkNumber := uint32(0)
+	restartingNow = false
 
 	for {
 		atEOF := false
 
 		_, err := r.Read(data)
 		if err != nil {
-			return errors.New("read firmware failed: " + err.Error())
+			return restartingNow, errors.New("read firmware failed: " + err.Error())
 		}
 
 		// check if we are at EOF
@@ -154,16 +153,16 @@ func (c *Client) LoadFirmwareBinary(r *bufio.Reader, chunkSize uint, timeout tim
 		res := &api.CoreResponse{}
 		err = c.Command(cmd, res, timeout)
 		if err != nil {
-			return errors.New("load firmware chunk command failed: " + err.Error())
+			return restartingNow, errors.New("load firmware chunk command failed: " + err.Error())
 		}
-
+		restartingNow = res.RestartingNow
 		if atEOF {
 			break
 		}
 		chunkNumber++
 	}
 
-	return nil
+	return restartingNow, nil
 }
 
 // AssertFirmwareIsCompatibleWithHardware checks if the firmware specified by fwHw and fwMajorRevs is compatible

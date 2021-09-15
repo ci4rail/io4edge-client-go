@@ -37,23 +37,25 @@ func main() {
 	// Create a client object to work with the io4edge device at <address>
 	c, err := core.NewClientFromSocketAddress(address)
 	if err != nil {
-		log.Fatalf("Failed to create basefunc client: %v\n", err)
+		log.Fatalf("Failed to create core client: %v\n", err)
 	}
 
 	// Load the firmware package into the device
 	// Loading happens in chunks of <chunkSize>. 1024 should work with each device
 	// <timeout> is the time to wait for responses from device
-	err = c.LoadFirmware(file, chunkSize, timeout)
+	restartingNow, err := c.LoadFirmware(file, chunkSize, timeout)
 	if err != nil {
 		log.Fatalf("Failed to load firmware package: %v\n", err)
 	}
 
 	log.Printf("Load succeeded. Reading back firmware ID\n")
 
-	// must create a new client, device has rebooted
-	c, err = core.NewClientFromSocketAddress(address)
-	if err != nil {
-		log.Fatalf("Failed to create basefunc client: %v\n", err)
+	if restartingNow {
+		// must create a new client, device has rebooted
+		c, err = core.NewClientFromSocketAddress(address)
+		if err != nil {
+			log.Fatalf("Failed to create core client: %v\n", err)
+		}
 	}
 
 	// Get the now active firmware version from the device
