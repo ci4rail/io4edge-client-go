@@ -25,7 +25,7 @@ import (
 // Restart performs a device restart
 func (c *Client) Restart(timeout time.Duration) (restartingNow bool, err error) {
 	cmd := &api.CoreCommand{
-		Id: api.CommandId_IDENTIFY_HARDWARE,
+		Id: api.CommandId_RESTART,
 	}
 	res := &api.CoreResponse{}
 	if err := c.Command(cmd, res, timeout); err != nil {
