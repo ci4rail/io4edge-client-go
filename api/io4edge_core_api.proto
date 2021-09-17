@@ -1,0 +1,96 @@
+/*
+Copyright © 2021 Ci4Rail GmbH <engineering@ci4rail.com>
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+syntax = "proto3";
+
+package io4edgeCoreApi;
+option go_package = "core/v1alpha1";
+
+message SerialNumber {
+  fixed64 hi = 1;
+  fixed64 lo = 2;
+}
+
+enum CommandId {
+  IDENTIFY_HARDWARE = 0;
+  IDENTIFY_FIRMWARE = 1;
+  LOAD_FIRMWARE_CHUNK = 2;
+  PROGRAM_HARDWARE_IDENTIFICATION = 3;
+  RESTART = 4;
+}
+
+enum Status {
+  OK = 0;
+  UNKNOWN_COMMAND = 1;
+  ILLEGAL_PARAMETER = 2;
+  BAD_CHUNK_SEQ = 3;
+  BAD_CHUNK_SIZE = 4;
+  NOT_COMPATIBLE = 5;
+  INTERNAL_ERROR = 6;
+  PROGRAMMING_ERROR = 7;
+  NO_HW_INVENTORY = 8;
+  THIS_VERSION_FAILED_ALREADY = 9;
+}
+
+// Individual Commands and Responses
+
+// LoadFirmware
+// Client sends sequence of CmdLoadFirmwareChunk commands, with increasing
+// chunk numbers. Clients defines chunk size.
+// Server must acknowledge each chunk with Response.
+// Last chunk has is_last_chunk set to True, so server knows that programming
+// has finished
+message LoadFirmwareChunkCommand {
+  uint32 chunk_number = 1;
+  bool is_last_chunk = 2;
+  bytes data = 3;
+}
+
+message ProgramHardwareIdentificationCommand {
+  string signature = 1;
+  string root_article = 2;
+  uint32 major_version = 3;
+  SerialNumber serial_number = 4;
+}
+
+message IdentifyHardwareResponse {
+  string root_article = 1;
+  uint32 major_version = 2;
+  SerialNumber serial_number = 3;
+}
+
+message IdentifyFirmwareResponse {
+  string name = 1;
+  string version = 2;
+}
+
+// The common messages
+message CoreCommand {
+  CommandId id = 1;
+  oneof data {
+    LoadFirmwareChunkCommand load_firmware_chunk = 2;
+    ProgramHardwareIdentificationCommand program_hardware_identification = 3;
+  }
+}
+
+message CoreResponse {
+  CommandId id = 1;
+  Status status = 2;
+  bool restarting_now = 3;
+  oneof data {
+    IdentifyHardwareResponse identify_hardware = 4;
+    IdentifyFirmwareResponse identify_firmware = 5;
+  }
+}
