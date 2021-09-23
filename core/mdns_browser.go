@@ -2,7 +2,6 @@ package core
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"time"
 
@@ -15,18 +14,15 @@ func searchService(sb *avahi.ServiceBrowser, srv *avahi.Server, name string, t i
 	for {
 		select {
 		case s = <-sb.AddChannel:
-			fmt.Println(s)
 			s, err := srv.ResolveService(s.Interface, s.Protocol, s.Name,
 				s.Type, s.Domain, avahi.ProtoUnspec, 0)
 			if err != nil {
 				log.Fatalf("ResolveService() failed: %v", err)
 			}
-			fmt.Println(s)
 			if s.Name == name {
 				return s, err
 			}
 		case <-time.After(time.Duration(t) * time.Second):
-			fmt.Println("timeout")
 			err := errors.New("could not find instance or service")
 			return s, err
 		}
