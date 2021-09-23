@@ -9,6 +9,7 @@ import (
 	"github.com/holoplot/go-avahi"
 )
 
+// Search the for the service with the specified instance name
 func searchService(sb *avahi.ServiceBrowser, srv *avahi.Server, name string, t int) (avahi.Service, error) {
 	var s avahi.Service
 	for {
@@ -29,6 +30,10 @@ func searchService(sb *avahi.ServiceBrowser, srv *avahi.Server, name string, t i
 	}
 }
 
+// Start mdns server and browse interfaces for mdns services with the specified service name.
+// Sort out the service with the specified instance name.
+// Return the ip address and port of the found service
+// TODO get additional ports from txt field
 func GetAddressFromService(instanceName string, serviceName string, timeout int) (string, uint16, error) {
 	conn, err := dbus.SystemBus()
 	if err != nil {
