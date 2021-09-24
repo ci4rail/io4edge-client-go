@@ -2,14 +2,13 @@ package core
 
 import (
 	"errors"
-	"log"
 	"time"
 
 	"github.com/godbus/dbus/v5"
 	"github.com/holoplot/go-avahi"
 )
 
-// Search the for the service with the specified instance name
+// searchService searches for the service with the specified instance name
 func searchService(sb *avahi.ServiceBrowser, srv *avahi.Server, name string, t int) (avahi.Service, error) {
 	var s avahi.Service
 	for {
@@ -18,7 +17,7 @@ func searchService(sb *avahi.ServiceBrowser, srv *avahi.Server, name string, t i
 			s, err := srv.ResolveService(s.Interface, s.Protocol, s.Name,
 				s.Type, s.Domain, avahi.ProtoUnspec, 0)
 			if err != nil {
-				log.Fatalf("ResolveService() failed: %v", err)
+				return s, err
 			}
 			if s.Name == name {
 				return s, err
@@ -30,24 +29,24 @@ func searchService(sb *avahi.ServiceBrowser, srv *avahi.Server, name string, t i
 	}
 }
 
-// Start mdns server and browse interfaces for mdns services with the specified service name.
+// GetAddressFromService starts the mdns server and browse interfaces for mdns services with the specified service name.
 // Sort out the service with the specified instance name.
 // Return the ip address and port of the found service
 // TODO get additional ports from txt field
 func GetAddressFromService(instanceName string, serviceName string, timeout int) (string, uint16, error) {
 	conn, err := dbus.SystemBus()
 	if err != nil {
-		log.Fatalf("Cannot get system bus: %v", err)
+		return "", 0, err
 	}
 
 	server, err := avahi.ServerNew(conn)
 	if err != nil {
-		log.Fatalf("Avahi new failed: %v", err)
+		return "", 0, err
 	}
 
 	sb, err := server.ServiceBrowserNew(avahi.InterfaceUnspec, avahi.ProtoUnspec, serviceName, "local", 0)
 	if err != nil {
-		log.Fatalf("ServiceBrowserNew() failed: %v", err)
+		return "", 0, err
 	}
 
 	service, err := searchService(sb, server, instanceName, timeout)
