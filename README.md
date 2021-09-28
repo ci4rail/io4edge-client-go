@@ -95,6 +95,44 @@ func main() {
 }
 ```
 
+### Connect to a Target with service name
+
+The following example shows how to connect with a service. The service address consists of <instance_name>.<service_name>.<protocol>.
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"os"
+	"time"
+
+	"github.com/ci4rail/io4edge-client-go/core"
+)
+
+func main() {
+	const timeoutService = 1 * time.Second
+	const timeoutCmd = 5 * time.Second
+
+	address := "iou04-usb-ext1._io4edge-core._tcp"
+
+	// Create a client object to work with the io4edge device with the service <address>
+	c, err := core.NewClientFromSocketAddress(address, timeoutService)
+	if err != nil {
+		log.Fatalf("Failed to create basefunc client: %v\n", err)
+	}
+
+	// Get the active firmware version from the device
+	fwID, err := c.IdentifyFirmware(timeoutCmd)
+	if err != nil {
+		log.Fatalf("Failed to identify firmware: %v\n", err)
+	}
+
+	fmt.Printf("Firmware name: %s, Version %d.%d.%d\n", fwID.Name, fwID.MajorVersion, fwID.MinorVersion, fwID.PatchVersion)
+}
+```
+
 ## Copyright
 
 Copyright © 2021 Ci4Rail GmbH <engineering@ci4rail.com>

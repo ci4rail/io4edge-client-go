@@ -16,7 +16,11 @@ func getIPAddressPort(svcInfo *ServiceInfo) string {
 
 // NewClientFromService creates a new base function client from a socket with a address, which was acquired from the specified service.
 // The timeout specifies the maximal time waiting for a service to show up.
-func NewClientFromService(instance string, service string, timeout time.Duration) (*Client, error) {
+func NewClientFromService(serviceAddr string, timeout time.Duration) (*Client, error) {
+	instance, service, err := ParseInstanceAndService(serviceAddr)
+	if err != nil {
+		return nil, err
+	}
 	svcInfo, err := NewServiceInfo(instance, service, timeout)
 	if err != nil {
 		return nil, err
