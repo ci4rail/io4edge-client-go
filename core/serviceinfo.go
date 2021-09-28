@@ -80,6 +80,10 @@ func initAvahiServer() error {
 }
 
 // NewServiceInfo creates a new avahi server if necessary, browses interfaces for the specified mdns service and returns a service info object
+// The service address consists of <instance_name>.<service_name>.<protocol>
+// The instanceName should contain the instance name of the service address
+// The serviceName should contain the service name of the service address together with the protocol
+// The timeout specifies the time to wait for the service to show up
 func NewServiceInfo(instanceName string, serviceName string, timeout time.Duration) (*ServiceInfo, error) {
 	var svcInf ServiceInfo
 	var err error
