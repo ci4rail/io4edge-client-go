@@ -21,6 +21,8 @@ import (
 	"errors"
 	"time"
 
+	"github.com/ci4rail/io4edge-client-go/transport"
+	"github.com/ci4rail/io4edge-client-go/transport/socket"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -32,6 +34,35 @@ type Client struct {
 // NewClient creates a new client for an io4edge function
 func NewClient(c *Channel) *Client {
 	return &Client{ch: c}
+}
+
+// NewClientFromSocketAddress creates a new function client from a socket with the specified address.
+func NewClientFromSocketAddress(address string) (*Client, error) {
+	t, err := socket.NewSocketConnection(address)
+	if err != nil {
+		return nil, errors.New("can't create connection: " + err.Error())
+	}
+	ms := transport.NewFramedStreamFromTransport(t)
+	ch := NewChannel(ms)
+	c := NewClient(ch)
+
+	return c, nil
+}
+
+// NewClientFromService creates a new function client from a socket with a address, which was acquired from the specified service.
+// The timeout specifies the maximal time waiting for a service to show up.
+func NewClientFromService(serviceAddr string, timeout time.Duration) (*Client, error) {
+	instance, service, err := ParseInstanceAndService(serviceAddr)
+	if err != nil {
+		return nil, err
+	}
+	svcInfo, err := NewServiceInfo(instance, service, timeout)
+	if err != nil {
+		return nil, err
+	}
+	ipAddrPort := svcInfo.GetIPAddressPort()
+	c, err := NewClientFromSocketAddress(ipAddrPort)
+	return c, err
 }
 
 // Command issues a command cmd to a channel, waits for the devices response and returns it in res

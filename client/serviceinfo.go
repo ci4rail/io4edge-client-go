@@ -143,3 +143,11 @@ func (svcInf *ServiceInfo) GetAuxschema() (string, error) {
 	value, err := getTxtValueFromKey(auxschema, svcInf.service.Txt)
 	return value, err
 }
+
+// GetIPAddressPort gets the ip address and port from the given service info object.
+// It passes the caller the ip address and the port separated by ":" together in a string.
+func (svcInf *ServiceInfo) GetIPAddressPort() string {
+	ipAddress, port := svcInf.GetNetAddress()
+	ipAddrPort := ipAddress + ":" + strconv.Itoa(int(port))
+	return ipAddrPort
+}
