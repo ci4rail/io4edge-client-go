@@ -14,24 +14,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package core
+package client
 
 import (
 	"errors"
 
-	"github.com/ci4rail/io4edge-client-go/client"
 	"github.com/ci4rail/io4edge-client-go/transport"
 	"github.com/ci4rail/io4edge-client-go/transport/socket"
 )
 
-// NewClientFromSocketAddress creates a new core function client from a socket with the specified address.
+// NewClientFromSocketAddress creates a new function client from a socket with the specified address.
 func NewClientFromSocketAddress(address string) (*Client, error) {
 	t, err := socket.NewSocketConnection(address)
 	if err != nil {
 		return nil, errors.New("can't create connection: " + err.Error())
 	}
 	ms := transport.NewFramedStreamFromTransport(t)
-	ch := client.NewChannel(ms)
+	ch := NewChannel(ms)
 	c := NewClient(ch)
 
 	return c, nil

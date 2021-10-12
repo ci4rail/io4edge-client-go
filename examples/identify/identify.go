@@ -28,13 +28,21 @@ import (
 func main() {
 	const timeout = 5 * time.Second
 
-	if len(os.Args) != 2 {
-		log.Fatalf("Usage: identify <device-address>\n")
+	if len(os.Args) != 3 {
+		log.Fatalf("Usage: identify svc <mdns-service-address>  OR  identify ip <ip:port>")
 	}
-	address := os.Args[1]
+	addressType := os.Args[1]
+	address := os.Args[2]
 
 	// Create a client object to work with the io4edge device at <address>
-	c, err := core.NewClientFromSocketAddress(address)
+	var c *core.Client
+	var err error
+
+	if addressType == "svc" {
+		c, err = core.NewClientFromService(address, timeout)
+	} else {
+		c, err = core.NewClientFromSocketAddress(address)
+	}
 	if err != nil {
 		log.Fatalf("Failed to create core client: %v\n", err)
 	}

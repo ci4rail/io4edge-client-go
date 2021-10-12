@@ -24,23 +24,23 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// Client represents a client for the io4edge base function
+// Client represents a client for an io4edge function
 type Client struct {
 	ch *Channel
 }
 
-// NewClient creates a new client for the base function
-func NewClient(c *Channel) (*Client, error) {
-	return &Client{ch: c}, nil
+// NewClient creates a new client for an io4edge function
+func NewClient(c *Channel) *Client {
+	return &Client{ch: c}
 }
 
 // Command issues a command cmd to a channel, waits for the devices response and returns it in res
-func (c *Channel) Command(cmd proto.Message, res proto.Message, timeout time.Duration) error {
-	err := c.WriteMessage(cmd)
+func (c *Client) Command(cmd proto.Message, res proto.Message, timeout time.Duration) error {
+	err := c.ch.WriteMessage(cmd)
 	if err != nil {
 		return err
 	}
-	err = c.ReadMessage(res, timeout)
+	err = c.ch.ReadMessage(res, timeout)
 	if err != nil {
 		return errors.New("Failed to receive device response: " + err.Error())
 	}
