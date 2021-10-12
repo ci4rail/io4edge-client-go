@@ -26,25 +26,46 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+// FunctionInfo is an interface to query properties of the io4edge function
+type FunctionInfo interface {
+	// NetAddress returns the IP address (or host name) and the default port of the function
+	NetAddress() (host string, port int, err error)
+	// FuncClass returns the class of the io4edge function: e.g. core/datalogger/controlio/ttynvt
+	FuncClass() (class string, err error)
+	// Security tells whether function channels use encryption (no/tls)
+	Security() (security string, err error)
+	// AuxPort returns the protocol of the aux port (tcp/udp) and the port
+	// returns error if no aux port for function
+	AuxPort() (protcol string, port int, err error)
+	// AuxSchema returns the schema name of the aux channel
+	// returns error if no aux port for function
+	AuxSchemaID() (schemaID string, err error)
+}
+
 // Client represents a client for an io4edge function
 type Client struct {
-	ch *Channel
+	ch       *Channel
+	FuncInfo FunctionInfo
 }
 
 // NewClient creates a new client for an io4edge function
-func NewClient(c *Channel) *Client {
-	return &Client{ch: c}
+func NewClient(c *Channel, funcInfo FunctionInfo) *Client {
+	return &Client{ch: c, FuncInfo: funcInfo}
 }
 
 // NewClientFromSocketAddress creates a new function client from a socket with the specified address.
 func NewClientFromSocketAddress(address string) (*Client, error) {
+	return newClientFromSocketAddress(address, NewFuncInfoDefault(address))
+}
+
+func newClientFromSocketAddress(address string, funcInfo FunctionInfo) (*Client, error) {
 	t, err := socket.NewSocketConnection(address)
 	if err != nil {
 		return nil, errors.New("can't create connection: " + err.Error())
 	}
 	ms := transport.NewFramedStreamFromTransport(t)
 	ch := NewChannel(ms)
-	c := NewClient(ch)
+	c := NewClient(ch, funcInfo)
 
 	return c, nil
 }
@@ -61,7 +82,7 @@ func NewClientFromService(serviceAddr string, timeout time.Duration) (*Client, e
 		return nil, err
 	}
 	ipAddrPort := svcInfo.GetIPAddressPort()
-	c, err := NewClientFromSocketAddress(ipAddrPort)
+	c, err := newClientFromSocketAddress(ipAddrPort, svcInfo)
 	return c, err
 }
 

@@ -103,19 +103,19 @@ func NewServiceInfo(instanceName string, serviceName string, timeout time.Durati
 	return &svcInf, nil
 }
 
-// GetNetAddress gives the caller the ip address and port of the service
-func (svcInf *ServiceInfo) GetNetAddress() (string, uint16) {
-	return svcInf.service.Address, svcInf.service.Port
+// NetAddress gives the caller the ip address and port of the service
+func (svcInf *ServiceInfo) NetAddress() (string, int, error) {
+	return svcInf.service.Address, int(svcInf.service.Port), nil
 }
 
-// GetFuncclass gives the caller the funcclass value of the service
-func (svcInf *ServiceInfo) GetFuncclass() (string, error) {
+// FuncClass gives the caller the funcclass value of the service
+func (svcInf *ServiceInfo) FuncClass() (string, error) {
 	value, err := getTxtValueFromKey(funcclass, svcInf.service.Txt)
 	return value, err
 }
 
-// GetSecurity gives the caller the security value of the service
-func (svcInf *ServiceInfo) GetSecurity() (string, error) {
+// Security gives the caller the security value of the service
+func (svcInf *ServiceInfo) Security() (string, error) {
 	value, err := getTxtValueFromKey(security, svcInf.service.Txt)
 	return value, err
 }
@@ -131,25 +131,40 @@ func auxPort(txt string) (string, int, error) {
 	return protocol, port, err
 }
 
-// GetAuxport gives the caller the auxport value of the service splitted into protocol and port
-func (svcInf *ServiceInfo) GetAuxport() (string, int, error) {
+// AuxPort gives the caller the auxport value of the service protocol and port
+func (svcInf *ServiceInfo) AuxPort() (string, int, error) {
 	value, err := getTxtValueFromKey(auxport, svcInf.service.Txt)
 	if err != nil {
 		return "", 0, err
 	}
-	return auxPort(value)
+
+	protocol, port, err := auxPort(value)
+	if err != nil {
+		return "", 0, err
+	}
+	if protocol != "tcp" && protocol != "udp" {
+		return "", 0, errors.New("no aux port")
+	}
+	return protocol, port, nil
 }
 
-// GetAuxschema gives the caller the auxschema value of the service
-func (svcInf *ServiceInfo) GetAuxschema() (string, error) {
+// AuxSchemaID gives the caller the auxschema value of the service
+func (svcInf *ServiceInfo) AuxSchemaID() (string, error) {
 	value, err := getTxtValueFromKey(auxschema, svcInf.service.Txt)
-	return value, err
+	if err != nil {
+		return "", err
+	}
+	if value == "" {
+		return "", errors.New("no aux schema")
+	}
+
+	return value, nil
 }
 
 // GetIPAddressPort gets the ip address and port from the given service info object.
 // It passes the caller the ip address and the port separated by ":" together in a string.
 func (svcInf *ServiceInfo) GetIPAddressPort() string {
-	ipAddress, port := svcInf.GetNetAddress()
-	ipAddrPort := ipAddress + ":" + strconv.Itoa(int(port))
+	ipAddress, port, _ := svcInf.NetAddress()
+	ipAddrPort := ipAddress + ":" + strconv.Itoa(port)
 	return ipAddrPort
 }
