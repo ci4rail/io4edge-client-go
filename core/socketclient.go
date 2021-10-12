@@ -24,7 +24,7 @@ import (
 	"github.com/ci4rail/io4edge-client-go/transport/socket"
 )
 
-// NewClientFromSocketAddress creates a new base function client from a socket with the specified address.
+// NewClientFromSocketAddress creates a new core function client from a socket with the specified address.
 func NewClientFromSocketAddress(address string) (*Client, error) {
 	t, err := socket.NewSocketConnection(address)
 	if err != nil {

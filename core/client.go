@@ -26,17 +26,17 @@ import (
 	api "github.com/ci4rail/io4edge-client-go/core/v1alpha1"
 )
 
-// Client represents a client for the io4edge base function
+// Client represents a client for the io4edge core function
 type Client struct {
 	ch *client.Channel
 }
 
-// NewClient creates a new client for the base function
+// NewClient creates a new client for the core function
 func NewClient(c *client.Channel) *Client {
 	return &Client{ch: c}
 }
 
-// Command issues a command cmd to a base function channel, waits for the devices response and returns it in res
+// Command issues a command cmd to a core function channel, waits for the devices response and returns it in res
 func (c *Client) Command(cmd *api.CoreCommand, res *api.CoreResponse, timeout time.Duration) error {
 	err := c.ch.Command(cmd, res, timeout)
 	if err != nil {
