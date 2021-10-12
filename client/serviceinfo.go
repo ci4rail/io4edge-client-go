@@ -120,22 +120,24 @@ func (svcInf *ServiceInfo) GetSecurity() (string, error) {
 	return value, err
 }
 
+func auxPort(txt string) (string, int, error) {
+	field := strings.Split(string(txt), "-")
+	if len(field) != 2 {
+		return "", 0, errors.New("invalid txt field structure of field " + auxport)
+	}
+
+	protocol := field[0]
+	port, err := strconv.Atoi(field[1])
+	return protocol, port, err
+}
+
 // GetAuxport gives the caller the auxport value of the service splitted into protocol and port
 func (svcInf *ServiceInfo) GetAuxport() (string, int, error) {
 	value, err := getTxtValueFromKey(auxport, svcInf.service.Txt)
 	if err != nil {
 		return "", 0, err
 	}
-
-	field := strings.Split(string(value), "-")
-	if len(field) != 2 {
-		err = errors.New("invalid txt field structure of field " + auxport)
-		return "", 0, err
-	}
-
-	protocol := field[0]
-	port, err := strconv.Atoi(field[1])
-	return protocol, port, err
+	return auxPort(value)
 }
 
 // GetAuxschema gives the caller the auxschema value of the service
