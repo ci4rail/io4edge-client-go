@@ -11,6 +11,10 @@ This package currently provides a Go API to manage those devices, such as:
 
 Current version uses TCP sockets for communication. May be later extended to further transport protocols such as websockets.
 
+## System Dependencies
+
+This sdk uses the Avahi Go package to browse for mdns services, which provides bindings for DBus interfaces exposed by the Avahi daemon.
+
 ## Installation
 
 ```bash
