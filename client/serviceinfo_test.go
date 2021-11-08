@@ -32,4 +32,8 @@ func TestAuxPort(t *testing.T) {
 
 	_, _, err = auxPort("tcp-1A000")
 	assert.NotNil(t, err)
+
+	_, _, err = auxPort("not_avail")
+	assert.NotNil(t, err)
+
 }

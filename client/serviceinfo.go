@@ -154,7 +154,7 @@ func (svcInf *ServiceInfo) AuxSchemaID() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if value == "" {
+	if value == "" || value == "not_avail" {
 		return "", errors.New("no aux schema")
 	}
 
