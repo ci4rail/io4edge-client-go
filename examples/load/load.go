@@ -24,21 +24,34 @@ import (
 	"github.com/ci4rail/io4edge-client-go/core"
 )
 
+func createClient(addressType string, address string, timeout time.Duration) *core.Client {
+	var c *core.Client
+	var err error
+
+	if addressType == "svc" {
+		c, err = core.NewClientFromService(address, timeout)
+	} else {
+		c, err = core.NewClientFromSocketAddress(address)
+	}
+	if err != nil {
+		log.Fatalf("Failed to create core client: %v\n", err)
+	}
+	return c
+}
+
 func main() {
 	const timeout = 5 * time.Second
 	const chunkSize = 1024
 
-	if len(os.Args) != 3 {
-		log.Fatalf("Usage: load  <device-address> <fwpkg>\n")
+	if len(os.Args) != 4 {
+		log.Fatalf("Usage: load svc <mdns-service-address> <fwpkg> OR  load ip <ip:port> <fwpkg>")
 	}
-	address := os.Args[1]
-	file := os.Args[2]
+	addressType := os.Args[1]
+	address := os.Args[2]
+	file := os.Args[3]
 
 	// Create a client object to work with the io4edge device at <address>
-	c, err := core.NewClientFromSocketAddress(address)
-	if err != nil {
-		log.Fatalf("Failed to create core client: %v\n", err)
-	}
+	c := createClient(addressType, address, timeout)
 
 	// Load the firmware package into the device
 	// Loading happens in chunks of <chunkSize>. 1024 should work with each device
@@ -52,7 +65,7 @@ func main() {
 
 	if restartingNow {
 		// must create a new client, device has rebooted
-		c, err = core.NewClientFromSocketAddress(address)
+		c = createClient(addressType, address, timeout)
 		if err != nil {
 			log.Fatalf("Failed to create core client: %v\n", err)
 		}
