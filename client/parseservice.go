@@ -1,4 +1,4 @@
-package core
+package client
 
 import (
 	"errors"
@@ -15,6 +15,7 @@ func ParseInstanceAndService(serviceAddr string) (string, string, error) {
 
 	service := s[len(s)-2] + "." + s[len(s)-1]
 
+	// instance name may contain dots. Repair them
 	instance := s[0]
 	for i := 1; i < len(s)-2; i++ {
 		instance += "." + s[i]

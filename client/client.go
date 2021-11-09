@@ -21,26 +21,78 @@ import (
 	"errors"
 	"time"
 
+	"github.com/ci4rail/io4edge-client-go/transport"
+	"github.com/ci4rail/io4edge-client-go/transport/socket"
 	"google.golang.org/protobuf/proto"
 )
 
-// Client represents a client for the io4edge base function
-type Client struct {
-	ch *Channel
+// FunctionInfo is an interface to query properties of the io4edge function
+type FunctionInfo interface {
+	// NetAddress returns the IP address (or host name) and the default port of the function
+	NetAddress() (host string, port int, err error)
+	// FuncClass returns the class of the io4edge function: e.g. core/datalogger/controlio/ttynvt
+	FuncClass() (class string, err error)
+	// Security tells whether function channels use encryption (no/tls)
+	Security() (security string, err error)
+	// AuxPort returns the protocol of the aux port (tcp/udp) and the port
+	// returns error if no aux port for function
+	AuxPort() (protcol string, port int, err error)
+	// AuxSchema returns the schema name of the aux channel
+	// returns error if no aux port for function
+	AuxSchemaID() (schemaID string, err error)
 }
 
-// NewClient creates a new client for the base function
-func NewClient(c *Channel) (*Client, error) {
-	return &Client{ch: c}, nil
+// Client represents a client for an io4edge function
+type Client struct {
+	ch       *Channel
+	FuncInfo FunctionInfo
+}
+
+// NewClient creates a new client for an io4edge function
+func NewClient(c *Channel, funcInfo FunctionInfo) *Client {
+	return &Client{ch: c, FuncInfo: funcInfo}
+}
+
+// NewClientFromSocketAddress creates a new function client from a socket with the specified address.
+func NewClientFromSocketAddress(address string) (*Client, error) {
+	return newClientFromSocketAddress(address, NewFuncInfoDefault(address))
+}
+
+func newClientFromSocketAddress(address string, funcInfo FunctionInfo) (*Client, error) {
+	t, err := socket.NewSocketConnection(address)
+	if err != nil {
+		return nil, errors.New("can't create connection: " + err.Error())
+	}
+	ms := transport.NewFramedStreamFromTransport(t)
+	ch := NewChannel(ms)
+	c := NewClient(ch, funcInfo)
+
+	return c, nil
+}
+
+// NewClientFromService creates a new function client from a socket with a address, which was acquired from the specified service.
+// The timeout specifies the maximal time waiting for a service to show up.
+func NewClientFromService(serviceAddr string, timeout time.Duration) (*Client, error) {
+	instance, service, err := ParseInstanceAndService(serviceAddr)
+	if err != nil {
+		return nil, err
+	}
+	svcInfo, err := NewServiceInfo(instance, service, timeout)
+	if err != nil {
+		return nil, err
+	}
+	ipAddrPort := svcInfo.GetIPAddressPort()
+	c, err := newClientFromSocketAddress(ipAddrPort, svcInfo)
+	return c, err
 }
 
 // Command issues a command cmd to a channel, waits for the devices response and returns it in res
-func (c *Channel) Command(cmd proto.Message, res proto.Message, timeout time.Duration) error {
-	err := c.WriteMessage(cmd)
+func (c *Client) Command(cmd proto.Message, res proto.Message, timeout time.Duration) error {
+	err := c.ch.WriteMessage(cmd)
 	if err != nil {
 		return err
 	}
-	err = c.ReadMessage(res, timeout)
+	err = c.ch.ReadMessage(res, timeout)
 	if err != nil {
 		return errors.New("Failed to receive device response: " + err.Error())
 	}
