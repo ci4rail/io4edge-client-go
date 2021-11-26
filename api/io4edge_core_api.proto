@@ -18,11 +18,6 @@ syntax = "proto3";
 package io4edgeCoreApi;
 option go_package = "core/v1alpha1";
 
-message SerialNumber {
-  fixed64 hi = 1;
-  fixed64 lo = 2;
-}
-
 enum CommandId {
   IDENTIFY_HARDWARE = 0;
   IDENTIFY_FIRMWARE = 1;
@@ -63,7 +58,7 @@ message ProgramHardwareIdentificationCommand {
   string signature = 1;
   string root_article = 2;
   uint32 major_version = 3;
-  SerialNumber serial_number = 4;
+  string serial_number = 4;
 }
 
 message ProgramDeviceIdentificationCommand {
@@ -73,7 +68,7 @@ message ProgramDeviceIdentificationCommand {
 message IdentifyHardwareResponse {
   string root_article = 1;
   uint32 major_version = 2;
-  SerialNumber serial_number = 3;
+  string serial_number = 3;
 }
 
 message IdentifyFirmwareResponse {

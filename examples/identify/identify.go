@@ -21,7 +21,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/ci4rail/hw-inventory-go/serno"
 	"github.com/ci4rail/io4edge-client-go/core"
 )
 
@@ -61,10 +60,5 @@ func main() {
 		log.Fatalf("Failed to identify hardware: %v\n", err)
 	}
 
-	// device reports its serial number into two 64 bit values. Convert it to UUID
-	u, err := serno.UUIDFromInt(hwID.SerialNumber.Hi, hwID.SerialNumber.Lo)
-	if err != nil {
-		log.Fatalf("Failed to make uuid from serial: %v\n", err)
-	}
-	fmt.Printf("Hardware name: %s, serial: %s, rev: %d\n", hwID.RootArticle, u.String(), hwID.MajorVersion)
+	fmt.Printf("Hardware name: %s, serial: %s, rev: %d\n", hwID.RootArticle, hwID.SerialNumber, hwID.MajorVersion)
 }
