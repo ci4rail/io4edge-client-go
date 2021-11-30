@@ -33,6 +33,7 @@ func main() {
 	addressType := os.Args[1]
 	address := os.Args[2]
 	name := os.Args[3]
+
 	var value string
 
 	if len(os.Args) > 4 {
@@ -56,7 +57,9 @@ func main() {
 		err = c.SetPersistantParameter(name, value, timeout)
 	} else {
 		value, err = c.GetPersistantParameter(name, timeout)
-		fmt.Printf("Parameter vlue: %s\n", value)
+		if err == nil {
+			fmt.Printf("Parameter value: %s\n", value)
+		}
 	}
 	if err != nil {
 		log.Fatalf("Command failed: %v\n", err)
