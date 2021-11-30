@@ -27,7 +27,7 @@ import (
 	"time"
 
 	fwpkg "github.com/ci4rail/firmware-packaging-go"
-	api "github.com/ci4rail/io4edge-client-go/core/v1alpha1"
+	api "github.com/ci4rail/io4edge-client-go/core/v1alpha2"
 )
 
 // FirmwareAlreadyPresentError is returned by LoadFirmware as a dummy error

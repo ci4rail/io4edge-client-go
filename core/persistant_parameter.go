@@ -22,25 +22,15 @@ import (
 	api "github.com/ci4rail/io4edge-client-go/core/v1alpha2"
 )
 
-// IdentifyHardware gets the hardware inventory data from the device
-func (c *Client) IdentifyHardware(timeout time.Duration) (*api.IdentifyHardwareResponse, error) {
+// SetPersistantParameter writes a persistant parameter into the device
+func (c *Client) SetPersistantParameter(name string, value string, timeout time.Duration) error {
 	cmd := &api.CoreCommand{
-		Id: api.CommandId_IDENTIFY_HARDWARE,
-	}
-	res := &api.CoreResponse{}
-	if err := c.Command(cmd, res, timeout); err != nil {
-		return nil, err
-	}
-	return res.GetIdentifyHardware(), nil
-}
-
-// ProgramHardwareIdentification programs hardware inventory data into the device.
-// Intended to be used during hardware manufacturing process only
-func (c *Client) ProgramHardwareIdentification(id *api.ProgramHardwareIdentificationCommand, timeout time.Duration) error {
-	cmd := &api.CoreCommand{
-		Id: api.CommandId_PROGRAM_HARDWARE_IDENTIFICATION,
-		Data: &api.CoreCommand_ProgramHardwareIdentification{
-			ProgramHardwareIdentification: id,
+		Id: api.CommandId_SET_PERSISTANT_PARAMETER,
+		Data: &api.CoreCommand_SetPersistantParameter{
+			SetPersistantParameter: &api.SetPersistantParameterCommand{
+				Name:  name,
+				Value: value,
+			},
 		},
 	}
 	res := &api.CoreResponse{}
@@ -48,4 +38,21 @@ func (c *Client) ProgramHardwareIdentification(id *api.ProgramHardwareIdentifica
 		return err
 	}
 	return nil
+}
+
+// GetPersistantParameter reads a persistant parameter from the device
+func (c *Client) GetPersistantParameter(name string, timeout time.Duration) (value string, err error) {
+	cmd := &api.CoreCommand{
+		Id: api.CommandId_GET_PERSISTANT_PARAMETER,
+		Data: &api.CoreCommand_GetPersistantParameter{
+			GetPersistantParameter: &api.GetPersistantParameterCommand{
+				Name: name,
+			},
+		},
+	}
+	res := &api.CoreResponse{}
+	if err := c.Command(cmd, res, timeout); err != nil {
+		return "", err
+	}
+	return res.GetPersistantParameter().Value, nil
 }
