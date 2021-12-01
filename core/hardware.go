@@ -23,24 +23,28 @@ import (
 )
 
 // IdentifyHardware gets the hardware inventory data from the device
-func (c *Client) IdentifyHardware(timeout time.Duration) (*api.IdentifyHardwareResponse, error) {
+func (c *Client) IdentifyHardware(timeout time.Duration) (name string, major uint32, serial string, err error) {
 	cmd := &api.CoreCommand{
 		Id: api.CommandId_IDENTIFY_HARDWARE,
 	}
 	res := &api.CoreResponse{}
 	if err := c.Command(cmd, res, timeout); err != nil {
-		return nil, err
+		return "", 0, "", err
 	}
-	return res.GetIdentifyHardware(), nil
+	return res.GetIdentifyHardware().RootArticle, res.GetIdentifyHardware().MajorVersion, res.GetIdentifyHardware().SerialNumber, nil
 }
 
 // ProgramHardwareIdentification programs hardware inventory data into the device.
 // Intended to be used during hardware manufacturing process only
-func (c *Client) ProgramHardwareIdentification(id *api.ProgramHardwareIdentificationCommand, timeout time.Duration) error {
+func (c *Client) ProgramHardwareIdentification(name string, major uint32, serial string, timeout time.Duration) error {
 	cmd := &api.CoreCommand{
 		Id: api.CommandId_PROGRAM_HARDWARE_IDENTIFICATION,
 		Data: &api.CoreCommand_ProgramHardwareIdentification{
-			ProgramHardwareIdentification: id,
+			ProgramHardwareIdentification: &api.ProgramHardwareIdentificationCommand{
+				RootArticle:  name,
+				MajorVersion: major,
+				SerialNumber: serial,
+			},
 		},
 	}
 	res := &api.CoreResponse{}
