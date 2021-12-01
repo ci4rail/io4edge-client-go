@@ -8,7 +8,7 @@ This package currently provides a Go API to manage those devices, such as:
 * Load new firmware
 * Identify HW (name, revision, serial number)
 * Program HW identification
-* Set and get persistant parameter
+* Set and get persistent parameter
 
 Current version uses TCP sockets for communication. May be later extended to further transport protocols such as websockets.
 
