@@ -16,12 +16,7 @@ limitations under the License.
 syntax = "proto3";
 
 package io4edgeCoreApi;
-option go_package = "core/v1alpha1";
-
-message SerialNumber {
-  fixed64 hi = 1;
-  fixed64 lo = 2;
-}
+option go_package = "core/v1alpha2";
 
 enum CommandId {
   IDENTIFY_HARDWARE = 0;
@@ -29,6 +24,8 @@ enum CommandId {
   LOAD_FIRMWARE_CHUNK = 2;
   PROGRAM_HARDWARE_IDENTIFICATION = 3;
   RESTART = 4;
+  SET_PERSISTENT_PARAMETER = 5;
+  GET_PERSISTENT_PARAMETER = 6;
 }
 
 enum Status {
@@ -62,13 +59,20 @@ message ProgramHardwareIdentificationCommand {
   string signature = 1;
   string root_article = 2;
   uint32 major_version = 3;
-  SerialNumber serial_number = 4;
+  string serial_number = 4;
 }
+
+message SetPersistentParameterCommand {
+  string name = 1;
+  string value = 2;
+}
+
+message GetPersistentParameterCommand { string name = 1; }
 
 message IdentifyHardwareResponse {
   string root_article = 1;
   uint32 major_version = 2;
-  SerialNumber serial_number = 3;
+  string serial_number = 3;
 }
 
 message IdentifyFirmwareResponse {
@@ -76,12 +80,16 @@ message IdentifyFirmwareResponse {
   string version = 2;
 }
 
+message GetPersistentParameterResponse { string value = 1; }
+
 // The common messages
 message CoreCommand {
   CommandId id = 1;
   oneof data {
     LoadFirmwareChunkCommand load_firmware_chunk = 2;
     ProgramHardwareIdentificationCommand program_hardware_identification = 3;
+    SetPersistentParameterCommand set_persistent_parameter = 4;
+    GetPersistentParameterCommand get_persistent_parameter = 5;
   }
 }
 
@@ -92,5 +100,6 @@ message CoreResponse {
   oneof data {
     IdentifyHardwareResponse identify_hardware = 4;
     IdentifyFirmwareResponse identify_firmware = 5;
+    GetPersistentParameterResponse persistent_parameter = 6;
   }
 }
