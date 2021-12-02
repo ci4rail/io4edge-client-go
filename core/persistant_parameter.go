@@ -22,12 +22,12 @@ import (
 	api "github.com/ci4rail/io4edge-client-go/core/v1alpha2"
 )
 
-// SetPersistantParameter writes a persistant parameter into the device
-func (c *Client) SetPersistantParameter(name string, value string, timeout time.Duration) error {
+// SetPersistentParameter writes a persistent parameter into the device
+func (c *Client) SetPersistentParameter(name string, value string, timeout time.Duration) error {
 	cmd := &api.CoreCommand{
-		Id: api.CommandId_SET_PERSISTANT_PARAMETER,
-		Data: &api.CoreCommand_SetPersistantParameter{
-			SetPersistantParameter: &api.SetPersistantParameterCommand{
+		Id: api.CommandId_SET_PERSISTENT_PARAMETER,
+		Data: &api.CoreCommand_SetPersistentParameter{
+			SetPersistentParameter: &api.SetPersistentParameterCommand{
 				Name:  name,
 				Value: value,
 			},
@@ -40,12 +40,12 @@ func (c *Client) SetPersistantParameter(name string, value string, timeout time.
 	return nil
 }
 
-// GetPersistantParameter reads a persistant parameter from the device
-func (c *Client) GetPersistantParameter(name string, timeout time.Duration) (value string, err error) {
+// GetPersistentParameter reads a persistent parameter from the device
+func (c *Client) GetPersistentParameter(name string, timeout time.Duration) (value string, err error) {
 	cmd := &api.CoreCommand{
-		Id: api.CommandId_GET_PERSISTANT_PARAMETER,
-		Data: &api.CoreCommand_GetPersistantParameter{
-			GetPersistantParameter: &api.GetPersistantParameterCommand{
+		Id: api.CommandId_GET_PERSISTENT_PARAMETER,
+		Data: &api.CoreCommand_GetPersistentParameter{
+			GetPersistentParameter: &api.GetPersistentParameterCommand{
 				Name: name,
 			},
 		},
@@ -54,5 +54,5 @@ func (c *Client) GetPersistantParameter(name string, timeout time.Duration) (val
 	if err := c.Command(cmd, res, timeout); err != nil {
 		return "", err
 	}
-	return res.GetPersistantParameter().Value, nil
+	return res.GetPersistentParameter().Value, nil
 }

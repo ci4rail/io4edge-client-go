@@ -54,9 +54,9 @@ func main() {
 	}
 
 	if len(value) > 0 {
-		err = c.SetPersistantParameter(name, value, timeout)
+		err = c.SetPersistentParameter(name, value, timeout)
 	} else {
-		value, err = c.GetPersistantParameter(name, timeout)
+		value, err = c.GetPersistentParameter(name, timeout)
 		if err == nil {
 			fmt.Printf("Parameter value: %s\n", value)
 		}

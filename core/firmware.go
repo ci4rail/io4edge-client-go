@@ -40,15 +40,15 @@ func (e *FirmwareAlreadyPresentError) Error() string {
 }
 
 // IdentifyFirmware gets the firmware name and version from the device
-func (c *Client) IdentifyFirmware(timeout time.Duration) (*api.IdentifyFirmwareResponse, error) {
+func (c *Client) IdentifyFirmware(timeout time.Duration) (name string, version string, err error) {
 	cmd := &api.CoreCommand{
 		Id: api.CommandId_IDENTIFY_FIRMWARE,
 	}
 	res := &api.CoreResponse{}
 	if err := c.Command(cmd, res, timeout); err != nil {
-		return nil, err
+		return "", "", err
 	}
-	return res.GetIdentifyFirmware(), nil
+	return res.GetIdentifyFirmware().Name, res.GetIdentifyFirmware().Version, nil
 }
 
 // LoadFirmware loads a binary from a firmware package to the device.
@@ -65,13 +65,13 @@ func (c *Client) LoadFirmware(file string, chunkSize uint, timeout time.Duration
 	manifest := pkg.Manifest()
 
 	// get currently running firmware
-	currentFWID, err := c.IdentifyFirmware(timeout)
+	fwName, fwVersion, err := c.IdentifyFirmware(timeout)
 	if err != nil {
 		return restartingNow, err
 	}
 
 	// get devices hardware id
-	hwID, err := c.IdentifyHardware(timeout)
+	rootArticle, majorVersion, _, err := c.IdentifyHardware(timeout)
 	if err != nil {
 		return restartingNow, err
 	}
@@ -80,15 +80,15 @@ func (c *Client) LoadFirmware(file string, chunkSize uint, timeout time.Duration
 	err = AssertFirmwareIsCompatibleWithHardware(
 		manifest.Compatibility.HW,
 		manifest.Compatibility.MajorRevs,
-		hwID.RootArticle,
-		int(hwID.MajorVersion),
+		rootArticle,
+		int(majorVersion),
 	)
 	if err != nil {
 		return restartingNow, err
 	}
 
 	// check if fw already running
-	if strings.EqualFold(currentFWID.Name, manifest.Name) && currentFWID.Version == manifest.Version {
+	if strings.EqualFold(fwName, manifest.Name) && fwVersion == manifest.Version {
 		return restartingNow, &FirmwareAlreadyPresentError{}
 	}
 

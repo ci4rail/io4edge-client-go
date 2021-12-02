@@ -8,7 +8,7 @@ This package currently provides a Go API to manage those devices, such as:
 * Load new firmware
 * Identify HW (name, revision, serial number)
 * Program HW identification
-* Set and get persistant parameter
+* Set and get persistent parameter
 
 Current version uses TCP sockets for communication. May be later extended to further transport protocols such as websockets.
 
@@ -50,12 +50,12 @@ func main() {
 	}
 
 	// Get the active firmware version from the device
-	fwID, err := c.IdentifyFirmware(timeout)
+	fwName, fwVersion, err := c.IdentifyFirmware(timeout)
 	if err != nil {
 		log.Fatalf("Failed to identify firmware: %v\n", err)
 	}
 
-	fmt.Printf("Firmware name: %s, Version %d.%d.%d\n", fwID.Name, fwID.MajorVersion, fwID.MinorVersion, fwID.PatchVersion)
+	fmt.Printf("Firmware name: %s, Version %s\n", fwName, fwVersion)
 }
 ```
 
@@ -129,12 +129,12 @@ func main() {
 	}
 
 	// Get the active firmware version from the device
-	fwID, err := c.IdentifyFirmware(timeoutCmd)
+	fwName, fwVersion, err := c.IdentifyFirmware(timeoutCmd)
 	if err != nil {
 		log.Fatalf("Failed to identify firmware: %v\n", err)
 	}
 
-	fmt.Printf("Firmware name: %s, Version %d.%d.%d\n", fwID.Name, fwID.MajorVersion, fwID.MinorVersion, fwID.PatchVersion)
+	fmt.Printf("Firmware name: %s, Version %s\n", fwName, fwVersion)
 }
 ```
 
