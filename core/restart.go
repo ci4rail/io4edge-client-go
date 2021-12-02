@@ -19,7 +19,7 @@ package core
 import (
 	"time"
 
-	api "github.com/ci4rail/io4edge-client-go/core/v1alpha1"
+	api "github.com/ci4rail/io4edge-client-go/core/v1alpha2"
 )
 
 // Restart performs a device restart

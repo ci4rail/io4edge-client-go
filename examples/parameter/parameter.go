@@ -27,11 +27,18 @@ import (
 func main() {
 	const timeout = 5 * time.Second
 
-	if len(os.Args) != 3 {
-		log.Fatalf("Usage: identify svc <mdns-service-address>  OR  identify ip <ip:port>")
+	if len(os.Args) < 4 {
+		log.Fatalf("Usage: parameter svc <mdns-service-address> <param_name> [<param_value>]  OR  parameter ip <ip:port> <param_name> [<param_value>]")
 	}
 	addressType := os.Args[1]
 	address := os.Args[2]
+	name := os.Args[3]
+
+	var value string
+
+	if len(os.Args) > 4 {
+		value = os.Args[4]
+	}
 
 	// Create a client object to work with the io4edge device at <address>
 	var c *core.Client
@@ -46,19 +53,15 @@ func main() {
 		log.Fatalf("Failed to create core client: %v\n", err)
 	}
 
-	// Get the active firmware version from the device
-	fwName, fwVersion, err := c.IdentifyFirmware(timeout)
-	if err != nil {
-		log.Fatalf("Failed to identify firmware: %v\n", err)
+	if len(value) > 0 {
+		err = c.SetPersistentParameter(name, value, timeout)
+	} else {
+		value, err = c.GetPersistentParameter(name, timeout)
+		if err == nil {
+			fmt.Printf("Parameter value: %s\n", value)
+		}
 	}
-
-	fmt.Printf("Firmware name: %s, Version %s\n", fwName, fwVersion)
-
-	// Get the hardware name and version from the device
-	rootArticle, majorVersion, serialNumber, err := c.IdentifyHardware(timeout)
 	if err != nil {
-		log.Fatalf("Failed to identify hardware: %v\n", err)
+		log.Fatalf("Command failed: %v\n", err)
 	}
-
-	fmt.Printf("Hardware name: %s, serial: %s, rev: %d\n", rootArticle, serialNumber, majorVersion)
 }
