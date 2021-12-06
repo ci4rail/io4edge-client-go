@@ -1,0 +1,107 @@
+/*
+Copyright © 2021 Ci4Rail GmbH <engineering@ci4rail.com>
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+syntax = "proto3";
+
+import "google/protobuf/any.proto";
+
+package functionblock;
+option go_package = "functionblock/v1alpha1";
+
+// -------- Meta ------------
+message Context {
+  // A message identifying key for a command-response pairs, e.g. an UUID the
+  // clients sends on the request.
+  string value = 1;
+}
+
+// ------- Commands ---------
+message Command {
+  Context context = 1;
+  oneof type {
+    ConfigurationControl configuration = 2;
+    FunctionControl functionControl = 3;
+    StreamControl streamControl = 4;
+  }
+}
+
+// Configuration contains the function blocks high level configuration
+message ConfigurationControl {
+  google.protobuf.Any functionSpecificHardwareConfiguration = 10;
+}
+
+// FunctionControl specifies the direct function control for getting and setting
+// values
+message FunctionControl {
+  oneof action {
+    google.protobuf.Any functionSpecificFunctionControlSet = 1;
+    google.protobuf.Any functionSpecificFunctionControlGet = 2;
+  }
+}
+
+// StreamControl specifies if the stream shall be started or stopped
+message StreamControl {
+  message Stop {}
+  oneof action {
+    google.protobuf.Any functionSpecificStreamControlStart = 1;
+    Stop stop = 2;
+  }
+}
+
+// --------- Responses ------------
+enum Status {
+  OK = 0;
+  ERROR = 1;
+}
+
+message Error { string error = 1; }
+
+message HardwareConfigurationResponse {
+  Status status = 1;
+  Error error = 2;
+  google.protobuf.Any functionSpecificHardwareConfigurationResponse = 10;
+}
+
+message FunctionControlResponse {
+  Status status = 1;
+  Error error = 2;
+  google.protobuf.Any functionSpecificFunctionControlResponse = 10;
+}
+
+message StreamControlResponse {
+  Status status = 1;
+  Error error = 2;
+}
+
+message StreamResponse {
+  // timestamp when the message has been sent out
+  fixed64 deliveryTimestampUs = 1;
+
+  // sample series sequence number (counted from 0, rolls over)
+  fixed32 sequence = 2;
+
+  // Function specific data type
+  google.protobuf.Any functionSpecificStreamResponse = 10;
+}
+
+message Response {
+  Context context = 1;
+  oneof type {
+    HardwareConfigurationResponse configuration = 2;
+    FunctionControlResponse functionControl = 3;
+    StreamControlResponse streamControl = 4;
+    StreamResponse stream = 5;
+  }
+}
