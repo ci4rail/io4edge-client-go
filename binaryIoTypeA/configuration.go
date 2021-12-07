@@ -11,8 +11,8 @@ type Configuration struct {
 	Fritting map[int]bool
 }
 
-func (c *BinaryIoTypeA) SetConfiguration(config Configuration) error {
-	configurationCommand := binio.HardwareConfiguration{
+func (c *Client) SetConfiguration(config Configuration) error {
+	cmd := binio.ConfigurationControlSet{
 		OutputFrittingMap: func(config Configuration) uint32 {
 			var fritting uint32 = 0
 			for ch, f := range config.Fritting {
@@ -23,11 +23,11 @@ func (c *BinaryIoTypeA) SetConfiguration(config Configuration) error {
 			return fritting
 		}(config),
 	}
-	envelopeCmd, err := functionblock.CreateCommand(&configurationCommand)
+	envelopeCmd, err := functionblock.ConfigurationControlSet(&cmd)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%+v\n", configurationCommand)
+	fmt.Printf("%+v\n", cmd)
 	fmt.Printf("%+v\n", envelopeCmd)
 	return nil
 }

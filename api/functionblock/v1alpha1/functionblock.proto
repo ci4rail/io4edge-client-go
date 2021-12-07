@@ -39,8 +39,10 @@ message Command {
 
 // ConfigurationControl contains the function blocks high level configuration
 message ConfigurationControl {
-  google.protobuf.Any functionSpecificConfigurationControlSet = 10;
-  google.protobuf.Any functionSpecificConfigurationControlGet = 20;
+  oneof action {
+    google.protobuf.Any functionSpecificConfigurationControlSet = 10;
+    google.protobuf.Any functionSpecificConfigurationControlGet = 20;
+  }
 }
 
 // FunctionControl specifies the direct function control for getting and setting values

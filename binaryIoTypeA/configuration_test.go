@@ -8,7 +8,7 @@ import (
 
 func TestConfigurationBasic(t *testing.T) {
 	assert := assert.New(t)
-	client := NewBinaryIoTypeAClient()
+	client := NewClient(nil)
 	config := Configuration{
 		Fritting: map[int]bool{0: false, 1: true, 2: true, 3: false},
 	}

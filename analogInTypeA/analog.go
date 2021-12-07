@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	anaIn "github.com/ci4rail/io4edge-client-go/analogInTypeA/v1alpha1"
+	functionblock "github.com/ci4rail/io4edge-client-go/functionblock"
 )
 
 type AnalogInTypeA struct {
@@ -23,6 +24,11 @@ func (c *AnalogInTypeA) GetChannel(channel int) (*anaIn.Sample, error) {
 			},
 		},
 	}
-	fmt.Println(cmd)
+	envelopeCmd, err := functionblock.ConfigurationControlSet(&cmd)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Printf("%+v\n", cmd)
+	fmt.Printf("%+v\n", envelopeCmd)
 	return nil, nil
 }

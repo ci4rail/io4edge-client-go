@@ -4,21 +4,11 @@ import (
 	"fmt"
 
 	binIo "github.com/ci4rail/io4edge-client-go/binaryIoTypeA/v1alpha1"
+	"github.com/ci4rail/io4edge-client-go/functionblock"
 )
 
-type BinaryIoTypeA struct {
-}
-
-func NewBinaryIoTypeAClient() *BinaryIoTypeA {
-	return &BinaryIoTypeA{}
-}
-
-// func NewCommand(cmd *proto.message) *proto.message {
-
-// }
-
 // SetBinaryChannel sets the binary channel to the given value
-func (c *BinaryIoTypeA) SetBinaryChannel(channel int, state bool) error {
+func (c *Client) SetBinaryChannel(channel int, state bool) error {
 
 	cmd := binIo.FunctionControlSet{
 		Type: &binIo.FunctionControlSet_Single{
@@ -28,14 +18,19 @@ func (c *BinaryIoTypeA) SetBinaryChannel(channel int, state bool) error {
 			},
 		},
 	}
+	envelopeCmd, err := functionblock.ConfigurationControlSet(&cmd)
+	if err != nil {
+		return err
+	}
 	fmt.Println(cmd)
+	fmt.Println(envelopeCmd)
 	return nil
 }
 
 // SetAllBinaryChannels sets all binary channels to the given value from the bitmask
 // LSB is channel 0. True: output is on, False, output is off
 // For iou01 there are only four output channels. All other bits are ignored
-func (c *BinaryIoTypeA) SetAllBinaryChannels(output uint32) error {
+func (c *Client) SetAllBinaryChannels(output uint32) error {
 	cmd := binIo.FunctionControlSet{
 		Type: &binIo.FunctionControlSet_All{
 			All: &binIo.SetAll{
@@ -43,6 +38,11 @@ func (c *BinaryIoTypeA) SetAllBinaryChannels(output uint32) error {
 			},
 		},
 	}
-	fmt.Println(cmd)
+	envelopeCmd, err := functionblock.ConfigurationControlSet(&cmd)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("%+v\n", cmd)
+	fmt.Printf("%+v\n", envelopeCmd)
 	return nil
 }

@@ -8,7 +8,7 @@ import (
 
 func TestConfigurationBasic(t *testing.T) {
 	assert := assert.New(t)
-	client := NewAnalogInTypeAClient()
+	client := NewClient(nil)
 	config := Configuration{
 		SampleRate: map[int]uint32{0: 100, 1: 200, 2: 300, 3: 400},
 	}
