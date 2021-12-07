@@ -1,4 +1,4 @@
-package iou01
+package analogInTypeA
 
 import (
 	"testing"
@@ -8,10 +8,9 @@ import (
 
 func TestConfigurationBasic(t *testing.T) {
 	assert := assert.New(t)
-	client := NewIou01Client()
+	client := NewAnalogInTypeAClient()
 	config := Configuration{
-		Fritting:         []bool{false, true, true, false},
-		AnalogSampleRate: []uint32{100, 200, 300, 400},
+		SampleRate: map[int]uint32{0: 100, 1: 200, 2: 300, 3: 400},
 	}
 	err := client.SetConfiguration(config)
 	assert.Nil(err)

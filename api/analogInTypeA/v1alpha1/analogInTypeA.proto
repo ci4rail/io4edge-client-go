@@ -1,0 +1,139 @@
+/*
+Copyright © 2021 Ci4Rail GmbH <engineering@ci4rail.com>
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+syntax = "proto3";
+
+package analogInTypeA;
+option go_package = "analogInTypeA/v1alpha1";
+
+// ============= ConfigurationControl =================
+// Sets the configuration for the sample rate of one specific analog channel
+message ConfigurationSampleRate {
+    // Number of the analog channel to configure
+    fixed32 channel = 1;
+    // Enables the channel
+    bool enabled = 2;
+    // Sample rate in Hz
+    fixed32 sampleRate = 3;
+}
+
+// ConfigurationControlSet to pass to Functionblock.ConfigurationControl.functionSpecificConfigurationControlSet hook
+message ConfigurationControlSet {
+    // The measurement frequency (sampling rate) of the analog inputs
+    repeated ConfigurationSampleRate sampleRate = 1;
+}
+
+// ConfigurationControlSetResponse to pass to Functionblock.ConfigurationControl.functionSpecificConfigurationControlSetResponse hook
+message ConfigurationControlSetResponse {
+    // no parameters
+}
+
+// ConfigurationControlGet to pass to Functionblock.ConfigurationControl.functionSpecificConfigurationControlGet hook
+message ConfigurationControlGet {
+    // no parameters
+}
+
+// ConfigurationControlGetResponse to pass to Functionblock.ConfigurationGetResponse.functionSpecificConfigurationControlGetResponse hook
+// Returns the current hardware configuration
+message ConfigurationControlGetResponse {
+    // The measurement frequency (sampling rate) of the analog inputs
+    repeated ConfigurationSampleRate sampleRate = 1;
+}
+
+// ConfigurationControlResponse to pass to Functionblock.ConfigurationControlResponse.functionSpecificConfigurationControlResponse hook
+message ConfigurationControlResponse {
+    oneof type {
+        ConfigurationControlGetResponse set = 1;
+        ConfigurationControlSetResponse get = 2;
+    }
+}
+
+// ============= FunctionControl =================
+// Gets the current value of a single analog channel
+
+
+message GetSingle {
+    // Specifies the analog input channel
+    fixed32 channel = 1;
+}
+
+// Gets the values of all analog channels
+message GetAll {
+    // no parameters
+}
+
+// FunctionControlGet to pass to Functionblock.FunctionControl.functionSpecificFunctionControlGet hook
+message FunctionControlGet {
+    oneof type {
+        GetSingle single = 1;
+        GetAll all = 2;
+    }
+}
+
+// FunctionControlSet to pass to Functionblock.FunctionControl.functionSpecificFunctionControlSet hook
+message FunctionControlSet {
+    // not implemented
+}
+
+message SetAllResponse {
+    // not implemented
+}
+
+message SetSingleResponse {
+    // not implemented
+}
+
+message GetAllResponse {
+    // binary coded map of input values. 0 means low, 1 means high, LSB is Input0
+    repeated Sample samples = 1;
+}
+
+message GetSingleResponse {
+    Sample sample = 1;
+}
+
+
+
+// FunctionControlResponse to pass to Functionblock.FunctionControlResponse.functionSpecificFunctionControlResponse hook
+message FunctionControlResponse {
+    oneof type {
+        GetSingleResponse getSingle = 1;
+        GetAllResponse getAll = 2;
+        SetSingleResponse setSingle = 3;
+        SetAllResponse setAll = 4;
+    }
+}
+
+// ============= StreamControl ==================
+// StreamControlStart to pass to Functionblock.StreamControl.functionSpecificStreamControlStart hook
+message StreamControlStart {
+    // Starts the stream for configured analog input channels.
+    // LSB is AnalogInput0, 1: stream enabled for channel, 0: stream disabled for channel
+    fixed32 analogInputsEnableMap = 1;
+}
+
+message Sample {
+    // Timestamp for that specific channels sample
+    fixed64 timestamp = 1;
+    // Specifies the analog channel
+    fixed32 channel = 2;
+    // Value ranges between: -32,768 (-10V) to 32,767 (+10V)
+    sfixed32 value = 3;
+}
+
+// StreamData to pass to Functionblock.StreamData.functionSpecificStreamData hook
+message StreamData {
+    repeated Sample samples = 1;
+}

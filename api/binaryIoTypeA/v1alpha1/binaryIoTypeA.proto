@@ -15,63 +15,46 @@ limitations under the License.
 */
 syntax = "proto3";
 
-package iou01;
-option go_package = "iou01/v1alpha1";
+package binaryIoTypeA;
+option go_package = "binaryIoTypeA/v1alpha1";
 
-// ============= ENUMS ==========================
-enum AnalogChannel {
-    AnalogChannel0 = 0;
-    AnalogChannel1 = 1;
-    AnalogChannel2 = 2;
-    AnalogChannel3 = 3;
-}
-
-enum BinaryOutput {
-    BinaryOutput0 = 0;
-    BinaryOutput1 = 1;
-    BinaryOutput2 = 2;
-    BinaryOutput3 = 3;
-}
-
-enum BinaryInput {
-    BinaryInput0 = 0;
-    BinaryInput1 = 1;
-    BinaryInput2 = 2;
-    BinaryInput3 = 3;
-}
-
-// ============= Configuration =================
-// Sets the configuration for the sample rate of one specific analog channel
-message HardwareConfigurationAnalogSampleRate {
-    // Number of the analog channel to configure
-    AnalogChannel channel = 1;
-    // Sample rate in Hz
-    fixed32 sampleRate = 2;
-}
-
-// HardwareConfiguration to pass to Functionblock.ConfigurationControl.functionSpecificHardwareConfiguration hook
-message HardwareConfiguration {
-    // The measurement frequency (sampling rate) of the analog inputs
-    repeated HardwareConfigurationAnalogSampleRate analogSampleRate = 1;
+// ============= ConfigurationControl =================
+// ConfigurationControlSet to pass to Functionblock.ConfigurationControl.functionSpecificConfigurationControlSet hook
+message ConfigurationControlSet {
     // Map to enable fritting on binary output channels. This activates a cyclically higher current at the channel outputs to prevent corrison over time
     // LSB is Output0, 1: fritting enabled, 0: fritting disabled
-    fixed32 binaryOutputFrittingMap = 2;
+    fixed32 outputFrittingMap = 2;
 }
 
-// HardwareConfigurationResponse to pass to Functionblock.HardwareConfigurationResponse.functionSpecificHardwareConfigurationResponse hook
+// ConfigurationControlSetResponse to pass to Functionblock.ConfigurationControl.functionSpecificConfigurationControlSetResponse hook
+message ConfigurationControlSetResponse {
+    // no parameters
+}
+
+// ConfigurationControlGet to pass to Functionblock.ConfigurationControl.functionSpecificConfigurationControlGet hook
+message ConfigurationControlGet {
+    // no parameters
+}
+
+// ConfigurationControlGetResponse to pass to Functionblock.ConfigurationGetResponse.functionSpecificConfigurationControlGetResponse hook
 // Returns the current hardware configuration
-message HardwareConfigurationResponse {
-    // The measurement frequency (sampling rate) of the analog inputs
-    repeated HardwareConfigurationAnalogSampleRate analogSampleRate = 1;
+message ConfigurationControlGetResponse {
     // Map to enable fritting on output channels. This activates a cyclically higher current at the channel outputs to prevent corrison over time
     fixed32 fritting = 2;
 }
 
+// ConfigurationControlResponse to pass to Functionblock.ConfigurationControlResponse.functionSpecificConfigurationControlResponse hook
+message ConfigurationControlResponse {
+    oneof type {
+        ConfigurationControlGetResponse set = 1;
+        ConfigurationControlSetResponse get = 2;
+    }
+}
 // ============= FunctionControl =================
 // Sets the value of a single binary channel
 message SetSingle {
     // Number of the binary output channel
-    BinaryOutput channel = 1;
+    fixed32 channel = 1;
     // State of the binary output channel
     bool state = 2;
 }
@@ -80,12 +63,14 @@ message SetSingle {
 message SetAll {
     // binary coded map of input values. 0 means low, 1 means high, LSB is Output0
     fixed32 values = 1;
+    // mask to define which channels are affected by the set all command. 0 means not set, 1 means set, LSB is Output0
+    fixed32 mask = 2;
 }
 
 // Gets the current value of a single binary channel
 message GetSingle {
     // Specifies the binary input channel
-    BinaryInput channel = 1;
+    fixed32 channel = 1;
 }
 
 // Gets the values of all binary channels
@@ -124,10 +109,11 @@ message GetAllResponse {
 
 message GetSingleResponse {
     // Number of the binary input channel
-    BinaryInput channel = 1;
+    fixed32 channel = 1;
     // State for the bianry input channel
     bool state = 2;
 }
+
 
 // FunctionControlResponse to pass to Functionblock.FunctionControlResponse.functionSpecificFunctionControlResponse hook
 message FunctionControlResponse {
@@ -142,24 +128,23 @@ message FunctionControlResponse {
 // ============= StreamControl ==================
 // StreamControlStart to pass to Functionblock.StreamControl.functionSpecificStreamControlStart hook
 message StreamControlStart {
-    // Starts the stream for configured analog input channels.
-    // LSB is AnalogInput0, 1: stream enabled for channel, 0: stream disabled for channel
-    fixed32 analogInputsEnableMap = 1;
+    // mask to define which channels are considered in the stream. 0 means don't send channels value, 1 means sent it
+    // LSB is Input0
+    fixed32 mask = 2;
 }
 
-message AnalogSample {
+message Sample {
     // Timestamp for that specific channels sample
     fixed64 timestamp = 1;
-    // Specifies the analog channel
-    AnalogChannel channel = 2;
-    // Value ranges between: -32,768 (-10V) to 32,767 (+10V)
-    sfixed32 value = 3;
+    // Specifies the binary channel
+    fixed32 channel = 2;
+    bool value = 3;
     // Indicates if the value is valid or invalid (out of range). 
     // true: value is valud, false: value is invalid
     bool valid = 4;
 }
 
-// StreamResponse to pass to Functionblock.StreamResponse.functionSpecificStreamResponse hook
-message StreamResponse {
-    repeated AnalogSample samples = 1;
+// StreamData to pass to Functionblock.StreamData.functionSpecificStreamData hook
+message StreamData {
+    repeated Sample samples = 1;
 }

@@ -31,19 +31,19 @@ message Context {
 message Command {
   Context context = 1;
   oneof type {
-    ConfigurationControl configuration = 2;
+    ConfigurationControl configurationControl = 2;
     FunctionControl functionControl = 3;
     StreamControl streamControl = 4;
   }
 }
 
-// Configuration contains the function blocks high level configuration
+// ConfigurationControl contains the function blocks high level configuration
 message ConfigurationControl {
-  google.protobuf.Any functionSpecificHardwareConfiguration = 10;
+  google.protobuf.Any functionSpecificConfigurationControlSet = 10;
+  google.protobuf.Any functionSpecificConfigurationControlGet = 20;
 }
 
-// FunctionControl specifies the direct function control for getting and setting
-// values
+// FunctionControl specifies the direct function control for getting and setting values
 message FunctionControl {
   oneof action {
     google.protobuf.Any functionSpecificFunctionControlSet = 1;
@@ -68,10 +68,10 @@ enum Status {
 
 message Error { string error = 1; }
 
-message HardwareConfigurationResponse {
+message ConfigurationControlResponse {
   Status status = 1;
   Error error = 2;
-  google.protobuf.Any functionSpecificHardwareConfigurationResponse = 10;
+  google.protobuf.Any functionSpecificConfigurationControlResponse = 10;
 }
 
 message FunctionControlResponse {
@@ -85,7 +85,7 @@ message StreamControlResponse {
   Error error = 2;
 }
 
-message StreamResponse {
+message StreamData {
   // timestamp when the message has been sent out
   fixed64 deliveryTimestampUs = 1;
 
@@ -93,15 +93,15 @@ message StreamResponse {
   fixed32 sequence = 2;
 
   // Function specific data type
-  google.protobuf.Any functionSpecificStreamResponse = 10;
+  google.protobuf.Any functionSpecificStreamData = 10;
 }
 
 message Response {
   Context context = 1;
   oneof type {
-    HardwareConfigurationResponse configuration = 2;
+    ConfigurationControlResponse configurationControl = 2;
     FunctionControlResponse functionControl = 3;
     StreamControlResponse streamControl = 4;
-    StreamResponse stream = 5;
+    StreamData stream = 5;
   }
 }
