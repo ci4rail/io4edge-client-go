@@ -15,7 +15,7 @@ limitations under the License.
 */
 syntax = "proto3";
 
-package core;
+package io4edgeCoreApi;
 option go_package = "core/v1alpha2";
 
 enum CommandId {
