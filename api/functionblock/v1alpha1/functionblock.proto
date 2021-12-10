@@ -70,6 +70,7 @@ message StreamControl {
 enum Status {
   OK = 0;
   ERROR = 1;
+  NOT_IMPLEMENTED = 2;
 }
 
 message Error { string error = 1; }
