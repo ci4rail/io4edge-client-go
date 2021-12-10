@@ -2,9 +2,11 @@ package binaryIoTypeA
 
 import (
 	"fmt"
+	"time"
 
 	binio "github.com/ci4rail/io4edge-client-go/binaryIoTypeA/v1alpha1"
 	"github.com/ci4rail/io4edge-client-go/functionblock"
+	functionblockV1 "github.com/ci4rail/io4edge-client-go/functionblock/v1alpha1"
 )
 
 type Configuration struct {
@@ -27,7 +29,12 @@ func (c *Client) SetConfiguration(config Configuration) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%+v\n", cmd)
-	fmt.Printf("%+v\n", envelopeCmd)
+	res := &functionblockV1.Response{}
+	err = c.funcClient.Command(envelopeCmd, res, time.Second*5)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	fmt.Println(functionblockV1.Status_name[int32(res.Status)])
 	return nil
 }

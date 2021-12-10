@@ -5,6 +5,7 @@ go 1.17
 require (
 	github.com/ci4rail/firmware-packaging-go v0.0.0-20210910120607-093c436aeccc
 	github.com/docker/distribution v2.7.1+incompatible
+	github.com/emicklei/proto v1.9.1
 	github.com/godbus/dbus/v5 v5.0.5
 	github.com/golang/protobuf v1.5.2
 	github.com/holoplot/go-avahi v1.0.0
