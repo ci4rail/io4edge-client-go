@@ -14,7 +14,7 @@ func NewAnalogInTypeAClient() *AnalogInTypeA {
 	return &AnalogInTypeA{}
 }
 
-// SetBinaryChannel sets the binary channel to the given value
+// GetChannel gets the current value of a given analog channel
 func (c *AnalogInTypeA) GetChannel(channel int) (*anaIn.Sample, error) {
 
 	cmd := anaIn.FunctionControlGet{
