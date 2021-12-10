@@ -52,11 +52,21 @@ message ConfigurationControlGetResponse {
     repeated ConfigurationSampleRate sampleRate = 1;
 }
 
+// ConfigurationControlDescribe to pass to Functionblock.ConfigurationControl.functionSpecificConfigurationControlDescribe hook 
+message ConfigurationControlDescribe {
+    // no parameters
+}
+
+message ConfigurationControlDescribeResponse {
+    fixed32 numberOfChannels = 1;
+}
+
 // ConfigurationControlResponse to pass to Functionblock.ConfigurationControlResponse.functionSpecificConfigurationControlResponse hook
 message ConfigurationControlResponse {
     oneof type {
         ConfigurationControlGetResponse set = 1;
         ConfigurationControlSetResponse get = 2;
+        ConfigurationControlDescribeResponse describe = 3;
     }
 }
 
@@ -104,8 +114,6 @@ message GetSingleResponse {
     Sample sample = 1;
 }
 
-
-
 // FunctionControlResponse to pass to Functionblock.FunctionControlResponse.functionSpecificFunctionControlResponse hook
 message FunctionControlResponse {
     oneof type {
@@ -131,6 +139,8 @@ message Sample {
     fixed32 channel = 2;
     // Value ranges between: -32,768 (-10V) to 32,767 (+10V)
     sfixed32 value = 3;
+    // Specifies if the sample is valid
+    bool valid = 4;
 }
 
 // StreamData to pass to Functionblock.StreamData.functionSpecificStreamData hook

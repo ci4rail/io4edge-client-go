@@ -40,8 +40,12 @@ message Command {
 // ConfigurationControl contains the function blocks high level configuration
 message ConfigurationControl {
   oneof action {
+    // Setting a new configuration
     google.protobuf.Any functionSpecificConfigurationControlSet = 10;
+    // Getting the current configuration
     google.protobuf.Any functionSpecificConfigurationControlGet = 20;
+    // Describe hardware capabilities
+    google.protobuf.Any functionSpecificConfigurationControlDescribe = 30;
   }
 }
 
