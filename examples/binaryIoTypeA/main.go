@@ -42,7 +42,7 @@ func main() {
 		c, err = binaryIoTypeA.NewClientFromSocketAddress(address)
 	}
 	if err != nil {
-		log.Fatalf("Failed to create core client: %v\n", err)
+		log.Fatalf("Failed to create binaryIoTypeA client: %v\n", err)
 	}
 
 	c.SetConfiguration(binaryIoTypeA.Configuration{

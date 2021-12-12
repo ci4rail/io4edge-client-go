@@ -1,6 +1,8 @@
 package functionblock
 
 import (
+	"fmt"
+
 	fbv1 "github.com/ci4rail/io4edge-client-go/functionblock/v1alpha1"
 	"github.com/docker/distribution/uuid"
 	any "github.com/golang/protobuf/ptypes"
@@ -48,9 +50,10 @@ func ConfigurationControlDescribe(cmd protoiface.MessageV1) (*fbv1.Command, erro
 	if err != nil {
 		return nil, err
 	}
-
+	ctx := uuid.Generate().String()
+	fmt.Printf("Control Describe context: %s\n", ctx)
 	return &fbv1.Command{
-		Context: &fbv1.Context{Value: uuid.Generate().String()},
+		Context: &fbv1.Context{Value: ctx},
 		Type: &fbv1.Command_ConfigurationControl{
 			ConfigurationControl: &fbv1.ConfigurationControl{
 				Action: &fbv1.ConfigurationControl_FunctionSpecificConfigurationControlDescribe{
