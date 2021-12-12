@@ -42,3 +42,21 @@ func ConfigurationControlGet(cmd protoiface.MessageV1) (*fbv1.Command, error) {
 		},
 	}, nil
 }
+
+func ConfigurationControlDescribe(cmd protoiface.MessageV1) (*fbv1.Command, error) {
+	anyCmd, err := any.MarshalAny(cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	return &fbv1.Command{
+		Context: &fbv1.Context{Value: uuid.Generate().String()},
+		Type: &fbv1.Command_ConfigurationControl{
+			ConfigurationControl: &fbv1.ConfigurationControl{
+				Action: &fbv1.ConfigurationControl_FunctionSpecificConfigurationControlDescribe{
+					FunctionSpecificConfigurationControlDescribe: anyCmd,
+				},
+			},
+		},
+	}, nil
+}

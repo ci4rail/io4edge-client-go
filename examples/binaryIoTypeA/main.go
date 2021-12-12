@@ -48,4 +48,6 @@ func main() {
 	c.SetConfiguration(binaryIoTypeA.Configuration{
 		Fritting: map[int]bool{},
 	})
+
+	c.Describe()
 }

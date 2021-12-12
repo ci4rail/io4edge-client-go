@@ -129,7 +129,7 @@ message FunctionControlResponse {
 message StreamControlStart {
     // Starts the stream for configured analog input channels.
     // LSB is AnalogInput0, 1: stream enabled for channel, 0: stream disabled for channel
-    fixed32 analogInputsEnableMap = 1;
+    fixed32 enableMask = 1;
 }
 
 message Sample {
