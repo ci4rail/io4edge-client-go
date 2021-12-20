@@ -63,6 +63,6 @@ func (c *Client) Describe() error {
 		return err
 	}
 
-	fmt.Printf("ctx: %s: Number of channels: %d\n", res.Context.Value, describe.GetDescribe().GetNumberOfChannels())
+	fmt.Printf("Number of channels: %d\n", describe.GetDescribe().GetNumberOfChannels())
 	return nil
 }

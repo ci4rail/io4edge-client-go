@@ -28,11 +28,14 @@ func (c *Client) SetSingle(channel uint, state bool) error {
 		fmt.Println(err)
 		return err
 	}
-	fmt.Println(functionblockV1.Status_name[int32(res.Status)])
+	if functionblockV1.Status_name[int32(res.Status)] != "OK" {
+		fmt.Println(functionblockV1.Status_name[int32(res.Status)])
+		return err
+	}
 	return nil
 }
 
-func (c *Client) SetAll(channel uint, values uint32, mask uint32) error {
+func (c *Client) SetAll(values uint32, mask uint32) error {
 	cmd := binio.FunctionControlSet{
 		Type: &binio.FunctionControlSet_All{
 			All: &binio.SetAll{
@@ -51,6 +54,9 @@ func (c *Client) SetAll(channel uint, values uint32, mask uint32) error {
 		fmt.Println(err)
 		return err
 	}
-	fmt.Println(functionblockV1.Status_name[int32(res.Status)])
+	if functionblockV1.Status_name[int32(res.Status)] != "OK" {
+		fmt.Println(functionblockV1.Status_name[int32(res.Status)])
+		return err
+	}
 	return nil
 }

@@ -1,8 +1,6 @@
 package functionblock
 
 import (
-	"fmt"
-
 	fbv1 "github.com/ci4rail/io4edge-client-go/functionblock/v1alpha1"
 	"github.com/docker/distribution/uuid"
 	any "github.com/golang/protobuf/ptypes"
@@ -14,7 +12,6 @@ func FunctionControlSet(cmd protoiface.MessageV1, commandIdentifier string) (*fb
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(anyCmd)
 	return &fbv1.Command{
 		Context: &fbv1.Context{Value: uuid.Generate().String()},
 		Type: &fbv1.Command_FunctionControl{

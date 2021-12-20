@@ -16,8 +16,10 @@ limitations under the License.
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/ci4rail/io4edge-client-go/binaryIoTypeA"
@@ -56,9 +58,143 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to config describe: %v\n", err)
 	}
+	quit := make(chan interface{})
+	var wg sync.WaitGroup
 
-	err = c.SetSingle(0, true)
+	////////////////////////////////////////////////////////////////////////////
+	fmt.Println("Set Single example")
+	go func() {
+		time.Sleep(10 * time.Second)
+		quit <- true
+	}()
+
+	wg.Add(1)
+	go func() {
+		state := false
+		for {
+			select {
+			case <-quit:
+				wg.Done()
+				return
+			default:
+				// Do other stuff
+				state = !state
+				fmt.Printf("SetSingle(0, %v)\n", !state)
+				err = c.SetSingle(0, !state)
+				if err != nil {
+					log.Fatalf("Failed to set single channel: %v\n", err)
+				}
+				fmt.Printf("SetSingle(1, %v)\n", state)
+				err = c.SetSingle(1, state)
+				if err != nil {
+					log.Fatalf("Failed to set single channel: %v\n", err)
+				}
+				fmt.Printf("SetSingle(2, %v)\n", !state)
+				err = c.SetSingle(2, !state)
+				if err != nil {
+					log.Fatalf("Failed to set single channel: %v\n", err)
+				}
+				fmt.Printf("SetSingle(3, %v)\n", state)
+				err = c.SetSingle(3, state)
+				if err != nil {
+					log.Fatalf("Failed to set single channel: %v\n", err)
+				}
+				fmt.Println()
+				time.Sleep(500 * time.Millisecond)
+			}
+		}
+	}()
+	wg.Wait()
+
+	////////////////////////////////////////////////////////////////////////////
+	fmt.Println("Set All example modifiying values bitmask")
+	go func() {
+		time.Sleep(10 * time.Second)
+		quit <- true
+	}()
+
+	wg.Add(1)
+	go func() {
+		var values uint32 = 1
+		for {
+			select {
+			case <-quit:
+				wg.Done()
+				return
+			default:
+				for i := 0; i < 3; i++ {
+					values = values << 1
+					fmt.Printf("values: %04b\n", values)
+					err := c.SetAll(values, 0x0F)
+					if err != nil {
+						log.Fatalf("Failed to set all channels: %v\n", err)
+					}
+					time.Sleep(time.Millisecond * 500)
+				}
+				for i := 0; i < 3; i++ {
+					values = values >> 1
+					fmt.Printf("values: %04b\n", values)
+					err := c.SetAll(values, 0x0F)
+					if err != nil {
+						log.Fatalf("Failed to set all channels: %v\n", err)
+					}
+					time.Sleep(time.Millisecond * 500)
+				}
+			}
+		}
+	}()
+	wg.Wait()
+
+	////////////////////////////////////////////////////////////////////////////
+	fmt.Println("Set All example modifiying filter bitmask")
+	go func() {
+		time.Sleep(10 * time.Second)
+		quit <- true
+	}()
+
+	wg.Add(1)
+	go func() {
+		var mask uint32 = 0x0F
+		for {
+			select {
+			case <-quit:
+				wg.Done()
+				return
+			default:
+				for i := 0; i < 3; i++ {
+					mask = mask >> 1
+					err := c.SetAll(0x00, 0x0F)
+					if err != nil {
+						log.Fatalf("Failed to set all channels: %v\n", err)
+					}
+					err = c.SetAll(0x0F, mask)
+					fmt.Printf("mask: %04b\n", mask)
+					if err != nil {
+						log.Fatalf("Failed to set all channels: %v\n", err)
+					}
+					time.Sleep(time.Millisecond * 500)
+				}
+				for i := 0; i < 3; i++ {
+					err := c.SetAll(0x00, 0x0F)
+					if err != nil {
+						log.Fatalf("Failed to set all channels: %v\n", err)
+					}
+					mask = mask << 1
+					fmt.Printf("mask: %04b\n", mask)
+					err = c.SetAll(0x0F, mask)
+					if err != nil {
+						log.Fatalf("Failed to set all channels: %v\n", err)
+					}
+					time.Sleep(time.Millisecond * 500)
+				}
+			}
+		}
+	}()
+	wg.Wait()
+
+	// Turn off everything
+	err = c.SetAll(0x00, 0x0F)
 	if err != nil {
-		log.Fatalf("Failed to set single channel: %v\n", err)
+		log.Fatalf("Failed to set all channels: %v\n", err)
 	}
 }
