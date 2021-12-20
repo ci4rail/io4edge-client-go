@@ -1,18 +1,20 @@
 package functionblock
 
 import (
+	"fmt"
+
 	fbv1 "github.com/ci4rail/io4edge-client-go/functionblock/v1alpha1"
 	"github.com/docker/distribution/uuid"
 	any "github.com/golang/protobuf/ptypes"
 	"google.golang.org/protobuf/runtime/protoiface"
 )
 
-func FunctionControlSet(cmd protoiface.MessageV1, subcommand string) (*fbv1.Command, error) {
+func FunctionControlSet(cmd protoiface.MessageV1, commandIdentifier string) (*fbv1.Command, error) {
 	anyCmd, err := any.MarshalAny(cmd)
 	if err != nil {
 		return nil, err
 	}
-
+	fmt.Println(anyCmd)
 	return &fbv1.Command{
 		Context: &fbv1.Context{Value: uuid.Generate().String()},
 		Type: &fbv1.Command_FunctionControl{
@@ -20,13 +22,12 @@ func FunctionControlSet(cmd protoiface.MessageV1, subcommand string) (*fbv1.Comm
 				Action: &fbv1.FunctionControl_FunctionSpecificFunctionControlSet{
 					FunctionSpecificFunctionControlSet: anyCmd,
 				},
-				CommandIdentifier: subcommand,
 			},
 		},
 	}, nil
 }
 
-func FunctionControlGet(cmd protoiface.MessageV1) (*fbv1.Command, error) {
+func FunctionControlGet(cmd protoiface.MessageV1, commandIdentifier string) (*fbv1.Command, error) {
 	anyCmd, err := any.MarshalAny(cmd)
 	if err != nil {
 		return nil, err
