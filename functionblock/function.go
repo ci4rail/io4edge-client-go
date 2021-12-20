@@ -7,7 +7,7 @@ import (
 	"google.golang.org/protobuf/runtime/protoiface"
 )
 
-func FunctionControlSet(cmd protoiface.MessageV1) (*fbv1.Command, error) {
+func FunctionControlSet(cmd protoiface.MessageV1, subcommand string) (*fbv1.Command, error) {
 	anyCmd, err := any.MarshalAny(cmd)
 	if err != nil {
 		return nil, err
@@ -20,6 +20,7 @@ func FunctionControlSet(cmd protoiface.MessageV1) (*fbv1.Command, error) {
 				Action: &fbv1.FunctionControl_FunctionSpecificFunctionControlSet{
 					FunctionSpecificFunctionControlSet: anyCmd,
 				},
+				CommandIdentifier: subcommand,
 			},
 		},
 	}, nil

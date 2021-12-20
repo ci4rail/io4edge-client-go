@@ -45,9 +45,20 @@ func main() {
 		log.Fatalf("Failed to create binaryIoTypeA client: %v\n", err)
 	}
 
-	c.SetConfiguration(binaryIoTypeA.Configuration{
+	err = c.SetConfiguration(binaryIoTypeA.Configuration{
 		Fritting: map[int]bool{},
 	})
+	if err != nil {
+		log.Fatalf("Failed to set configuration: %v\n", err)
+	}
 
-	c.Describe()
+	err = c.Describe()
+	if err != nil {
+		log.Fatalf("Failed to config describe: %v\n", err)
+	}
+
+	err = c.SetSingle(0, true)
+	if err != nil {
+		log.Fatalf("Failed to set single channel: %v\n", err)
+	}
 }

@@ -51,9 +51,10 @@ message ConfigurationControl {
 
 // FunctionControl specifies the direct function control for getting and setting values
 message FunctionControl {
+  string commandIdentifier = 1;
   oneof action {
-    google.protobuf.Any functionSpecificFunctionControlSet = 1;
-    google.protobuf.Any functionSpecificFunctionControlGet = 2;
+    google.protobuf.Any functionSpecificFunctionControlSet = 2;
+    google.protobuf.Any functionSpecificFunctionControlGet = 3;
   }
 }
 

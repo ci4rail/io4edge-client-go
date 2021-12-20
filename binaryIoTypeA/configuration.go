@@ -32,12 +32,14 @@ func (c *Client) SetConfiguration(config Configuration) error {
 		return err
 	}
 	res := &functionblockV1.Response{}
-	err = c.funcClient.Command(envelopeCmd, res, time.Second*5)
-	if err != nil {
-		fmt.Println(err)
-		return err
+	if c.funcClient != nil {
+		err = c.funcClient.Command(envelopeCmd, res, time.Second*5)
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+		fmt.Println(functionblockV1.Status_name[int32(res.Status)])
 	}
-	fmt.Println(functionblockV1.Status_name[int32(res.Status)])
 	return nil
 }
 
