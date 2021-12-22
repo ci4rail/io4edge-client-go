@@ -12,19 +12,36 @@ import (
 )
 
 type Configuration struct {
-	Fritting map[int]bool
+	OutputFritting        map[int]bool
+	OutputWatchdog        map[int]bool
+	OutputWatchdogTimeout *int
 }
 
 func (c *Client) SetConfiguration(config Configuration) error {
 	cmd := binio.ConfigurationControlSet{
-		OutputFrittingMap: func(config Configuration) uint32 {
-			var fritting uint32 = 0
-			for ch, f := range config.Fritting {
+		OutputFrittingMask: func(config Configuration) int32 {
+			var setting int32 = -1
+			for ch, f := range config.OutputFritting {
 				if f {
-					fritting |= 1 << ch
+					setting |= 1 << ch
 				}
 			}
-			return fritting
+			return setting
+		}(config),
+		OutputWatchdogMask: func(config Configuration) int32 {
+			var setting int32 = -1
+			for ch, f := range config.OutputWatchdog {
+				if f {
+					setting |= 1 << ch
+				}
+			}
+			return setting
+		}(config),
+		OutputWatchdogTimeout: func(config Configuration) int32 {
+			if config.OutputWatchdogTimeout == nil {
+				return -1
+			}
+			return int32(*config.OutputWatchdogTimeout)
 		}(config),
 	}
 	envelopeCmd, err := functionblock.ConfigurationControlSet(&cmd)

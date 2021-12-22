@@ -24,12 +24,12 @@ option go_package = "binaryIoTypeA/v1alpha1";
 message ConfigurationControlSet {
     // Map to enable fritting on binary output channels. This activates a cyclically higher current at the channel outputs to prevent corrison over time
     // LSB is Output0, 1: fritting enabled, 0: disabled
-    fixed32 outputFrittingMask = 1;
+    sfixed32 outputFrittingMask = 1;
     // Map to enable the output watchdog for binary output channels. The output watchdog is activated if the output is not updated for a certain time.
     // LSB is Output0, 1: output watchdog enabled, 0: disabled
-    fixed32 outputWatchdogMask = 2;
+    sfixed32 outputWatchdogMask = 2;
     // The output watchdog timeout in seconds.
-    fixed32 outputWatchdogTimeout = 3;
+    sfixed32 outputWatchdogTimeout = 3;
 }
 
 // ConfigurationControlSetResponse to pass to Functionblock.ConfigurationControl.functionSpecificConfigurationControlSetResponse hook

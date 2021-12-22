@@ -47,8 +47,12 @@ func main() {
 		log.Fatalf("Failed to create binaryIoTypeA client: %v\n", err)
 	}
 
+	timeoutSeconds := new(int)
+	*timeoutSeconds = 100
 	err = c.SetConfiguration(binaryIoTypeA.Configuration{
-		Fritting: map[int]bool{},
+		OutputFritting:        map[int]bool{0: true, 1: true, 2: true, 3: true},
+		OutputWatchdog:        map[int]bool{0: true, 1: true, 2: true, 3: true},
+		OutputWatchdogTimeout: timeoutSeconds,
 	})
 	if err != nil {
 		fmt.Printf("Failed to set configuration: %v\n", err)
