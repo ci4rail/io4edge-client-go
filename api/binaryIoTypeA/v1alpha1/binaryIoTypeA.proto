@@ -23,11 +23,11 @@ option go_package = "binaryIoTypeA/v1alpha1";
 // ConfigurationControlSet to pass to Functionblock.ConfigurationControl.functionSpecificConfigurationControlSet hook
 message ConfigurationControlSet {
     // Map to enable fritting on binary output channels. This activates a cyclically higher current at the channel outputs to prevent corrison over time
-    // LSB is Output0, 1: fritting enabled, 0: fritting disabled
-    fixed32 outputFrittingMap = 1;
+    // LSB is Output0, 1: fritting enabled, 0: disabled
+    fixed32 outputFrittingMask = 1;
     // Map to enable the output watchdog for binary output channels. The output watchdog is activated if the output is not updated for a certain time.
     // LSB is Output0, 1: output watchdog enabled, 0: disabled
-    fixed32 outputWatchdogMap = 2;
+    fixed32 outputWatchdogMask = 2;
     // The output watchdog timeout in seconds.
     fixed32 outputWatchdogTimeout = 3;
 }
@@ -45,8 +45,14 @@ message ConfigurationControlGet {
 // ConfigurationControlGetResponse to pass to Functionblock.ConfigurationGetResponse.functionSpecificConfigurationControlGetResponse hook
 // Returns the current hardware configuration
 message ConfigurationControlGetResponse {
-    // Map to enable fritting on output channels. This activates a cyclically higher current at the channel outputs to prevent corrison over time
-    fixed32 fritting = 2;
+    // Enabled fritting on output channels, see ConfigurationControlSet
+    // LSB is Output0, 1: fritting enabled, 0: disabled
+    fixed32 outputFrittingMask = 1;
+    // Enabled output watchdog for binary output channels, see ConfigurationControlSet
+    // LSB is Output0, 1: output watchdog enabled, 0: disabled
+    fixed32 outputWatchdogMask = 2;
+    // The output watchdog timeout in seconds, see ConfigurationControlSet
+    fixed32 outputWatchdogTimeout = 3;
 }
 
 // ConfigurationControlDescribe to pass to Functionblock.ConfigurationControl.functionSpecificConfigurationControlDescribe hook 
