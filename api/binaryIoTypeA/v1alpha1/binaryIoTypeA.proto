@@ -52,7 +52,7 @@ message ConfigurationControlGetResponse {
     // LSB is Output0, 1: output watchdog enabled, 0: disabled
     fixed32 outputWatchdogMask = 2;
     // The output watchdog timeout in seconds, see ConfigurationControlSet
-    fixed32 outputWatchdogTimeout = 3;
+    sfixed32 outputWatchdogTimeout = 3;
 }
 
 // ConfigurationControlDescribe to pass to Functionblock.ConfigurationControl.functionSpecificConfigurationControlDescribe hook 
