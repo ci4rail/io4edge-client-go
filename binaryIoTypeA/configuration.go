@@ -64,7 +64,6 @@ func (c *Client) GetConfiguration() (*Configuration, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("%+v\n", get)
 	ret := &Configuration{
 		OutputFritting:        int32(get.GetGet().OutputFrittingMask) & 0xFF,
 		OutputWatchdog:        int32(get.GetGet().OutputWatchdogMask) & 0xFF,

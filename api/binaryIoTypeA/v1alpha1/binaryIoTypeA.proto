@@ -99,7 +99,8 @@ message GetSingle {
 
 // Gets the values of all binary channels
 message GetAll {
-    // no parameters
+        // mask to define which channels are affected by the get all command. 0 means not set, 1 means set, LSB is Output0
+        fixed32 mask = 1;
 }
 
 // FunctionControlGet to pass to Functionblock.FunctionControl.functionSpecificFunctionControlGet hook
