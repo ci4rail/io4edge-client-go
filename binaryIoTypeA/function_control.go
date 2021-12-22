@@ -7,6 +7,8 @@ import (
 	binio "github.com/ci4rail/io4edge-client-go/binaryIoTypeA/v1alpha1"
 	"github.com/ci4rail/io4edge-client-go/functionblock"
 	functionblockV1 "github.com/ci4rail/io4edge-client-go/functionblock/v1alpha1"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/anypb"
 )
 
 func (c *Client) SetSingle(channel uint, state bool) error {
@@ -61,4 +63,66 @@ func (c *Client) SetAll(values uint32, mask uint32) error {
 		return fmt.Errorf(res.Error.Error)
 	}
 	return nil
+}
+
+func (c *Client) GetSingle(channel uint) (bool, error) {
+	cmd := binio.FunctionControlGet{
+		Type: &binio.FunctionControlGet_Single{
+			Single: &binio.GetSingle{
+				Channel: uint32(channel),
+			},
+		},
+	}
+	envelopeCmd, err := functionblock.FunctionControlGet(&cmd, string(cmd.Type.(*binio.FunctionControlGet_Single).Single.ProtoReflect().Descriptor().FullName()))
+	if err != nil {
+		return false, err
+	}
+	res := &functionblockV1.Response{}
+	err = c.funcClient.Command(envelopeCmd, res, time.Second*5)
+	if err != nil {
+		return false, err
+	}
+	if res.Status == functionblockV1.Status_NOT_IMPLEMENTED {
+		return false, fmt.Errorf("not implemented")
+	}
+	if res.Status == functionblockV1.Status_ERROR {
+		return false, fmt.Errorf(res.Error.Error)
+	}
+	get := binio.FunctionControlResponse{}
+	err = anypb.UnmarshalTo(res.GetFunctionControl().FunctionSpecificFunctionControlResponse, &get, proto.UnmarshalOptions{})
+	if err != nil {
+		return false, err
+	}
+	return get.GetGetSingle().State, nil
+}
+
+func (c *Client) GetAll(mask uint32) (uint32, error) {
+	cmd := binio.FunctionControlGet{
+		Type: &binio.FunctionControlGet_All{
+			All: &binio.GetAll{
+				Mask: mask,
+			},
+		},
+	}
+	envelopeCmd, err := functionblock.FunctionControlGet(&cmd, string(cmd.Type.(*binio.FunctionControlGet_All).All.ProtoReflect().Descriptor().FullName()))
+	if err != nil {
+		return 0, err
+	}
+	res := &functionblockV1.Response{}
+	err = c.funcClient.Command(envelopeCmd, res, time.Second*5)
+	if err != nil {
+		return 0, err
+	}
+	if res.Status == functionblockV1.Status_NOT_IMPLEMENTED {
+		return 0, fmt.Errorf("not implemented")
+	}
+	if res.Status == functionblockV1.Status_ERROR {
+		return 0, fmt.Errorf(res.Error.Error)
+	}
+	get := binio.FunctionControlResponse{}
+	err = anypb.UnmarshalTo(res.GetFunctionControl().FunctionSpecificFunctionControlResponse, &get, proto.UnmarshalOptions{})
+	if err != nil {
+		return 0, err
+	}
+	return get.GetGetAll().Inputs, nil
 }

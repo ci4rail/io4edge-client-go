@@ -53,7 +53,7 @@ func main() {
 	////////////////////////////////////////////////////////////////////////////
 	fmt.Println("Set Single example")
 	go func() {
-		time.Sleep(10 * time.Second)
+		time.Sleep(1 * time.Second)
 		quit <- true
 	}()
 
@@ -72,21 +72,48 @@ func main() {
 				if err != nil {
 					log.Fatalf("Failed to set single channel: %v\n", err)
 				}
+				time.Sleep(20 * time.Millisecond)
+				readState, err := c.GetSingle(0)
+				if err != nil {
+					log.Fatalf("Failed to get single channel: %v\n", err)
+				}
+				fmt.Printf("GetSingle(0): %t)\n", readState)
+
 				fmt.Printf("SetSingle(1, %v)\n", state)
 				err = c.SetSingle(1, state)
 				if err != nil {
 					log.Fatalf("Failed to set single channel: %v\n", err)
 				}
+				time.Sleep(20 * time.Millisecond)
+				readState, err = c.GetSingle(1)
+				if err != nil {
+					log.Fatalf("Failed to get single channel: %v\n", err)
+				}
+				fmt.Printf("GetSingle(1): %t)\n", readState)
+
 				fmt.Printf("SetSingle(2, %v)\n", !state)
 				err = c.SetSingle(2, !state)
 				if err != nil {
 					log.Fatalf("Failed to set single channel: %v\n", err)
 				}
+				time.Sleep(20 * time.Millisecond)
+				readState, err = c.GetSingle(2)
+				if err != nil {
+					log.Fatalf("Failed to get single channel: %v\n", err)
+				}
+				fmt.Printf("GetSingle(2): %t)\n", readState)
+
 				fmt.Printf("SetSingle(3, %v)\n", state)
 				err = c.SetSingle(3, state)
 				if err != nil {
 					log.Fatalf("Failed to set single channel: %v\n", err)
 				}
+				time.Sleep(20 * time.Millisecond)
+				readState, err = c.GetSingle(3)
+				if err != nil {
+					log.Fatalf("Failed to get single channel: %v\n", err)
+				}
+				fmt.Printf("GetSingle(3): %t)\n", readState)
 				fmt.Println()
 				time.Sleep(500 * time.Millisecond)
 			}
@@ -112,21 +139,33 @@ func main() {
 			default:
 				for i := 0; i < 4; i++ {
 					values = setBit(values, i)
-					fmt.Printf("values: %04b\n", values)
+					fmt.Printf("set:  %04b\n", values)
 					err := c.SetAll(values, 0x0F)
 					if err != nil {
 						log.Fatalf("Failed to set all channels: %v\n", err)
 					}
-					time.Sleep(time.Millisecond * 500)
+					time.Sleep(time.Millisecond * 250)
+					readState, err := c.GetAll(0xFF)
+					if err != nil {
+						log.Fatalf("Failed to get all channels: %v\n", err)
+					}
+					fmt.Printf("read: %04b\n", readState)
+					time.Sleep(time.Millisecond * 250)
 				}
 				for i := 3; i >= 0; i-- {
 					values = clearBit(values, i)
-					fmt.Printf("values: %04b\n", values)
+					fmt.Printf("set:  %04b\n", values)
 					err := c.SetAll(values, 0x0F)
 					if err != nil {
 						log.Fatalf("Failed to set all channels: %v\n", err)
 					}
-					time.Sleep(time.Millisecond * 500)
+					time.Sleep(time.Millisecond * 250)
+					readState, err := c.GetAll(0xFF)
+					if err != nil {
+						log.Fatalf("Failed to get all channels: %v\n", err)
+					}
+					fmt.Printf("read: %04b\n", readState)
+					time.Sleep(time.Millisecond * 250)
 				}
 			}
 		}
