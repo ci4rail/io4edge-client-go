@@ -61,8 +61,8 @@ message ConfigurationControlDescribeResponse {
 // ConfigurationControlResponse to pass to Functionblock.ConfigurationControlResponse.functionSpecificConfigurationControlResponse hook
 message ConfigurationControlResponse {
     oneof type {
-        ConfigurationControlGetResponse set = 1;
-        ConfigurationControlSetResponse get = 2;
+        ConfigurationControlGetResponse get = 1;
+        ConfigurationControlSetResponse set = 2;
         ConfigurationControlDescribeResponse describe = 3;
     }
 }

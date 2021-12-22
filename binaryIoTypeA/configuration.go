@@ -32,37 +32,41 @@ func (c *Client) SetConfiguration(config Configuration) error {
 		return err
 	}
 	res := &functionblockV1.Response{}
-	if c.funcClient != nil {
-		err = c.funcClient.Command(envelopeCmd, res, time.Second*5)
-		if err != nil {
-			fmt.Println(err)
-			return err
-		}
-		fmt.Println(functionblockV1.Status_name[int32(res.Status)])
+	err = c.funcClient.Command(envelopeCmd, res, time.Second*5)
+	if err != nil {
+		return err
+	}
+	if res.Status == functionblockV1.Status_NOT_IMPLEMENTED {
+		return fmt.Errorf("not implemented")
+	}
+	if res.Status == functionblockV1.Status_ERROR {
+		return fmt.Errorf(res.Error.Error)
 	}
 	return nil
 }
 
-func (c *Client) Describe() error {
+func (c *Client) Describe() (*binio.ConfigurationControlDescribeResponse, error) {
 	cmd := binio.ConfigurationControlDescribe{}
 	envelopeCmd, err := functionblock.ConfigurationControlDescribe(&cmd)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	res := &functionblockV1.Response{}
 	err = c.funcClient.Command(envelopeCmd, res, time.Second*5)
 	if err != nil {
-		fmt.Println(err)
-		return err
+		return nil, err
 	}
-	fmt.Println(functionblockV1.Status_name[int32(res.Status)])
+	if res.Status == functionblockV1.Status_NOT_IMPLEMENTED {
+		return nil, fmt.Errorf("not implemented")
+	}
+	if res.Status == functionblockV1.Status_ERROR {
+		return nil, fmt.Errorf(res.Error.Error)
+	}
 	describe := binio.ConfigurationControlResponse{}
 	err = anypb.UnmarshalTo(res.GetConfigurationControl().FunctionSpecificConfigurationControlResponse, &describe, proto.UnmarshalOptions{})
 	if err != nil {
-		fmt.Println(err)
-		return err
+		return nil, err
 	}
 
-	fmt.Printf("Number of channels: %d\n", describe.GetDescribe().GetNumberOfChannels())
-	return nil
+	return describe.GetDescribe(), nil
 }

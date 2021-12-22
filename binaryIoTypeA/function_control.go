@@ -25,12 +25,13 @@ func (c *Client) SetSingle(channel uint, state bool) error {
 	res := &functionblockV1.Response{}
 	err = c.funcClient.Command(envelopeCmd, res, time.Second*5)
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
-	if functionblockV1.Status_name[int32(res.Status)] != "OK" {
-		fmt.Println(functionblockV1.Status_name[int32(res.Status)])
-		return err
+	if res.Status == functionblockV1.Status_NOT_IMPLEMENTED {
+		return fmt.Errorf("not implemented")
+	}
+	if res.Status == functionblockV1.Status_ERROR {
+		return fmt.Errorf(res.Error.Error)
 	}
 	return nil
 }
@@ -51,12 +52,13 @@ func (c *Client) SetAll(values uint32, mask uint32) error {
 	res := &functionblockV1.Response{}
 	err = c.funcClient.Command(envelopeCmd, res, time.Second*5)
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
-	if functionblockV1.Status_name[int32(res.Status)] != "OK" {
-		fmt.Println(functionblockV1.Status_name[int32(res.Status)])
-		return err
+	if res.Status == functionblockV1.Status_NOT_IMPLEMENTED {
+		return fmt.Errorf("not implemented")
+	}
+	if res.Status == functionblockV1.Status_ERROR {
+		return fmt.Errorf(res.Error.Error)
 	}
 	return nil
 }

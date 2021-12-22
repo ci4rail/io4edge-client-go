@@ -7,6 +7,11 @@ import (
 	"github.com/ci4rail/io4edge-client-go/client"
 )
 
+type ClientInterface interface {
+	NewClientFromSocketAddress(address string) (*Client, error)
+	NewClientFromService(serviceAddr string, timeout time.Duration) (*Client, error)
+}
+
 // Client represents a client for the binaryIoTypeA function
 type Client struct {
 	funcClient *client.Client

@@ -51,13 +51,16 @@ func main() {
 		Fritting: map[int]bool{},
 	})
 	if err != nil {
-		log.Fatalf("Failed to set configuration: %v\n", err)
+		fmt.Printf("Failed to set configuration: %v\n", err)
 	}
 
-	err = c.Describe()
+	describe, err := c.Describe()
 	if err != nil {
-		log.Fatalf("Failed to config describe: %v\n", err)
+		log.Printf("Failed to config describe: %v\n", err)
+	} else {
+		fmt.Println("Describe: Number of channels: ", describe.NumberOfChannels)
 	}
+
 	quit := make(chan interface{})
 	var wg sync.WaitGroup
 
@@ -77,7 +80,6 @@ func main() {
 				wg.Done()
 				return
 			default:
-				// Do other stuff
 				state = !state
 				fmt.Printf("SetSingle(0, %v)\n", !state)
 				err = c.SetSingle(0, !state)
@@ -109,21 +111,21 @@ func main() {
 	////////////////////////////////////////////////////////////////////////////
 	fmt.Println("Set All example modifiying values bitmask")
 	go func() {
-		time.Sleep(10 * time.Second)
+		time.Sleep(1000000 * time.Second)
 		quit <- true
 	}()
 
 	wg.Add(1)
 	go func() {
-		var values uint32 = 1
+		var values uint32 = 0x00
 		for {
 			select {
 			case <-quit:
 				wg.Done()
 				return
 			default:
-				for i := 0; i < 3; i++ {
-					values = values << 1
+				for i := 0; i < 4; i++ {
+					values = setBit(values, i)
 					fmt.Printf("values: %04b\n", values)
 					err := c.SetAll(values, 0x0F)
 					if err != nil {
@@ -131,8 +133,8 @@ func main() {
 					}
 					time.Sleep(time.Millisecond * 500)
 				}
-				for i := 0; i < 3; i++ {
-					values = values >> 1
+				for i := 3; i >= 0; i-- {
+					values = clearBit(values, i)
 					fmt.Printf("values: %04b\n", values)
 					err := c.SetAll(values, 0x0F)
 					if err != nil {
@@ -197,4 +199,15 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to set all channels: %v\n", err)
 	}
+}
+
+func setBit(n uint32, pos int) uint32 {
+	n |= (1 << pos)
+	return n
+}
+
+func clearBit(n uint32, pos int) uint32 {
+	var mask uint32 = ^(1 << pos)
+	n &= mask
+	return n
 }
