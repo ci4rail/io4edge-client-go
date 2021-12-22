@@ -47,24 +47,6 @@ func main() {
 		log.Fatalf("Failed to create binaryIoTypeA client: %v\n", err)
 	}
 
-	timeoutSeconds := new(int)
-	*timeoutSeconds = 100
-	err = c.SetConfiguration(binaryIoTypeA.Configuration{
-		OutputFritting:        map[int]bool{0: true, 1: true, 2: true, 3: true},
-		OutputWatchdog:        map[int]bool{0: true, 1: true, 2: true, 3: true},
-		OutputWatchdogTimeout: timeoutSeconds,
-	})
-	if err != nil {
-		fmt.Printf("Failed to set configuration: %v\n", err)
-	}
-
-	describe, err := c.Describe()
-	if err != nil {
-		log.Printf("Failed to config describe: %v\n", err)
-	} else {
-		fmt.Println("Describe: Number of channels: ", describe.NumberOfChannels)
-	}
-
 	quit := make(chan interface{})
 	var wg sync.WaitGroup
 

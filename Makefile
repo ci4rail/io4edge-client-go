@@ -18,6 +18,12 @@ test:
 
 clean:
 	rm -f ${BIN_DIR}/${NAME}
+	rm -rf ${BIN_DIR}/examples
+
+examples:
+	mkdir -p ${BIN_DIR}/examples
+	GOOS=linux go build $(GO_LDFLAGS) -o ${BIN_DIR}/examples/binaryIoTypeA_configurationControl examples/binaryIoTypeA_configurationControl/main.go
+	GOOS=linux go build $(GO_LDFLAGS) -o ${BIN_DIR}/examples/binaryIoTypeA_functionControl examples/binaryIoTypeA_functionControl/main.go
 
 proto:
 	go install google.golang.org/protobuf/cmd/protoc-gen-go
@@ -26,4 +32,4 @@ proto:
 	protoc -I=./api/analogInTypeA/v1alpha1 ./api/analogInTypeA/v1alpha1/analogInTypeA.proto --go_out=.
 	protoc -I=./api/binaryIoTypeA/v1alpha1 ./api/binaryIoTypeA/v1alpha1/binaryIoTypeA.proto --go_out=.
 
-.PHONY: all clean proto build build-io4edge-cli
+.PHONY: all clean proto build build-io4edge-cli examples

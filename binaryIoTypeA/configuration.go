@@ -12,38 +12,18 @@ import (
 )
 
 type Configuration struct {
-	OutputFritting        map[int]bool
-	OutputWatchdog        map[int]bool
-	OutputWatchdogTimeout *int
+	OutputFritting        int32
+	OutputWatchdog        int32
+	OutputWatchdogTimeout int32
 }
 
 func (c *Client) SetConfiguration(config Configuration) error {
 	cmd := binio.ConfigurationControlSet{
-		OutputFrittingMask: func(config Configuration) int32 {
-			var setting int32 = -1
-			for ch, f := range config.OutputFritting {
-				if f {
-					setting |= 1 << ch
-				}
-			}
-			return setting
-		}(config),
-		OutputWatchdogMask: func(config Configuration) int32 {
-			var setting int32 = -1
-			for ch, f := range config.OutputWatchdog {
-				if f {
-					setting |= 1 << ch
-				}
-			}
-			return setting
-		}(config),
-		OutputWatchdogTimeout: func(config Configuration) int32 {
-			if config.OutputWatchdogTimeout == nil {
-				return -1
-			}
-			return int32(*config.OutputWatchdogTimeout)
-		}(config),
+		OutputFrittingMask:    config.OutputFritting,
+		OutputWatchdogMask:    config.OutputWatchdog,
+		OutputWatchdogTimeout: config.OutputWatchdogTimeout,
 	}
+
 	envelopeCmd, err := functionblock.ConfigurationControlSet(&cmd)
 	if err != nil {
 		return err
@@ -64,7 +44,7 @@ func (c *Client) SetConfiguration(config Configuration) error {
 
 func (c *Client) GetConfiguration() (*Configuration, error) {
 	cmd := binio.ConfigurationControlGet{}
-	envelopeCmd, err := functionblock.ConfigurationControlSet(&cmd)
+	envelopeCmd, err := functionblock.ConfigurationControlGet(&cmd)
 	if err != nil {
 		return nil, err
 	}
@@ -84,34 +64,13 @@ func (c *Client) GetConfiguration() (*Configuration, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	fmt.Printf("%+v\n", get)
 	ret := &Configuration{
-		OutputFritting: func(mask int32) map[int]bool {
-			ret := make(map[int]bool)
-			for ch := 0; ch < 4; ch++ {
-				if mask&(1<<ch) != 0 {
-					ret[ch] = true
-				}
-			}
-			return ret
-		}(int32(get.GetGet().OutputFrittingMask)),
-		OutputWatchdog: func(mask int32) map[int]bool {
-			ret := make(map[int]bool)
-			for ch := 0; ch < 4; ch++ {
-				if mask&(1<<ch) != 0 {
-					ret[ch] = true
-				}
-			}
-			return ret
-		}(int32(get.GetGet().OutputWatchdogMask)),
-		OutputWatchdogTimeout: func(timeout int32) *int {
-			if timeout == -1 {
-				return nil
-			}
-			return &timeout
-		}(int32(get.GetGet().OutputWatchdogTimeout)),
+		OutputFritting:        int32(get.GetGet().OutputFrittingMask) & 0xFF,
+		OutputWatchdog:        int32(get.GetGet().OutputWatchdogMask) & 0xFF,
+		OutputWatchdogTimeout: get.GetGet().OutputWatchdogTimeout,
 	}
-	return nil
+	return ret, nil
 }
 
 func (c *Client) Describe() (*binio.ConfigurationControlDescribeResponse, error) {
