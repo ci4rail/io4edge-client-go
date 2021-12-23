@@ -1110,7 +1110,7 @@ func (*FunctionControlResponse_SetSingle) isFunctionControlResponse_Type() {}
 func (*FunctionControlResponse_SetAll) isFunctionControlResponse_Type() {}
 
 // ============= StreamControl ==================
-// StreamControlStart to pass to Functionblock.StreamControl.functionSpecificStreamControlStart hook
+// StreamControlStart to pass to Functionblock.StreamControlStart.functionSpecificStreamControlStart hook
 type StreamControlStart struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

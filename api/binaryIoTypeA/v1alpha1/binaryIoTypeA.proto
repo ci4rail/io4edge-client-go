@@ -153,7 +153,7 @@ message FunctionControlResponse {
 }
 
 // ============= StreamControl ==================
-// StreamControlStart to pass to Functionblock.StreamControl.functionSpecificStreamControlStart hook
+// StreamControlStart to pass to Functionblock.StreamControlStart.functionSpecificStreamControlStart hook
 message StreamControlStart {
     // mask to define which channels are considered in the stream. 0 means don't send channels value, 1 means sent it
     // LSB is Input0
