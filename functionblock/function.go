@@ -7,7 +7,7 @@ import (
 	"google.golang.org/protobuf/runtime/protoiface"
 )
 
-func FunctionControlSet(cmd protoiface.MessageV1, commandIdentifier string) (*fbv1.Command, error) {
+func FunctionControlSet(cmd protoiface.MessageV1) (*fbv1.Command, error) {
 	anyCmd, err := any.MarshalAny(cmd)
 	if err != nil {
 		return nil, err
@@ -24,7 +24,7 @@ func FunctionControlSet(cmd protoiface.MessageV1, commandIdentifier string) (*fb
 	}, nil
 }
 
-func FunctionControlGet(cmd protoiface.MessageV1, commandIdentifier string) (*fbv1.Command, error) {
+func FunctionControlGet(cmd protoiface.MessageV1) (*fbv1.Command, error) {
 	anyCmd, err := any.MarshalAny(cmd)
 	if err != nil {
 		return nil, err

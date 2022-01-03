@@ -20,7 +20,7 @@ func (c *Client) SetSingle(channel uint, state bool) error {
 			},
 		},
 	}
-	envelopeCmd, err := functionblock.FunctionControlSet(&cmd, string(cmd.Type.(*binio.FunctionControlSet_Single).Single.ProtoReflect().Descriptor().FullName()))
+	envelopeCmd, err := functionblock.FunctionControlSet(&cmd)
 	if err != nil {
 		return err
 	}
@@ -47,7 +47,7 @@ func (c *Client) SetAll(values uint32, mask uint32) error {
 			},
 		},
 	}
-	envelopeCmd, err := functionblock.FunctionControlSet(&cmd, string(cmd.Type.(*binio.FunctionControlSet_All).All.ProtoReflect().Descriptor().FullName()))
+	envelopeCmd, err := functionblock.FunctionControlSet(&cmd)
 	if err != nil {
 		return err
 	}
@@ -73,7 +73,7 @@ func (c *Client) GetSingle(channel uint) (bool, error) {
 			},
 		},
 	}
-	envelopeCmd, err := functionblock.FunctionControlGet(&cmd, string(cmd.Type.(*binio.FunctionControlGet_Single).Single.ProtoReflect().Descriptor().FullName()))
+	envelopeCmd, err := functionblock.FunctionControlGet(&cmd)
 	if err != nil {
 		return false, err
 	}
@@ -104,7 +104,7 @@ func (c *Client) GetAll(mask uint32) (uint32, error) {
 			},
 		},
 	}
-	envelopeCmd, err := functionblock.FunctionControlGet(&cmd, string(cmd.Type.(*binio.FunctionControlGet_All).All.ProtoReflect().Descriptor().FullName()))
+	envelopeCmd, err := functionblock.FunctionControlGet(&cmd)
 	if err != nil {
 		return 0, err
 	}

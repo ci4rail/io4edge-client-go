@@ -98,3 +98,11 @@ func (c *Client) Command(cmd proto.Message, res proto.Message, timeout time.Dura
 	}
 	return err
 }
+
+func (c *Client) ReadMessage(res proto.Message, timeout time.Duration) error {
+	err := c.ch.ReadMessage(res, timeout)
+	if err != nil {
+		return errors.New("Failed to read forever: " + err.Error())
+	}
+	return nil
+}

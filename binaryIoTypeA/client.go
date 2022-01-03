@@ -14,12 +14,15 @@ type ClientInterface interface {
 
 // Client represents a client for the binaryIoTypeA function
 type Client struct {
-	funcClient *client.Client
+	funcClient           *client.Client
+	streamClientChannels map[int]chan bool
 }
 
 func NewClient(c *client.Client) *Client {
+	streamClientChannels := make(map[int]chan bool)
 	return &Client{
-		funcClient: c,
+		funcClient:           c,
+		streamClientChannels: streamClientChannels,
 	}
 }
 
