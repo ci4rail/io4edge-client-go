@@ -59,15 +59,13 @@ message FunctionControl {
 
 // StreamControlStart specifies the start of a stream.
 message StreamControlStart {
-  // streamContext is user defined and used to identify the stream for stopping later on.
-  Context streamContext = 1;  
   google.protobuf.Any functionSpecificStreamControlStart = 2;
 }
 
 // StreamControlStart specifies the stop of a stream. 
 message StreamControlStop {
-  // streamContext is used to identify the stream to be stopped
-  Context streamContext = 1;  
+  // id is used to identify the stream to be stopped
+  fixed32 id = 1;  
 }
 
 // StreamControl specifies if the stream shall be started or stopped
@@ -96,6 +94,8 @@ message FunctionControlResponse {
 }
 
 message StreamControlResponse {
+    // id is used to identify the stream. This can be used to stop a running stream.
+    fixed32 id = 1;  
 }
 
 message StreamData {
