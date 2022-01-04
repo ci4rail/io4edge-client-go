@@ -17,7 +17,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           ldflags: -X github.com/ci4rail/io4edge-client-go/internal/version.Version=${{ github.event.release.tag_name }}
-          build_flags: -tags "netgo osusergo static_build"
+          build_flags: -tags netgo,osusergo,static_build
           goos: ${{ matrix.goos }}
           goarch: ${{ matrix.goarch }}
           goversion: "https://go.dev/dl/go1.17.5.linux-amd64.tar.gz"
