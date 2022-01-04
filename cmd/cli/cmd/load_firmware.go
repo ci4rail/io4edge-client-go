@@ -72,12 +72,15 @@ func loadRawFirmware(cmd *cobra.Command, args []string) {
 
 	restartingNow, err := c.LoadFirmwareBinaryFromFile(file, chunkSize, time.Duration(timeoutSecs)*time.Second)
 	e.ErrChk(err)
-
 	readbackFirmwareID(c, restartingNow)
 }
 
 func readbackFirmwareID(c *core.Client, restartingNow bool) {
 	if restartingNow {
+		fmt.Println("Let device restart...")
+		// Must sleep here, because device needs approx. 1s to reset
+		// If we reconnect too fast, we can still reach the device before it is reset
+		time.Sleep(3 * time.Second)
 		fmt.Println("Reconnect to restarted device")
 		var err error
 		c, err = client.NewCliClient(deviceID, ipAddrPort)

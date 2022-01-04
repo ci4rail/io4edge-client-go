@@ -12,6 +12,8 @@ build: build-io4edge-cli
 build-io4edge-cli:
 	go mod tidy
 	GOOS=linux go build $(GO_LDFLAGS) -o ${BIN_DIR}/${NAME} cmd/cli/main.go
+	GOOS=linux GOARCH=arm go build $(GO_LDFLAGS) -o ${BIN_DIR}/${NAME}-arm cmd/cli/main.go
+	scp ${BIN_DIR}/${NAME}-arm 192.168.24.32:~/bin/io4edge-cli
 
 test:
 	go test ./...

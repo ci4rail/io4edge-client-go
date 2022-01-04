@@ -39,6 +39,11 @@ func createClient(addressType string, address string, timeout time.Duration) *co
 	return c
 }
 
+// Example Usage:
+//   load svc S103-SIO01-14af003b-0591-4358-bf44-07d1d8af1cf5._io4edge-core._tcp fw-sio01-default-0.1.2.fwpkg
+// OR
+//   load ip 192.168.24.233:9999 fw-sio01-default-0.1.2.fwpkg
+
 func main() {
 	const timeout = 5 * time.Second
 	const chunkSize = 1024
@@ -64,6 +69,11 @@ func main() {
 	log.Printf("Load succeeded. Reading back firmware ID\n")
 
 	if restartingNow {
+		fmt.Println("Let device restart...")
+		// Must sleep here, because device needs approx. 1s to reset
+		// If we reconnect too fast, we can still reach the device before it is reset
+		time.Sleep(3 * time.Second)
+
 		// must create a new client, device has rebooted
 		c = createClient(addressType, address, timeout)
 		if err != nil {
