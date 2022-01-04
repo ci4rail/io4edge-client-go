@@ -47,5 +47,5 @@ func Execute() {
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&deviceID, "device id", "d", "", "Distinct designation of the device (mdns instance name of the the device)")
 	rootCmd.PersistentFlags().StringVarP(&ipAddrPort, "ip address", "i", "", "IP address of io4edge devices with port e.g. 192.168.200.1:9999")
-	rootCmd.PersistentFlags().IntVarP(&timeoutSecs, "timeout", "t", 3, "Timeout in seconds to wait for device responses")
+	rootCmd.PersistentFlags().IntVarP(&timeoutSecs, "timeout", "t", 30, "Timeout in seconds to wait for device responses")
 }
