@@ -24,6 +24,10 @@ import (
 	"github.com/ci4rail/io4edge-client-go/core"
 )
 
+func progressCb(bytes uint) {
+	fmt.Printf("%d kBytes loaded\n", bytes/1024)
+}
+
 func createClient(addressType string, address string, timeout time.Duration) *core.Client {
 	var c *core.Client
 	var err error
@@ -61,7 +65,7 @@ func main() {
 	// Load the firmware package into the device
 	// Loading happens in chunks of <chunkSize>. 1024 should work with each device
 	// <timeout> is the time to wait for responses from device
-	restartingNow, err := c.LoadFirmware(file, chunkSize, timeout)
+	restartingNow, err := c.LoadFirmware(file, chunkSize, timeout, progressCb)
 	if err != nil {
 		log.Fatalf("Failed to load firmware package: %v\n", err)
 	}
