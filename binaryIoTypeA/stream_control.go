@@ -7,6 +7,8 @@ import (
 	binio "github.com/ci4rail/io4edge-client-go/binaryIoTypeA/v1alpha1"
 	"github.com/ci4rail/io4edge-client-go/functionblock"
 	functionblockV1 "github.com/ci4rail/io4edge-client-go/functionblock/v1alpha1"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/anypb"
 )
 
 func (c *Client) StartStream(enableMask int, callback func(*binio.Sample)) (int, error) {
@@ -18,8 +20,7 @@ func (c *Client) StartStream(enableMask int, callback func(*binio.Sample)) (int,
 	if err != nil {
 		return -1, err
 	}
-	res := &functionblockV1.Response{}
-	err = c.funcClient.Command(envelopeCmd, res, time.Second*5)
+	res, err := c.Command(envelopeCmd, time.Second*5)
 	if err != nil {
 		return -1, err
 	}
@@ -37,13 +38,18 @@ func (c *Client) StartStream(enableMask int, callback func(*binio.Sample)) (int,
 			case <-quit:
 				return
 			default:
-				res := &binio.Sample{}
-				err := c.funcClient.ReadMessage(res, 0)
+				res := <-c.streamData
+				fmt.Println("Received data for id:", id)
+				fmt.Printf("Received message: %+v\n", res)
+				streamData := &binio.StreamData{}
+				err = anypb.UnmarshalTo(res.FunctionSpecificStreamData, streamData, proto.UnmarshalOptions{})
 				if err != nil {
 					fmt.Println(err)
 					continue
 				}
-				callback(res)
+				for _, sample := range streamData.Samples {
+					callback(sample)
+				}
 			}
 		}
 	}(c.streamClientChannels[id], callback)
@@ -55,8 +61,7 @@ func (c *Client) StopStream(id int) error {
 	if err != nil {
 		return err
 	}
-	res := &functionblockV1.Response{}
-	err = c.funcClient.Command(cmd, res, time.Second*5)
+	res, err := c.Command(cmd, time.Second*5)
 	if err != nil {
 		return err
 	}
@@ -66,5 +71,8 @@ func (c *Client) StopStream(id int) error {
 	if res.Status == functionblockV1.Status_ERROR {
 		return fmt.Errorf(res.Error.Error)
 	}
+
+	c.streamClientChannels[id] <- true
+	fmt.Println("Stopped stream for id:", id)
 	return nil
 }

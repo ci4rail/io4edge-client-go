@@ -2,9 +2,12 @@ package binaryIoTypeA
 
 import (
 	"errors"
+	"fmt"
+	"sync"
 	"time"
 
 	"github.com/ci4rail/io4edge-client-go/client"
+	fbv1 "github.com/ci4rail/io4edge-client-go/functionblock/v1alpha1"
 )
 
 type ClientInterface interface {
@@ -16,14 +19,19 @@ type ClientInterface interface {
 type Client struct {
 	funcClient           *client.Client
 	streamClientChannels map[int]chan bool
+	responses            sync.Map
+	streamData           chan *fbv1.StreamData
 }
 
 func NewClient(c *client.Client) *Client {
-	streamClientChannels := make(map[int]chan bool)
-	return &Client{
+	client := &Client{
 		funcClient:           c,
-		streamClientChannels: streamClientChannels,
+		streamClientChannels: make(map[int]chan bool),
+		responses:            sync.Map{},
+		streamData:           make(chan *fbv1.StreamData, 100),
 	}
+	client.ReadResponse()
+	return client
 }
 
 // NewClientFromSocketAddress creates a new binaryIoTypeA function client from a socket with the specified address.
@@ -48,4 +56,19 @@ func NewClientFromService(serviceAddr string, timeout time.Duration) (*Client, e
 	binClient := NewClient(c)
 
 	return binClient, nil
+}
+
+// Command issues a command cmd to a channel, waits for the devices response and returns it in res
+func (c *Client) Command(cmd *fbv1.Command, timeout time.Duration) (*fbv1.Response, error) {
+	fmt.Println("sending command with context: ", cmd.Context)
+	err := c.funcClient.Ch.WriteMessage(cmd)
+	if err != nil {
+		return nil, err
+	}
+	res := &fbv1.Response{}
+	res, err = c.WaitForResponse(cmd.Context.Value, timeout)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }

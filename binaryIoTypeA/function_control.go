@@ -24,8 +24,7 @@ func (c *Client) SetSingle(channel uint, state bool) error {
 	if err != nil {
 		return err
 	}
-	res := &functionblockV1.Response{}
-	err = c.funcClient.Command(envelopeCmd, res, time.Second*5)
+	res, err := c.Command(envelopeCmd, time.Second*5)
 	if err != nil {
 		return err
 	}
@@ -51,8 +50,7 @@ func (c *Client) SetAll(values uint32, mask uint32) error {
 	if err != nil {
 		return err
 	}
-	res := &functionblockV1.Response{}
-	err = c.funcClient.Command(envelopeCmd, res, time.Second*5)
+	res, err := c.Command(envelopeCmd, time.Second*5)
 	if err != nil {
 		return err
 	}
@@ -77,8 +75,7 @@ func (c *Client) GetSingle(channel uint) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	res := &functionblockV1.Response{}
-	err = c.funcClient.Command(envelopeCmd, res, time.Second*5)
+	res, err := c.Command(envelopeCmd, time.Second*5)
 	if err != nil {
 		return false, err
 	}
@@ -108,8 +105,7 @@ func (c *Client) GetAll(mask uint32) (uint32, error) {
 	if err != nil {
 		return 0, err
 	}
-	res := &functionblockV1.Response{}
-	err = c.funcClient.Command(envelopeCmd, res, time.Second*5)
+	res, err := c.Command(envelopeCmd, time.Second*5)
 	if err != nil {
 		return 0, err
 	}

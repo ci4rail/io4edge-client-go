@@ -26,7 +26,7 @@ import (
 )
 
 func handleSample(sample *binio.Sample) {
-	fmt.Printf("%+v\n", sample)
+	fmt.Println(sample.Timestamp, sample.Valid, sample.Channel, sample.Value)
 }
 
 func main() {
@@ -56,7 +56,7 @@ func main() {
 		return
 	}
 	fmt.Printf("Started stream with id %d\n", id)
-	time.Sleep(50 * time.Second)
+	time.Sleep(60 * time.Second)
 	err = c.StopStream(id)
 	if err != nil {
 		fmt.Println(err)
