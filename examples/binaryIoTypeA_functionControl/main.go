@@ -25,6 +25,10 @@ import (
 	"github.com/ci4rail/io4edge-client-go/binaryIoTypeA"
 )
 
+func myrecover() {
+	fmt.Println("Lost connecetion to io4edge device. Exiting now.")
+	os.Exit(1)
+}
 func main() {
 	const timeout = 5 * time.Second
 
@@ -46,7 +50,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to create binaryIoTypeA client: %v\n", err)
 	}
-
+	c.SetRecover(myrecover)
 	quit := make(chan interface{})
 	var wg sync.WaitGroup
 
@@ -144,13 +148,13 @@ func main() {
 					if err != nil {
 						log.Printf("Failed to set all channels: %v\n", err)
 					}
-					time.Sleep(time.Millisecond * 100)
+					time.Sleep(time.Millisecond * 50)
 					readState, err := c.GetAll(0xFF)
 					if err != nil {
 						log.Printf("Failed to get all channels: %v\n", err)
 					}
 					fmt.Printf("read: %04b\n", readState)
-					time.Sleep(time.Millisecond * 100)
+					time.Sleep(time.Millisecond * 50)
 				}
 				for i := 3; i >= 0; i-- {
 					values = clearBit(values, i)
@@ -159,13 +163,13 @@ func main() {
 					if err != nil {
 						log.Printf("Failed to set all channels: %v\n", err)
 					}
-					time.Sleep(time.Millisecond * 100)
+					time.Sleep(time.Millisecond * 50)
 					readState, err := c.GetAll(0xFF)
 					if err != nil {
 						log.Printf("Failed to get all channels: %v\n", err)
 					}
 					fmt.Printf("read: %04b\n", readState)
-					time.Sleep(time.Millisecond * 100)
+					time.Sleep(time.Millisecond * 50)
 				}
 			}
 		}

@@ -20,7 +20,7 @@ func TestFunctionControlSetProto(t *testing.T) {
 			},
 		},
 	}
-	envelopeCmd, err := functionblock.FunctionControlSet(&cmd, string(cmd.Type.(*binio.FunctionControlSet_Single).Single.ProtoReflect().Descriptor().FullName()))
+	envelopeCmd, err := functionblock.FunctionControlSet(&cmd)
 	assert.Nil(err)
 	serialized, err := proto.Marshal(envelopeCmd)
 	assert.Nil(err)

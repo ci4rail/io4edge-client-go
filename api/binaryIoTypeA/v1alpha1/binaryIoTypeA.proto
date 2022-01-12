@@ -168,9 +168,6 @@ message Sample {
     fixed32 channel = 2;
     // Specifies the binary channel value when the input value has changed.
     bool value = 3;
-    // Indicates if the value is valid or invalid. 
-    // true: value is valid, false: value is invalid
-    bool valid = 4;
 }
 
 // StreamData to pass to Functionblock.StreamData.functionSpecificStreamData hook

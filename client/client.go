@@ -26,6 +26,12 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+// ClientIf is a interface for the Client
+type ClientIf interface {
+	Command(cmd proto.Message, res proto.Message, timeout time.Duration) error
+	ReadMessage(res proto.Message, timeout time.Duration) error
+}
+
 // FunctionInfo is an interface to query properties of the io4edge function
 type FunctionInfo interface {
 	// NetAddress returns the IP address (or host name) and the default port of the function

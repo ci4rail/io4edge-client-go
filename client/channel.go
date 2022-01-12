@@ -24,6 +24,13 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+// ChannelIf is a interface for the Channel
+type ChannelIf interface {
+	Close()
+	WriteMessage(m proto.Message) error
+	ReadMessage(m proto.Message, timeout time.Duration) error
+}
+
 // Channel represents a connection between the host and the device used to exchange protobuf messages
 type Channel struct {
 	ms transport.MsgStream
@@ -50,9 +57,9 @@ func (c *Channel) WriteMessage(m proto.Message) error {
 
 // ReadMessage waits until Timeout for a new message in transport stream and decodes it via protobuf
 // timeout of 0 waits forever
-func (c *Channel) ReadMessage(m proto.Message, timeout time.Duration) (err error) {
-
-	err = nil
+func (c *Channel) ReadMessage(m proto.Message, timeout time.Duration) error {
+	var err error
+	var errTimeout error
 	payload := []byte(nil)
 
 	if timeout == 0 {
@@ -66,11 +73,14 @@ func (c *Channel) ReadMessage(m proto.Message, timeout time.Duration) (err error
 		select {
 		case <-ch:
 		case <-time.After(timeout):
-			err = errors.New("Timeout")
+			errTimeout = errors.New("Timeout")
 		}
 	}
 	if err != nil {
 		return err
+	}
+	if errTimeout != nil {
+		return errTimeout
 	}
 
 	return proto.Unmarshal(payload, m)

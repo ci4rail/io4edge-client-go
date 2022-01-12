@@ -64,8 +64,6 @@ message StreamControlStart {
 
 // StreamControlStart specifies the stop of a stream. 
 message StreamControlStop {
-  // id is used to identify the stream to be stopped
-  fixed32 id = 1;  
 }
 
 // StreamControl specifies if the stream shall be started or stopped
@@ -94,8 +92,6 @@ message FunctionControlResponse {
 }
 
 message StreamControlResponse {
-    // id is used to identify the stream. This can be used to stop a running stream.
-    fixed32 id = 1;  
 }
 
 message StreamData {

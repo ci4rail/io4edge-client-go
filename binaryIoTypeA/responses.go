@@ -4,26 +4,39 @@ import (
 	"fmt"
 	"time"
 
+	log "github.com/sirupsen/logrus"
+
 	functionblockV1 "github.com/ci4rail/io4edge-client-go/functionblock/v1alpha1"
 )
 
-func (c *Client) ReadResponse() {
-	fmt.Println("about to start go ReadResponse()")
+func (c *Client) ReadResponses() {
+	log.Debug("about to start go ReadResponses()")
 	go func(c *Client) {
-		fmt.Println("ReadResponse running")
+		defer c.recover()
+		log.Debug("ReadResponses running")
 		for {
-			fmt.Println("ReadResponse loop")
-			res := &functionblockV1.Response{}
-			err := c.funcClient.ReadMessage(res, time.Millisecond*1000)
-			fmt.Println(res)
-			if err != nil {
-				continue
-			}
-			if res.Context != nil {
-				fmt.Println("received response for context:", res.Context.Value)
-				c.responses.Store(res.Context.Value, res)
-			} else {
-				c.streamData <- res.GetStream()
+			select {
+			case <-c.readResponsesStopChan:
+				log.Debug("Exiting ReadResponses")
+				return
+			default:
+				if c.responsePending > 0 || c.streamRunning {
+					log.Debug("ReadResponses loop")
+					res := &functionblockV1.Response{}
+					err := c.funcClient.ReadMessage(res, time.Second*15)
+					log.Debug("err:", err)
+					if err != nil {
+						panic(err)
+					}
+					if res.Context != nil {
+						log.Debug("received response for context:", res.Context.Value)
+						c.responses.Store(res.Context.Value, res)
+					} else {
+						log.Debug("received streamdata")
+						c.streamStatus = true
+						c.streamData <- res.GetStream()
+					}
+				}
 			}
 		}
 	}(c)
