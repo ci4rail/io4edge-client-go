@@ -17,7 +17,6 @@ package main
 
 import (
 	"fmt"
-	"math/rand"
 	"os"
 	"sync"
 	"time"
@@ -30,7 +29,7 @@ import (
 
 func handleSample(sample *binio.Sample) {
 	fmt.Printf("\r")
-	fmt.Printf("%d: valid: %t; channel %d: %t\n", sample.Timestamp, sample.Valid, sample.Channel, sample.Value)
+	fmt.Printf("%d: channel %d: %t\n", sample.Timestamp, sample.Channel, sample.Value)
 }
 
 func myrecover() {
@@ -40,7 +39,7 @@ func myrecover() {
 func functionControl(c *binaryIoTypeA.Client, wg *sync.WaitGroup, quit chan bool) {
 	go func() {
 		var values uint32 = 0x00
-		rand.Seed(time.Now().UnixNano())
+		// rand.Seed(time.Now().UnixNano())
 		i := 0
 		var direction int32 = 1
 		for {
@@ -55,10 +54,11 @@ func functionControl(c *binaryIoTypeA.Client, wg *sync.WaitGroup, quit chan bool
 				if err != nil {
 					log.Printf("Failed to set all channels: %v\n", err)
 				}
-				n := rand.Intn(2000)
-				time.Sleep(time.Millisecond * time.Duration(n))
+				// n := rand.Intn(2000)
+				// time.Sleep(time.Millisecond * time.Duration(n))
+				time.Sleep(time.Millisecond * 10)
 				i += 1
-				if i%4 == 0 {
+				if i%15 == 0 {
 					direction *= -1
 				}
 			}
@@ -92,7 +92,7 @@ func main() {
 	c.SetRecover(myrecover)
 	wg.Add(1)
 	functionControl(c, &wg, quit)
-	err = c.StartStream(0, handleSample)
+	err = c.StartStream(0xA, handleSample)
 	if err != nil {
 		fmt.Println(err)
 		return

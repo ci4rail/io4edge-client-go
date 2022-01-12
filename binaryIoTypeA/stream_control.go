@@ -16,10 +16,10 @@ func (c *Client) StreamStatus() bool {
 	return c.streamStatus
 }
 
-func (c *Client) StartStream(enableMask int, callback func(*binio.Sample)) error {
+func (c *Client) StartStream(channelFilterMask uint32, callback func(*binio.Sample)) error {
 	if c.connected {
 		cmd := binio.StreamControlStart{
-			EnableMask: uint32(enableMask),
+			ChannelFilterMask: channelFilterMask,
 		}
 
 		envelopeCmd, err := functionblock.StreamControlStart(&cmd)
