@@ -157,7 +157,13 @@ message FunctionControlResponse {
 message StreamControlStart {
     // mask to define which channels are considered in the stream. 0 means don't send channels value, 1 means sent it
     // LSB is Input0
+    // Defaults to all channels (0x0F)
     fixed32 channelFilterMask = 1;
+
+    // maximum interval in seconds between two stream messages. If there are no or very few stream messages for a 
+    // certain time, the client is informed that the stream is still active and the existing data is transmitted.
+    // Defaults to 10 seconds.
+    fixed32 keepaliveInterval = 2;
 }
 
 message Sample {

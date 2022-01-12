@@ -56,7 +56,7 @@ func functionControl(c *binaryIoTypeA.Client, wg *sync.WaitGroup, quit chan bool
 				}
 				// n := rand.Intn(2000)
 				// time.Sleep(time.Millisecond * time.Duration(n))
-				time.Sleep(time.Millisecond * 10)
+				time.Sleep(time.Millisecond * 1000)
 				i += 1
 				if i%15 == 0 {
 					direction *= -1
@@ -92,7 +92,11 @@ func main() {
 	c.SetRecover(myrecover)
 	wg.Add(1)
 	functionControl(c, &wg, quit)
-	err = c.StartStream(0xA, handleSample)
+	config := &binaryIoTypeA.StreamConfiguration{
+		ChannelFilterMask: 0xFFFFFFF,
+		KeepaliveInterval: 10,
+	}
+	err = c.StartStream(config, handleSample)
 	if err != nil {
 		fmt.Println(err)
 		return

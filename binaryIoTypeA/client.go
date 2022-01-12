@@ -28,6 +28,7 @@ type Client struct {
 	streamStatus            bool
 	customRecover           func()
 	connected               bool
+	streamKeepaliveInterval uint32
 }
 
 func NewClient(c *client.Client) *Client {
@@ -42,6 +43,7 @@ func NewClient(c *client.Client) *Client {
 		streamStatus:            false,
 		customRecover:           nil,
 		connected:               true,
+		streamKeepaliveInterval: DefaultKeepaliveInterval,
 	}
 	client.ReadResponses()
 	return client

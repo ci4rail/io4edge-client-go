@@ -23,7 +23,7 @@ func (c *Client) ReadResponses() {
 				if c.responsePending > 0 || c.streamRunning {
 					log.Debug("ReadResponses loop")
 					res := &functionblockV1.Response{}
-					err := c.funcClient.ReadMessage(res, time.Second*15)
+					err := c.funcClient.ReadMessage(res, time.Second*time.Duration(c.streamKeepaliveInterval))
 					log.Debug("err:", err)
 					if err != nil {
 						panic(err)

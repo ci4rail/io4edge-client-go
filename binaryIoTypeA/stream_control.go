@@ -16,10 +16,30 @@ func (c *Client) StreamStatus() bool {
 	return c.streamStatus
 }
 
-func (c *Client) StartStream(channelFilterMask uint32, callback func(*binio.Sample)) error {
+type StreamConfiguration struct {
+	ChannelFilterMask uint32
+	KeepaliveInterval uint32
+}
+
+var (
+	defaultConfiguration = &StreamConfiguration{
+		ChannelFilterMask: DefaultChannelFilterMask,
+		KeepaliveInterval: DefaultKeepaliveInterval,
+	}
+)
+
+func (c *Client) StreamDefaultConfiguration() *StreamConfiguration {
+	return defaultConfiguration
+}
+
+func (c *Client) StartStream(config *StreamConfiguration, callback func(*binio.Sample)) error {
 	if c.connected {
+		if config == nil {
+			config = defaultConfiguration
+		}
 		cmd := binio.StreamControlStart{
-			ChannelFilterMask: channelFilterMask,
+			ChannelFilterMask: config.ChannelFilterMask,
+			KeepaliveInterval: config.KeepaliveInterval,
 		}
 
 		envelopeCmd, err := functionblock.StreamControlStart(&cmd)
