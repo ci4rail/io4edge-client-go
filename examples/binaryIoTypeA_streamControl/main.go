@@ -95,6 +95,7 @@ func main() {
 	config := &binaryIoTypeA.StreamConfiguration{
 		ChannelFilterMask: 0xFFFFFFF,
 		KeepaliveInterval: 10,
+		BufferSize:        50,
 	}
 	err = c.StartStream(config, handleSample)
 	if err != nil {
