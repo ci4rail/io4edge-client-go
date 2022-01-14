@@ -93,9 +93,9 @@ func main() {
 	wg.Add(1)
 	functionControl(c, &wg, quit)
 	config := &binaryIoTypeA.StreamConfiguration{
-		ChannelFilterMask: 0xFFFFFFF,
-		KeepaliveInterval: 10,
-		BufferSize:        50,
+		ChannelFilterMask: 0xF,
+		KeepaliveInterval: 100,
+		BufferSize:        100,
 	}
 	err = c.StartStream(config, handleSample)
 	if err != nil {
@@ -104,7 +104,7 @@ func main() {
 	}
 
 	fmt.Println("Started stream")
-	time.Sleep(30 * time.Second)
+	time.Sleep(65 * time.Second)
 	err = c.StopStream()
 	if err != nil {
 		fmt.Println(err)

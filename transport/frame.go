@@ -167,9 +167,6 @@ func (fs *FramedStream) readPayload(length uint) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	// if n != int(length) {
-	// 	return nil, errors.New("read too few bytes")
-	// }
 	return payload, nil
 }
 
@@ -179,6 +176,7 @@ func (fs *FramedStream) Close() error {
 }
 
 func (fs *FramedStream) readAll(length uint) ([]byte, error) {
+	log.Debug("readAll length:", length)
 	payload := []byte{}
 	received := 0
 	for {
@@ -188,7 +186,7 @@ func (fs *FramedStream) readAll(length uint) ([]byte, error) {
 			return nil, err
 		}
 		received += n
-		payload = append(payload, chunk...)
+		payload = append(payload, chunk[:n]...)
 		if received >= int(length) {
 			return payload, nil
 		}

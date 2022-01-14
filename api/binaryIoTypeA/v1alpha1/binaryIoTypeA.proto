@@ -162,11 +162,12 @@ message StreamControlStart {
 
     // maximum interval in seconds between two stream messages. If there are no or very few stream messages for a 
     // certain time, the client is informed that the stream is still active and the existing data is transmitted.
-    // Defaults to 10 seconds.
+    // Defaults to 10 seconds
     fixed32 keepaliveInterval = 2;
 
     // internal ring buffer size. 
-    // Defaults to 50.
+    // Defaults to 50
+    // Maximum is 1000
     fixed32 bufferSize = 3;
 }
 

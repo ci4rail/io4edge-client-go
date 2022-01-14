@@ -37,7 +37,7 @@ func NewClient(c *client.Client) *Client {
 		streamClientStopChannel: make(chan bool),
 		readResponsesStopChan:   make(chan bool),
 		responses:               sync.Map{},
-		streamData:              make(chan *fbv1.StreamData, 100),
+		streamData:              make(chan *fbv1.StreamData, 200),
 		responsePending:         0,
 		streamRunning:           false,
 		streamStatus:            false,
