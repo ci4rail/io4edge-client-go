@@ -56,7 +56,7 @@ func functionControl(c *binaryIoTypeA.Client, wg *sync.WaitGroup, quit chan bool
 				}
 				// n := rand.Intn(2000)
 				// time.Sleep(time.Millisecond * time.Duration(n))
-				time.Sleep(time.Millisecond * 1000)
+				time.Sleep(time.Millisecond * 10)
 				i += 1
 				if i%15 == 0 {
 					direction *= -1
