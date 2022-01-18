@@ -24,6 +24,8 @@ limitations under the License.
 package transport
 
 import (
+	"sync"
+
 	log "github.com/sirupsen/logrus"
 )
 
@@ -35,33 +37,40 @@ var (
 // FramedStream represents a stream with message semantics
 type FramedStream struct {
 	Trans Transport
+	mutex sync.Mutex
 }
 
 // NewFramedStreamFromTransport creates a message stream from transport t
 func NewFramedStreamFromTransport(t Transport) *FramedStream {
 	return &FramedStream{
 		Trans: t,
+		mutex: sync.Mutex{},
 	}
 }
 
 // WriteMsg writes io4edge standard message to the transport stream
 func (fs *FramedStream) WriteMsg(payload []byte) error {
+	fs.mutex.Lock()
 	// make sure we have the magic bytes
 	err := fs.writeMagicBytes()
 	if err != nil {
+		fs.mutex.Unlock()
 		return err
 	}
 
 	length := uint(len(payload))
 	err = fs.writeLength(length)
 	if err != nil {
+		fs.mutex.Unlock()
 		return err
 	}
 
 	err = fs.writePayload(payload)
 	if err != nil {
+		fs.mutex.Unlock()
 		return err
 	}
+	fs.mutex.Unlock()
 	return nil
 }
 

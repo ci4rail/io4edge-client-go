@@ -34,7 +34,7 @@ func (c *Client) StreamDefaultConfiguration() *StreamConfiguration {
 	return defaultConfiguration
 }
 
-func (c *Client) StartStream(config *StreamConfiguration, callback func(*binio.Sample)) error {
+func (c *Client) StartStream(config *StreamConfiguration, callback func(*binio.Sample, uint32)) error {
 	if c.connected {
 		if config == nil {
 			config = defaultConfiguration
@@ -59,7 +59,7 @@ func (c *Client) StartStream(config *StreamConfiguration, callback func(*binio.S
 		if res.Status == functionblockV1.Status_ERROR {
 			return fmt.Errorf(res.Error.Error)
 		}
-		go func(c *Client, callback func(*binio.Sample)) {
+		go func(c *Client, callback func(*binio.Sample, uint32)) {
 			c.streamRunning = true
 			for {
 				select {
@@ -78,7 +78,7 @@ func (c *Client) StartStream(config *StreamConfiguration, callback func(*binio.S
 						}
 						for _, sample := range streamData.Samples {
 							if callback != nil {
-								callback(sample)
+								callback(sample, res.Sequence)
 							}
 						}
 					case <-time.After(time.Millisecond * 100):

@@ -28,14 +28,18 @@ func (c *Client) ReadResponses() {
 					if err != nil {
 						panic(err)
 					}
-					if res.Context != nil {
-						log.Debug("received response for context:", res.Context.Value)
-						c.responses.Store(res.Context.Value, res)
+					if res.Status == functionblockV1.Status_OK {
+						if res.Context != nil {
+							log.Debug("received response for context:", res.Context.Value)
+							c.responses.Store(res.Context.Value, res)
+						} else {
+							c.streamStatus = true
+							c.streamData <- res.GetStream()
+						}
 					} else {
-						log.Debug("received streamdata")
-						c.streamStatus = true
-						c.streamData <- res.GetStream()
+						fmt.Println("received error response:", res.Error.Error)
 					}
+
 				}
 			}
 		}

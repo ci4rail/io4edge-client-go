@@ -49,7 +49,7 @@ func main() {
 	err = c.SetConfiguration(binaryIoTypeA.Configuration{
 		OutputFritting:        -1,
 		OutputWatchdog:        -1,
-		OutputWatchdogTimeout: 100,
+		OutputWatchdogTimeout: 11000,
 	})
 	if err != nil {
 		fmt.Printf("Failed to set configuration: %v\n", err)
@@ -66,8 +66,8 @@ func main() {
 
 	err = c.SetConfiguration(binaryIoTypeA.Configuration{
 		OutputFritting:        0x05,
-		OutputWatchdog:        0x0A,
-		OutputWatchdogTimeout: -1,
+		OutputWatchdog:        0,
+		OutputWatchdogTimeout: 100,
 	})
 	if err != nil {
 		fmt.Printf("Failed to set configuration: %v\n", err)
@@ -85,7 +85,7 @@ func main() {
 	err = c.SetConfiguration(binaryIoTypeA.Configuration{
 		OutputFritting:        0x06,
 		OutputWatchdog:        0x07,
-		OutputWatchdogTimeout: 250,
+		OutputWatchdogTimeout: 1250,
 	})
 	if err != nil {
 		fmt.Printf("Failed to set configuration: %v\n", err)

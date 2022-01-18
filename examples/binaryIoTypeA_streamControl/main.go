@@ -27,9 +27,9 @@ import (
 	binio "github.com/ci4rail/io4edge-client-go/binaryIoTypeA/v1alpha1"
 )
 
-func handleSample(sample *binio.Sample) {
+func handleSample(sample *binio.Sample, sequenceNumber uint32) {
 	fmt.Printf("\r")
-	fmt.Printf("%d: channel %d: %t\n", sample.Timestamp, sample.Channel, sample.Value)
+	fmt.Printf("seq %d: %d: channel %d: %t\n", sequenceNumber, sample.Timestamp, sample.Channel, sample.Value)
 }
 
 func myrecover() {
@@ -39,7 +39,6 @@ func myrecover() {
 func functionControl(c *binaryIoTypeA.Client, wg *sync.WaitGroup, quit chan bool) {
 	go func() {
 		var values uint32 = 0x00
-		// rand.Seed(time.Now().UnixNano())
 		i := 0
 		var direction int32 = 1
 		for {
@@ -54,8 +53,6 @@ func functionControl(c *binaryIoTypeA.Client, wg *sync.WaitGroup, quit chan bool
 				if err != nil {
 					log.Printf("Failed to set all channels: %v\n", err)
 				}
-				// n := rand.Intn(2000)
-				// time.Sleep(time.Millisecond * time.Duration(n))
 				time.Sleep(time.Millisecond * 10)
 				i += 1
 				if i%15 == 0 {
@@ -95,7 +92,7 @@ func main() {
 	config := &binaryIoTypeA.StreamConfiguration{
 		ChannelFilterMask: 0xF,
 		KeepaliveInterval: 100,
-		BufferSize:        100,
+		BufferSize:        20,
 	}
 	err = c.StartStream(config, handleSample)
 	if err != nil {
@@ -104,13 +101,28 @@ func main() {
 	}
 
 	fmt.Println("Started stream")
-	time.Sleep(65 * time.Second)
+	time.Sleep(10 * time.Second)
 	err = c.StopStream()
 	if err != nil {
 		fmt.Println(err)
 	} else {
 		fmt.Println("Stopped stream")
 	}
+	time.Sleep(1 * time.Second)
+	err = c.StartStream(config, handleSample)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	time.Sleep(10 * time.Second)
+	err = c.StopStream()
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println("Stopped stream")
+	}
+
 	quit <- true
 	wg.Wait()
 
