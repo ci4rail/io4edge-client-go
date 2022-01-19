@@ -21,7 +21,6 @@ import (
 	"time"
 
 	"github.com/ci4rail/io4edge-client-go/transport"
-	log "github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -82,12 +81,6 @@ func (c *Channel) ReadMessage(m proto.Message, timeout time.Duration) error {
 	}
 	if errTimeout != nil {
 		return errTimeout
-	}
-	for i, b := range payload {
-		log.Debug("%.2x ", b)
-		if i%8 == 0 {
-			log.Debug("\n")
-		}
 	}
 	return proto.Unmarshal(payload, m)
 }
