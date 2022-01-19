@@ -17,16 +17,50 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
+	"sync"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/ci4rail/io4edge-client-go/binaryIoTypeA"
 	binio "github.com/ci4rail/io4edge-client-go/binaryIoTypeA/v1alpha1"
 )
 
-func handleSample(sample *binio.Sample) {
-	fmt.Printf("%+v\n", sample)
+func handleSample(sample *binio.Sample, sequenceNumber uint32) {
+	fmt.Printf("\r")
+	fmt.Printf("seq %d: %d: channel %d: %t\n", sequenceNumber, sample.Timestamp, sample.Channel, sample.Value)
+}
+
+func myrecover() {
+	fmt.Println("Lost connecetion to io4edge device. Exiting now.")
+}
+
+func functionControl(c *binaryIoTypeA.Client, wg *sync.WaitGroup, quit chan bool) {
+	go func() {
+		var values uint32 = 0x00
+		i := 0
+		var direction int32 = 1
+		for {
+			select {
+			case <-quit:
+				wg.Done()
+				return
+			default:
+				values += uint32(direction)
+				fmt.Printf("set:  %04b\n", values)
+				err := c.SetAll(values, 0x0F)
+				if err != nil {
+					log.Printf("Failed to set all channels: %v\n", err)
+				}
+				time.Sleep(time.Millisecond * 10)
+				i += 1
+				if i%15 == 0 {
+					direction *= -1
+				}
+			}
+		}
+	}()
 }
 
 func main() {
@@ -41,6 +75,8 @@ func main() {
 	// Create a client object to work with the io4edge device at <address>
 	var c *binaryIoTypeA.Client
 	var err error
+	var quit chan bool = make(chan bool)
+	var wg sync.WaitGroup = sync.WaitGroup{}
 
 	if addressType == "svc" {
 		c, err = binaryIoTypeA.NewClientFromService(address, timeout)
@@ -50,17 +86,44 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to create binaryIoTypeA client: %v\n", err)
 	}
-	id, err := c.StartStream(0, handleSample)
+	c.SetRecover(myrecover)
+	wg.Add(1)
+	functionControl(c, &wg, quit)
+	config := &binaryIoTypeA.StreamConfiguration{
+		ChannelFilterMask: 0xF,
+		KeepaliveInterval: 100,
+		BufferSize:        20,
+	}
+	err = c.StartStream(config, handleSample)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	fmt.Printf("Started stream with id %d\n", id)
-	time.Sleep(50 * time.Second)
-	err = c.StopStream(id)
+
+	fmt.Println("Started stream")
+	time.Sleep(10 * time.Second)
+	err = c.StopStream()
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println("Stopped stream")
+	}
+	time.Sleep(1 * time.Second)
+	err = c.StartStream(config, handleSample)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	fmt.Printf("Stopped stream with id %d\n", id)
+
+	time.Sleep(10 * time.Second)
+	err = c.StopStream()
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println("Stopped stream")
+	}
+
+	quit <- true
+	wg.Wait()
+
 }

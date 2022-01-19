@@ -24,46 +24,58 @@ limitations under the License.
 package transport
 
 import (
-	"errors"
+	"sync"
+
+	log "github.com/sirupsen/logrus"
+)
+
+var (
+	// This is the ascii representation of the string 'Start indicator of io4edge message'
+	magicBytes = []byte{0xFE, 0xED}
 )
 
 // FramedStream represents a stream with message semantics
 type FramedStream struct {
 	Trans Transport
+	mutex sync.Mutex
 }
 
 // NewFramedStreamFromTransport creates a message stream from transport t
 func NewFramedStreamFromTransport(t Transport) *FramedStream {
 	return &FramedStream{
 		Trans: t,
+		mutex: sync.Mutex{},
 	}
 }
 
 // WriteMsg writes io4edge standard message to the transport stream
 func (fs *FramedStream) WriteMsg(payload []byte) error {
+	fs.mutex.Lock()
 	// make sure we have the magic bytes
 	err := fs.writeMagicBytes()
 	if err != nil {
+		fs.mutex.Unlock()
 		return err
 	}
 
 	length := uint(len(payload))
 	err = fs.writeLength(length)
 	if err != nil {
+		fs.mutex.Unlock()
 		return err
 	}
 
 	err = fs.writePayload(payload)
 	if err != nil {
+		fs.mutex.Unlock()
 		return err
 	}
+	fs.mutex.Unlock()
 	return nil
 }
 
 // writeMagicBytes write the magic bytes 0xFE, 0xED to transport stream
 func (fs *FramedStream) writeMagicBytes() error {
-	magicBytes := []byte{0xFE, 0xED}
-
 	err := fs.writeBytesSafe(magicBytes)
 	return err
 }
@@ -104,7 +116,9 @@ func (fs *FramedStream) writeBytesSafe(payload []byte) error {
 // ReadMsg reads a io4edge standard message from transport stream
 func (fs *FramedStream) ReadMsg() ([]byte, error) {
 	// make sure we have the magic bytes
+	log.Debug("reading magic bytes, dude")
 	err := fs.readMagicBytes()
+	log.Debug("error: err")
 	if err != nil {
 		return nil, err
 	}
@@ -113,10 +127,13 @@ func (fs *FramedStream) ReadMsg() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	log.Debugf("length: 0x%.4x\n", length)
 	payload, err := fs.readPayload(length)
+	log.Debug("error: err")
 	if err != nil {
 		return nil, err
 	}
+	log.Debug("payload: ", payload)
 	return payload, nil
 }
 
@@ -124,26 +141,25 @@ func (fs *FramedStream) ReadMsg() ([]byte, error) {
 func (fs *FramedStream) readMagicBytes() error {
 	// block until we get the magic bytes
 	for {
-		magicBytes := make([]byte, 2)
-		for i := 0; i < 2; i++ {
+		for i := 0; i < len(magicBytes); i++ {
 			b := make([]byte, 1)
-
 			_, err := fs.Trans.Read(b)
 			if err != nil {
 				return err
 			}
-			magicBytes[i] = b[0]
+			if b[0] != magicBytes[i] {
+				i = 0
+				continue
+			}
 		}
-		if magicBytes[0] == 0xFE && magicBytes[1] == 0xED {
-			return nil
-		}
+		return nil
 	}
 }
 
 // readLength reads 4 bytes from transport stream and returns the length as uint of the message.
 func (fs *FramedStream) readLength() (uint, error) {
-	lengthBytes := make([]byte, 4)
-	_, err := fs.Trans.Read(lengthBytes)
+	// lengthBytes := make([]byte, 4)
+	lengthBytes, err := fs.readAll(4) //fs.Trans.Read(lengthBytes)
 	if err != nil {
 		return 0, err
 	}
@@ -156,13 +172,9 @@ func (fs *FramedStream) readLength() (uint, error) {
 
 // readPayload reads the payload from transport stream and returns it as []byte.
 func (fs *FramedStream) readPayload(length uint) ([]byte, error) {
-	payload := make([]byte, length)
-	n, err := fs.Trans.Read(payload)
+	payload, err := fs.readAll(length)
 	if err != nil {
 		return nil, err
-	}
-	if n != int(length) {
-		return nil, errors.New("read too few bytes")
 	}
 	return payload, nil
 }
@@ -170,4 +182,22 @@ func (fs *FramedStream) readPayload(length uint) ([]byte, error) {
 // Close closes the transport stream
 func (fs *FramedStream) Close() error {
 	return fs.Trans.Close()
+}
+
+func (fs *FramedStream) readAll(length uint) ([]byte, error) {
+	log.Debug("readAll length:", length)
+	payload := []byte{}
+	received := 0
+	for {
+		chunk := make([]byte, length-uint(received))
+		n, err := fs.Trans.Read(chunk)
+		if err != nil {
+			return nil, err
+		}
+		received += n
+		payload = append(payload, chunk[:n]...)
+		if received >= int(length) {
+			return payload, nil
+		}
+	}
 }

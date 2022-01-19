@@ -25,6 +25,10 @@ import (
 	"github.com/ci4rail/io4edge-client-go/binaryIoTypeA"
 )
 
+func myrecover() {
+	fmt.Println("Lost connecetion to io4edge device. Exiting now.")
+	os.Exit(1)
+}
 func main() {
 	const timeout = 5 * time.Second
 
@@ -46,80 +50,80 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to create binaryIoTypeA client: %v\n", err)
 	}
-
+	c.SetRecover(myrecover)
 	quit := make(chan interface{})
 	var wg sync.WaitGroup
 
 	////////////////////////////////////////////////////////////////////////////
-	fmt.Println("Set Single example")
-	go func() {
-		time.Sleep(1 * time.Second)
-		quit <- true
-	}()
+	// fmt.Println("Set Single example")
+	// go func() {
+	// 	time.Sleep(1 * time.Second)
+	// 	quit <- true
+	// }()
 
-	wg.Add(1)
-	go func() {
-		state := false
-		for {
-			select {
-			case <-quit:
-				wg.Done()
-				return
-			default:
-				state = !state
-				fmt.Printf("SetSingle(0, %v)\n", !state)
-				err = c.SetSingle(0, !state)
-				if err != nil {
-					log.Fatalf("Failed to set single channel: %v\n", err)
-				}
-				time.Sleep(20 * time.Millisecond)
-				readState, err := c.GetSingle(0)
-				if err != nil {
-					log.Fatalf("Failed to get single channel: %v\n", err)
-				}
-				fmt.Printf("GetSingle(0): %t)\n", readState)
+	// wg.Add(1)
+	// go func() {
+	// 	state := false
+	// 	for {
+	// 		select {
+	// 		case <-quit:
+	// 			wg.Done()
+	// 			return
+	// 		default:
+	// 			state = !state
+	// 			fmt.Printf("SetSingle(0, %v)\n", !state)
+	// 			err = c.SetSingle(0, !state)
+	// 			if err != nil {
+	// 				log.Fatalf("Failed to set single channel: %v\n", err)
+	// 			}
+	// 			time.Sleep(20 * time.Millisecond)
+	// 			readState, err := c.GetSingle(0)
+	// 			if err != nil {
+	// 				log.Fatalf("Failed to get single channel: %v\n", err)
+	// 			}
+	// 			fmt.Printf("GetSingle(0): %t)\n", readState)
 
-				fmt.Printf("SetSingle(1, %v)\n", state)
-				err = c.SetSingle(1, state)
-				if err != nil {
-					log.Fatalf("Failed to set single channel: %v\n", err)
-				}
-				time.Sleep(20 * time.Millisecond)
-				readState, err = c.GetSingle(1)
-				if err != nil {
-					log.Fatalf("Failed to get single channel: %v\n", err)
-				}
-				fmt.Printf("GetSingle(1): %t)\n", readState)
+	// 			fmt.Printf("SetSingle(1, %v)\n", state)
+	// 			err = c.SetSingle(1, state)
+	// 			if err != nil {
+	// 				log.Fatalf("Failed to set single channel: %v\n", err)
+	// 			}
+	// 			time.Sleep(20 * time.Millisecond)
+	// 			readState, err = c.GetSingle(1)
+	// 			if err != nil {
+	// 				log.Fatalf("Failed to get single channel: %v\n", err)
+	// 			}
+	// 			fmt.Printf("GetSingle(1): %t)\n", readState)
 
-				fmt.Printf("SetSingle(2, %v)\n", !state)
-				err = c.SetSingle(2, !state)
-				if err != nil {
-					log.Fatalf("Failed to set single channel: %v\n", err)
-				}
-				time.Sleep(20 * time.Millisecond)
-				readState, err = c.GetSingle(2)
-				if err != nil {
-					log.Fatalf("Failed to get single channel: %v\n", err)
-				}
-				fmt.Printf("GetSingle(2): %t)\n", readState)
+	// 			fmt.Printf("SetSingle(2, %v)\n", !state)
+	// 			err = c.SetSingle(2, !state)
+	// 			if err != nil {
+	// 				log.Fatalf("Failed to set single channel: %v\n", err)
+	// 			}
+	// 			time.Sleep(20 * time.Millisecond)
+	// 			readState, err = c.GetSingle(2)
+	// 			if err != nil {
+	// 				log.Fatalf("Failed to get single channel: %v\n", err)
+	// 			}
+	// 			fmt.Printf("GetSingle(2): %t)\n", readState)
 
-				fmt.Printf("SetSingle(3, %v)\n", state)
-				err = c.SetSingle(3, state)
-				if err != nil {
-					log.Fatalf("Failed to set single channel: %v\n", err)
-				}
-				time.Sleep(20 * time.Millisecond)
-				readState, err = c.GetSingle(3)
-				if err != nil {
-					log.Fatalf("Failed to get single channel: %v\n", err)
-				}
-				fmt.Printf("GetSingle(3): %t)\n", readState)
-				fmt.Println()
-				time.Sleep(500 * time.Millisecond)
-			}
-		}
-	}()
-	wg.Wait()
+	// 			fmt.Printf("SetSingle(3, %v)\n", state)
+	// 			err = c.SetSingle(3, state)
+	// 			if err != nil {
+	// 				log.Fatalf("Failed to set single channel: %v\n", err)
+	// 			}
+	// 			time.Sleep(20 * time.Millisecond)
+	// 			readState, err = c.GetSingle(3)
+	// 			if err != nil {
+	// 				log.Fatalf("Failed to get single channel: %v\n", err)
+	// 			}
+	// 			fmt.Printf("GetSingle(3): %t)\n", readState)
+	// 			fmt.Println()
+	// 			time.Sleep(500 * time.Millisecond)
+	// 		}
+	// 	}
+	// }()
+	// wg.Wait()
 
 	////////////////////////////////////////////////////////////////////////////
 	fmt.Println("Set All example modifiying values bitmask")
@@ -142,30 +146,30 @@ func main() {
 					fmt.Printf("set:  %04b\n", values)
 					err := c.SetAll(values, 0x0F)
 					if err != nil {
-						log.Fatalf("Failed to set all channels: %v\n", err)
+						log.Printf("Failed to set all channels: %v\n", err)
 					}
-					time.Sleep(time.Millisecond * 250)
+					time.Sleep(time.Millisecond * 50)
 					readState, err := c.GetAll(0xFF)
 					if err != nil {
-						log.Fatalf("Failed to get all channels: %v\n", err)
+						log.Printf("Failed to get all channels: %v\n", err)
 					}
 					fmt.Printf("read: %04b\n", readState)
-					time.Sleep(time.Millisecond * 250)
+					time.Sleep(time.Millisecond * 50)
 				}
 				for i := 3; i >= 0; i-- {
 					values = clearBit(values, i)
 					fmt.Printf("set:  %04b\n", values)
 					err := c.SetAll(values, 0x0F)
 					if err != nil {
-						log.Fatalf("Failed to set all channels: %v\n", err)
+						log.Printf("Failed to set all channels: %v\n", err)
 					}
-					time.Sleep(time.Millisecond * 250)
+					time.Sleep(time.Millisecond * 50)
 					readState, err := c.GetAll(0xFF)
 					if err != nil {
-						log.Fatalf("Failed to get all channels: %v\n", err)
+						log.Printf("Failed to get all channels: %v\n", err)
 					}
 					fmt.Printf("read: %04b\n", readState)
-					time.Sleep(time.Millisecond * 250)
+					time.Sleep(time.Millisecond * 50)
 				}
 			}
 		}

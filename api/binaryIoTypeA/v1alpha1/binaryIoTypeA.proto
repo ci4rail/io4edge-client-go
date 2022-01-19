@@ -157,7 +157,18 @@ message FunctionControlResponse {
 message StreamControlStart {
     // mask to define which channels are considered in the stream. 0 means don't send channels value, 1 means sent it
     // LSB is Input0
-    fixed32 enableMask = 1;
+    // Defaults to all channels (0x0F)
+    fixed32 channelFilterMask = 1;
+
+    // maximum interval in seconds between two stream messages. If there are no or very few stream messages for a 
+    // certain time, the client is informed that the stream is still active and the existing data is transmitted.
+    // Defaults to 10 seconds
+    fixed32 keepaliveInterval = 2;
+
+    // internal ring buffer size. 
+    // Defaults to 50
+    // Maximum is 1000
+    fixed32 bufferSize = 3;
 }
 
 message Sample {
@@ -168,9 +179,6 @@ message Sample {
     fixed32 channel = 2;
     // Specifies the binary channel value when the input value has changed.
     bool value = 3;
-    // Indicates if the value is valid or invalid. 
-    // true: value is valid, false: value is invalid
-    bool valid = 4;
 }
 
 // StreamData to pass to Functionblock.StreamData.functionSpecificStreamData hook

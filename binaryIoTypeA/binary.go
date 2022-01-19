@@ -1,10 +1,9 @@
 package binaryIoTypeA
 
 import (
-	"fmt"
-
 	binIo "github.com/ci4rail/io4edge-client-go/binaryIoTypeA/v1alpha1"
 	"github.com/ci4rail/io4edge-client-go/functionblock"
+	log "github.com/sirupsen/logrus"
 )
 
 // SetBinaryChannel sets the binary channel to the given value
@@ -22,8 +21,8 @@ func (c *Client) SetBinaryChannel(channel int, state bool) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(cmd)
-	fmt.Println(envelopeCmd)
+	log.Debugf("cmd: %+v\n", cmd)
+	log.Debugf("envelopeCmd: %+v\n", envelopeCmd)
 	return nil
 }
 
@@ -42,7 +41,7 @@ func (c *Client) SetAllBinaryChannels(output uint32) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%+v\n", cmd)
-	fmt.Printf("%+v\n", envelopeCmd)
+	log.Debugf("cmd: %+v\n", cmd)
+	log.Debugf("envelopeCmd: %+v\n", envelopeCmd)
 	return nil
 }

@@ -27,15 +27,13 @@ func StreamControlStart(cmd protoiface.MessageV1) (*fbv1.Command, error) {
 	}, nil
 }
 
-func StreamControlStop(id int) (*fbv1.Command, error) {
+func StreamControlStop() (*fbv1.Command, error) {
 	return &fbv1.Command{
 		Context: &fbv1.Context{Value: uuid.Generate().String()},
 		Type: &fbv1.Command_StreamControl{
 			StreamControl: &fbv1.StreamControl{
 				Action: &fbv1.StreamControl_Stop{
-					Stop: &fbv1.StreamControlStop{
-						Id: uint32(id),
-					},
+					Stop: &fbv1.StreamControlStop{},
 				},
 			},
 		},

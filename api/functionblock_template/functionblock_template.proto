@@ -109,12 +109,7 @@ message GetSingleResponse {
 
 // FunctionControlResponse to pass to Functionblock.FunctionControlResponse.functionSpecificFunctionControlResponse hook
 message FunctionControlResponse {
-    oneof type {
-        GetSingleResponse getSingle = 1;
-        GetAllResponse getAll = 2;
-        SetSingleResponse setSingle = 3;
-        SetAllResponse setAll = 4;
-    }
+    // put here your fields
 }
 
 // ============= StreamControl ==================

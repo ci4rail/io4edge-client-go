@@ -3,7 +3,7 @@
 NAME = io4edge-cli
 BIN_DIR ?= bin
 VERSION ?= $(shell git describe --match=NeVeRmAtCh --always --abbrev=40 --dirty)
-GO_LDFLAGS = -ldflags "-X github.com/ci4rail/io4edge-client-go/internal/version.Version=$(VERSION)"
+GO_LDFLAGS = -tags 'netgo osusergo static_build' -ldflags "-X github.com/ci4rail/io4edge-client-go/internal/version.Version=$(VERSION)"
 
 all: test build-io4edge-cli
 

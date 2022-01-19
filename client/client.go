@@ -26,6 +26,12 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+// ClientIf is a interface for the Client
+type ClientIf interface {
+	Command(cmd proto.Message, res proto.Message, timeout time.Duration) error
+	ReadMessage(res proto.Message, timeout time.Duration) error
+}
+
 // FunctionInfo is an interface to query properties of the io4edge function
 type FunctionInfo interface {
 	// NetAddress returns the IP address (or host name) and the default port of the function
@@ -44,13 +50,13 @@ type FunctionInfo interface {
 
 // Client represents a client for an io4edge function
 type Client struct {
-	ch       *Channel
+	Ch       *Channel
 	FuncInfo FunctionInfo
 }
 
 // NewClient creates a new client for an io4edge function
 func NewClient(c *Channel, funcInfo FunctionInfo) *Client {
-	return &Client{ch: c, FuncInfo: funcInfo}
+	return &Client{Ch: c, FuncInfo: funcInfo}
 }
 
 // NewClientFromSocketAddress creates a new function client from a socket with the specified address.
@@ -88,11 +94,11 @@ func NewClientFromService(serviceAddr string, timeout time.Duration) (*Client, e
 
 // Command issues a command cmd to a channel, waits for the devices response and returns it in res
 func (c *Client) Command(cmd proto.Message, res proto.Message, timeout time.Duration) error {
-	err := c.ch.WriteMessage(cmd)
+	err := c.Ch.WriteMessage(cmd)
 	if err != nil {
 		return err
 	}
-	err = c.ch.ReadMessage(res, timeout)
+	err = c.Ch.ReadMessage(res, timeout)
 	if err != nil {
 		return errors.New("Failed to receive device response: " + err.Error())
 	}
@@ -100,7 +106,7 @@ func (c *Client) Command(cmd proto.Message, res proto.Message, timeout time.Dura
 }
 
 func (c *Client) ReadMessage(res proto.Message, timeout time.Duration) error {
-	err := c.ch.ReadMessage(res, timeout)
+	err := c.Ch.ReadMessage(res, timeout)
 	if err != nil {
 		return errors.New("Failed to read forever: " + err.Error())
 	}
