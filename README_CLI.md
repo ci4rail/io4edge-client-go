@@ -1,4 +1,7 @@
 # io4edge-cli
+
+[![.github/workflows/cli-release.yaml](https://github.com/ci4rail/io4edge-client-go/actions/workflows/cli-release.yaml/badge.svg)](https://github.com/ci4rail/io4edge-client-go/actions/workflows/cli-release.yaml)
+
 Command line tool to manage io4edge devices.
 
 ## Description
@@ -108,3 +111,12 @@ go compiler has to be installed.
 ```
 make
 ```
+
+## CI
+
+github action `.github/workflows/cli-release.yaml` builds the binaries of io4edge-cli for linux and several CPU architectures. 
+
+Create a Release via the GitHub UI (or gh cli), provide a semantic version name (`vx.y.z`), this will trigger the release action.
+
+Releases can be found [here](https://github.com/ci4rail/io4edge-client-go/releases).
+
