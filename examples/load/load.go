@@ -24,6 +24,10 @@ import (
 	"github.com/ci4rail/io4edge-client-go/core"
 )
 
+func progressCb(bytes uint) {
+	fmt.Printf("%d kBytes loaded\n", bytes/1024)
+}
+
 func createClient(addressType string, address string, timeout time.Duration) *core.Client {
 	var c *core.Client
 	var err error
@@ -38,6 +42,11 @@ func createClient(addressType string, address string, timeout time.Duration) *co
 	}
 	return c
 }
+
+// Example Usage:
+//   load svc S103-SIO01-14af003b-0591-4358-bf44-07d1d8af1cf5._io4edge-core._tcp fw-sio01-default-0.1.2.fwpkg
+// OR
+//   load ip 192.168.24.233:9999 fw-sio01-default-0.1.2.fwpkg
 
 func main() {
 	const timeout = 5 * time.Second
@@ -56,7 +65,7 @@ func main() {
 	// Load the firmware package into the device
 	// Loading happens in chunks of <chunkSize>. 1024 should work with each device
 	// <timeout> is the time to wait for responses from device
-	restartingNow, err := c.LoadFirmware(file, chunkSize, timeout)
+	restartingNow, err := c.LoadFirmware(file, chunkSize, timeout, progressCb)
 	if err != nil {
 		log.Fatalf("Failed to load firmware package: %v\n", err)
 	}
@@ -64,6 +73,11 @@ func main() {
 	log.Printf("Load succeeded. Reading back firmware ID\n")
 
 	if restartingNow {
+		fmt.Println("Let device restart...")
+		// Must sleep here, because device needs approx. 1s to reset
+		// If we reconnect too fast, we can still reach the device before it is reset
+		time.Sleep(3 * time.Second)
+
 		// must create a new client, device has rebooted
 		c = createClient(addressType, address, timeout)
 		if err != nil {

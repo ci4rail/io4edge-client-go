@@ -42,12 +42,16 @@ io4edge-cli load-firmware <firmware-package-file>`,
 	Args: cobra.ExactArgs(1),
 }
 
+func progressCb(bytes uint) {
+	fmt.Printf("\r%d kBytes loaded.", bytes/1024)
+}
+
 func loadFirmware(cmd *cobra.Command, args []string) {
 	file := args[0]
 	c, err := client.NewCliClient(deviceID, ipAddrPort)
 	e.ErrChk(err)
 
-	restartingNow, err := c.LoadFirmware(file, chunkSize, time.Duration(timeoutSecs)*time.Second)
+	restartingNow, err := c.LoadFirmware(file, chunkSize, time.Duration(timeoutSecs)*time.Second, progressCb)
 	e.ErrChk(err)
 
 	readbackFirmwareID(c, restartingNow)
@@ -70,15 +74,19 @@ func loadRawFirmware(cmd *cobra.Command, args []string) {
 	c, err := client.NewCliClient(deviceID, ipAddrPort)
 	e.ErrChk(err)
 
-	restartingNow, err := c.LoadFirmwareBinaryFromFile(file, chunkSize, time.Duration(timeoutSecs)*time.Second)
+	restartingNow, err := c.LoadFirmwareBinaryFromFile(file, chunkSize, time.Duration(timeoutSecs)*time.Second, progressCb)
 	e.ErrChk(err)
-
 	readbackFirmwareID(c, restartingNow)
 }
 
 func readbackFirmwareID(c *core.Client, restartingNow bool) {
+	fmt.Println("\nFirmware load finished.")
 	if restartingNow {
-		fmt.Println("Reconnect to restarted device")
+		fmt.Println("Let device restart...")
+		// Must sleep here, because device needs approx. 1s to reset
+		// If we reconnect too fast, we can still reach the device before it is reset
+		time.Sleep(3 * time.Second)
+		fmt.Println("Reconnect to restarted device...")
 		var err error
 		c, err = client.NewCliClient(deviceID, ipAddrPort)
 		e.ErrChk(err)
