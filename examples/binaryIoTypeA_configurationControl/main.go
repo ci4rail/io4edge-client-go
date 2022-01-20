@@ -102,7 +102,7 @@ func main() {
 
 	describe, err := c.Describe()
 	if err != nil {
-		log.Printf("Failed to config describe: %v\n", err)
+		fmt.Printf("Failed to config describe: %v\n", err)
 	} else {
 		fmt.Println("Describe: Number of channels: ", describe.NumberOfChannels)
 	}
