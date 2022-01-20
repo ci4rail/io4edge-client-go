@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	binio "github.com/ci4rail/io4edge-client-go/binaryIoTypeA/v1alpha1"
 	"github.com/ci4rail/io4edge-client-go/functionblock"
-	functionblockV1 "github.com/ci4rail/io4edge-client-go/functionblock/v1alpha1"
+	binio "github.com/ci4rail/io4edge_api/binaryIoTypeA/go/binaryIoTypeA/v1alpha1"
+	functionblockV1 "github.com/ci4rail/io4edge_api/io4edge/go/functionblock/v1alpha1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 )
@@ -31,6 +31,9 @@ func (c *Client) SetSingle(channel uint, state bool) error {
 		}
 		if res.Status == functionblockV1.Status_NOT_IMPLEMENTED {
 			return fmt.Errorf("not implemented")
+		}
+		if res.Status == functionblockV1.Status_WRONG_CLIENT {
+			return fmt.Errorf("wrong client")
 		}
 		if res.Status == functionblockV1.Status_ERROR {
 			return fmt.Errorf(res.Error.Error)
@@ -60,6 +63,9 @@ func (c *Client) SetAll(values uint32, mask uint32) error {
 		}
 		if res.Status == functionblockV1.Status_NOT_IMPLEMENTED {
 			return fmt.Errorf("not implemented")
+		}
+		if res.Status == functionblockV1.Status_WRONG_CLIENT {
+			return fmt.Errorf("wrong client")
 		}
 		if res.Status == functionblockV1.Status_ERROR {
 			return fmt.Errorf(res.Error.Error)

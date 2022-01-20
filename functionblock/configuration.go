@@ -1,7 +1,7 @@
 package functionblock
 
 import (
-	fbv1 "github.com/ci4rail/io4edge-client-go/functionblock/v1alpha1"
+	fbv1 "github.com/ci4rail/io4edge_api/io4edge/go/functionblock/v1alpha1"
 	"github.com/docker/distribution/uuid"
 	any "github.com/golang/protobuf/ptypes"
 	"google.golang.org/protobuf/runtime/protoiface"

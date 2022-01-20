@@ -19,8 +19,14 @@ package cmd
 import (
 	"fmt"
 
+	"runtime/debug"
+
 	"github.com/ci4rail/io4edge-client-go/internal/version"
 	"github.com/spf13/cobra"
+)
+
+const (
+	io4edge_api_package = "github.com/ci4rail/io4edge_api"
 )
 
 var versionCmd = &cobra.Command{
@@ -29,7 +35,16 @@ var versionCmd = &cobra.Command{
 	Long: `Print version information and quit
 This command displays version information for the io4edge-cli.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("io4edge-cli %s\n", version.Version)
+		buildInfo, ok := debug.ReadBuildInfo()
+		if !ok {
+			panic("Can't read BuildInfo")
+		}
+		fmt.Printf("io4edge-cli version: %s\n", version.Version)
+		for _, dep := range buildInfo.Deps {
+			if dep.Path == io4edge_api_package {
+				fmt.Printf("io4edge api version: %s\n", dep.Version)
+			}
+		}
 	},
 }
 

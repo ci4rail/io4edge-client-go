@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	binio "github.com/ci4rail/io4edge-client-go/binaryIoTypeA/v1alpha1"
 	"github.com/ci4rail/io4edge-client-go/functionblock"
-	functionblockV1 "github.com/ci4rail/io4edge-client-go/functionblock/v1alpha1"
+	binio "github.com/ci4rail/io4edge_api/binaryIoTypeA/go/binaryIoTypeA/v1alpha1"
+	functionblockV1 "github.com/ci4rail/io4edge_api/io4edge/go/functionblock/v1alpha1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 )

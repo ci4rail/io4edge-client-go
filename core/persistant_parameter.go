@@ -19,7 +19,7 @@ package core
 import (
 	"time"
 
-	api "github.com/ci4rail/io4edge-client-go/core/v1alpha2"
+	api "github.com/ci4rail/io4edge_api/io4edge/go/core_api/v1alpha2"
 )
 
 // SetPersistentParameter writes a persistent parameter into the device

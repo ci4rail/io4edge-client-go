@@ -6,7 +6,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	functionblockV1 "github.com/ci4rail/io4edge-client-go/functionblock/v1alpha1"
+	functionblockV1 "github.com/ci4rail/io4edge_api/io4edge/go/functionblock/v1alpha1"
 )
 
 func (c *Client) ReadResponses() {
@@ -36,6 +36,8 @@ func (c *Client) ReadResponses() {
 							c.streamStatus = true
 							c.streamData <- res.GetStream()
 						}
+					} else if res.Status == functionblockV1.Status_WRONG_CLIENT {
+						c.responses.Store(res.Context.Value, res)
 					} else {
 						fmt.Println("received error response:", res.Error.Error)
 					}

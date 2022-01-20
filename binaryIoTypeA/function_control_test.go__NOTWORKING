@@ -3,9 +3,9 @@ package binaryIoTypeA
 import (
 	"testing"
 
-	binio "github.com/ci4rail/io4edge-client-go/binaryIoTypeA/v1alpha1"
 	"github.com/ci4rail/io4edge-client-go/functionblock"
-	fb "github.com/ci4rail/io4edge-client-go/functionblock/v1alpha1"
+	binio "github.com/ci4rail/io4edge_api/binaryIoTypeA/go/binaryIoTypeA/v1alpha1"
+	fb "github.com/ci4rail/io4edge_api/io4edge/go/functionblock/v1alpha1"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/protobuf/proto"
 )

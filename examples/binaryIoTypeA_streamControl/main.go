@@ -24,7 +24,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/ci4rail/io4edge-client-go/binaryIoTypeA"
-	binio "github.com/ci4rail/io4edge-client-go/binaryIoTypeA/v1alpha1"
+	binio "github.com/ci4rail/io4edge_api/binaryIoTypeA/go/binaryIoTypeA/v1alpha1"
 )
 
 func handleSample(sample *binio.Sample, sequenceNumber uint32) {

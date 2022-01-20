@@ -1,8 +1,8 @@
 package binaryIoTypeA
 
 import (
-	binIo "github.com/ci4rail/io4edge-client-go/binaryIoTypeA/v1alpha1"
 	"github.com/ci4rail/io4edge-client-go/functionblock"
+	binIo "github.com/ci4rail/io4edge_api/binaryIoTypeA/go/binaryIoTypeA/v1alpha1"
 	log "github.com/sirupsen/logrus"
 )
 
