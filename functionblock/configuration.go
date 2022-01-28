@@ -7,7 +7,8 @@ import (
 	"google.golang.org/protobuf/runtime/protoiface"
 )
 
-func ConfigurationControlSet(cmd protoiface.MessageV1) (*fbv1.Command, error) {
+// ConfigurationSet writes a new configuration
+func ConfigurationSet(cmd protoiface.MessageV1) (*fbv1.Command, error) {
 	anyCmd, err := any.MarshalAny(cmd)
 	if err != nil {
 		return nil, err
@@ -15,17 +16,19 @@ func ConfigurationControlSet(cmd protoiface.MessageV1) (*fbv1.Command, error) {
 
 	return &fbv1.Command{
 		Context: &fbv1.Context{Value: uuid.Generate().String()},
-		Type: &fbv1.Command_ConfigurationControl{
-			ConfigurationControl: &fbv1.ConfigurationControl{
-				Action: &fbv1.ConfigurationControl_FunctionSpecificConfigurationControlSet{
-					FunctionSpecificConfigurationControlSet: anyCmd,
+		Type: &fbv1.Command_Configuration{
+
+			Configuration: &fbv1.Configuration{
+				Action: &fbv1.Configuration_FunctionSpecificConfigurationSet{
+					FunctionSpecificConfigurationSet: anyCmd,
 				},
 			},
 		},
 	}, nil
 }
 
-func ConfigurationControlGet(cmd protoiface.MessageV1) (*fbv1.Command, error) {
+// ConfigurationGet reads the configuration
+func ConfigurationGet(cmd protoiface.MessageV1) (*fbv1.Command, error) {
 	anyCmd, err := any.MarshalAny(cmd)
 	if err != nil {
 		return nil, err
@@ -33,17 +36,18 @@ func ConfigurationControlGet(cmd protoiface.MessageV1) (*fbv1.Command, error) {
 
 	return &fbv1.Command{
 		Context: &fbv1.Context{Value: uuid.Generate().String()},
-		Type: &fbv1.Command_ConfigurationControl{
-			ConfigurationControl: &fbv1.ConfigurationControl{
-				Action: &fbv1.ConfigurationControl_FunctionSpecificConfigurationControlGet{
-					FunctionSpecificConfigurationControlGet: anyCmd,
+		Type: &fbv1.Command_Configuration{
+			Configuration: &fbv1.Configuration{
+				Action: &fbv1.Configuration_FunctionSpecificConfigurationGet{
+					FunctionSpecificConfigurationGet: anyCmd,
 				},
 			},
 		},
 	}, nil
 }
 
-func ConfigurationControlDescribe(cmd protoiface.MessageV1) (*fbv1.Command, error) {
+// ConfigurationDescribe describes the unit
+func ConfigurationDescribe(cmd protoiface.MessageV1) (*fbv1.Command, error) {
 	anyCmd, err := any.MarshalAny(cmd)
 	if err != nil {
 		return nil, err
@@ -51,10 +55,10 @@ func ConfigurationControlDescribe(cmd protoiface.MessageV1) (*fbv1.Command, erro
 	ctx := uuid.Generate().String()
 	return &fbv1.Command{
 		Context: &fbv1.Context{Value: ctx},
-		Type: &fbv1.Command_ConfigurationControl{
-			ConfigurationControl: &fbv1.ConfigurationControl{
-				Action: &fbv1.ConfigurationControl_FunctionSpecificConfigurationControlDescribe{
-					FunctionSpecificConfigurationControlDescribe: anyCmd,
+		Type: &fbv1.Command_Configuration{
+			Configuration: &fbv1.Configuration{
+				Action: &fbv1.Configuration_FunctionSpecificConfigurationDescribe{
+					FunctionSpecificConfigurationDescribe: anyCmd,
 				},
 			},
 		},

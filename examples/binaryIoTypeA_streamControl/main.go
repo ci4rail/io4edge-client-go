@@ -23,7 +23,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/ci4rail/io4edge-client-go/binaryIoTypeA"
+	"github.com/ci4rail/io4edge-client-go/binaryiotypea"
 	binio "github.com/ci4rail/io4edge_api/binaryIoTypeA/go/binaryIoTypeA/v1alpha1"
 )
 
@@ -36,7 +36,7 @@ func myrecover() {
 	fmt.Println("Lost connecetion to io4edge device. Exiting now.")
 }
 
-func functionControl(c *binaryIoTypeA.Client, wg *sync.WaitGroup, quit chan bool) {
+func functionControl(c *binaryiotypea.Client, wg *sync.WaitGroup, quit chan bool) {
 	go func() {
 		var values uint32 = 0x00
 		i := 0
@@ -54,7 +54,7 @@ func functionControl(c *binaryIoTypeA.Client, wg *sync.WaitGroup, quit chan bool
 					log.Printf("Failed to set all channels: %v\n", err)
 				}
 				time.Sleep(time.Millisecond * 10)
-				i += 1
+				i++
 				if i%15 == 0 {
 					direction *= -1
 				}
@@ -73,23 +73,23 @@ func main() {
 	address := os.Args[2]
 
 	// Create a client object to work with the io4edge device at <address>
-	var c *binaryIoTypeA.Client
+	var c *binaryiotypea.Client
 	var err error
 	var quit chan bool = make(chan bool)
 	var wg sync.WaitGroup = sync.WaitGroup{}
 
 	if addressType == "svc" {
-		c, err = binaryIoTypeA.NewClientFromService(address, timeout)
+		c, err = binaryiotypea.NewClientFromService(address, timeout)
 	} else {
-		c, err = binaryIoTypeA.NewClientFromSocketAddress(address)
+		c, err = binaryiotypea.NewClientFromSocketAddress(address)
 	}
 	if err != nil {
-		log.Fatalf("Failed to create binaryIoTypeA client: %v\n", err)
+		log.Fatalf("Failed to create binaryiotypea client: %v\n", err)
 	}
 	c.SetRecover(myrecover)
 	wg.Add(1)
 	functionControl(c, &wg, quit)
-	config := &binaryIoTypeA.StreamConfiguration{
+	config := &binaryiotypea.StreamConfiguration{
 		ChannelFilterMask: 0xF,
 		KeepaliveInterval: 100,
 		BufferSize:        20,

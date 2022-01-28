@@ -21,7 +21,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/ci4rail/io4edge-client-go/binaryIoTypeA"
+	binaryiotypea "github.com/ci4rail/io4edge-client-go/binaryiotypea"
 )
 
 func main() {
@@ -34,19 +34,19 @@ func main() {
 	address := os.Args[2]
 
 	// Create a client object to work with the io4edge device at <address>
-	var c *binaryIoTypeA.Client
+	var c *binaryiotypea.Client
 	var err error
 
 	if addressType == "svc" {
-		c, err = binaryIoTypeA.NewClientFromService(address, timeout)
+		c, err = binaryiotypea.NewClientFromService(address, timeout)
 	} else {
-		c, err = binaryIoTypeA.NewClientFromSocketAddress(address)
+		c, err = binaryiotypea.NewClientFromSocketAddress(address)
 	}
 	if err != nil {
-		log.Fatalf("Failed to create binaryIoTypeA client: %v\n", err)
+		log.Fatalf("Failed to create binaryiotypea client: %v\n", err)
 	}
 
-	err = c.SetConfiguration(binaryIoTypeA.Configuration{
+	err = c.SetConfiguration(binaryiotypea.Configuration{
 		OutputFritting:        -1,
 		OutputWatchdog:        -1,
 		OutputWatchdogTimeout: 11000,
@@ -64,7 +64,7 @@ func main() {
 		fmt.Printf("OutputWatchdogTimeout: %v\n", readConfig.OutputWatchdogTimeout)
 	}
 
-	err = c.SetConfiguration(binaryIoTypeA.Configuration{
+	err = c.SetConfiguration(binaryiotypea.Configuration{
 		OutputFritting:        0x05,
 		OutputWatchdog:        0,
 		OutputWatchdogTimeout: 100,
@@ -82,7 +82,7 @@ func main() {
 		fmt.Printf("OutputWatchdogTimeout: %v\n", readConfig.OutputWatchdogTimeout)
 	}
 
-	err = c.SetConfiguration(binaryIoTypeA.Configuration{
+	err = c.SetConfiguration(binaryiotypea.Configuration{
 		OutputFritting:        0x06,
 		OutputWatchdog:        0x07,
 		OutputWatchdogTimeout: 1250,

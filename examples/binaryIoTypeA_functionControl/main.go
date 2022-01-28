@@ -22,7 +22,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ci4rail/io4edge-client-go/binaryIoTypeA"
+	"github.com/ci4rail/io4edge-client-go/binaryiotypea"
 )
 
 func myrecover() {
@@ -39,16 +39,16 @@ func main() {
 	address := os.Args[2]
 
 	// Create a client object to work with the io4edge device at <address>
-	var c *binaryIoTypeA.Client
+	var c *binaryiotypea.Client
 	var err error
 
 	if addressType == "svc" {
-		c, err = binaryIoTypeA.NewClientFromService(address, timeout)
+		c, err = binaryiotypea.NewClientFromService(address, timeout)
 	} else {
-		c, err = binaryIoTypeA.NewClientFromSocketAddress(address)
+		c, err = binaryiotypea.NewClientFromSocketAddress(address)
 	}
 	if err != nil {
-		log.Fatalf("Failed to create binaryIoTypeA client: %v\n", err)
+		log.Fatalf("Failed to create binaryiotypea client: %v\n", err)
 	}
 	c.SetRecover(myrecover)
 	quit := make(chan interface{})
