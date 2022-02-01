@@ -7,8 +7,16 @@ import (
 	"google.golang.org/protobuf/runtime/protoiface"
 )
 
-func StreamControlStart(cmd protoiface.MessageV1) (*fbv1.Command, error) {
-	anyCmd, err := any.MarshalAny(cmd)
+// StreamConfiguration defines the configuration of a stream
+type StreamConfiguration struct {
+	BucketSamples     uint32
+	KeepaliveInterval uint32
+	BufferedSamples   uint32
+}
+
+// StreamControlStart returns the marshalled message to start the stream
+func StreamControlStart(config *StreamConfiguration, fscmd protoiface.MessageV1) (*fbv1.Command, error) {
+	anyCmd, err := any.MarshalAny(fscmd)
 	if err != nil {
 		return nil, err
 	}
@@ -19,6 +27,9 @@ func StreamControlStart(cmd protoiface.MessageV1) (*fbv1.Command, error) {
 			StreamControl: &fbv1.StreamControl{
 				Action: &fbv1.StreamControl_Start{
 					Start: &fbv1.StreamControlStart{
+						BucketSamples:                      config.BucketSamples,
+						KeepaliveInterval:                  config.KeepaliveInterval,
+						BufferedSamples:                    config.BufferedSamples,
 						FunctionSpecificStreamControlStart: anyCmd,
 					},
 				},
@@ -27,6 +38,7 @@ func StreamControlStart(cmd protoiface.MessageV1) (*fbv1.Command, error) {
 	}, nil
 }
 
+// StreamControlStop returns the marshalled message to stop the stream
 func StreamControlStop() (*fbv1.Command, error) {
 	return &fbv1.Command{
 		Context: &fbv1.Context{Value: uuid.Generate().String()},

@@ -40,6 +40,7 @@ func (c *Client) SetConfiguration(config Configuration) error {
 			return fmt.Errorf("not implemented")
 		}
 		if res.Status != functionblockV1.Status_OK {
+			fmt.Printf("Status %d\n", res.Status)
 			return fmt.Errorf(res.Error.Error)
 		}
 		return nil

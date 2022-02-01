@@ -24,6 +24,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/ci4rail/io4edge-client-go/binaryiotypea"
+	"github.com/ci4rail/io4edge-client-go/functionblock"
 	binio "github.com/ci4rail/io4edge_api/binaryIoTypeA/go/binaryIoTypeA/v1alpha1"
 )
 
@@ -90,9 +91,12 @@ func main() {
 	wg.Add(1)
 	functionControl(c, &wg, quit)
 	config := &binaryiotypea.StreamConfiguration{
+		Generic: functionblock.StreamConfiguration{
+			BucketSamples:     10,
+			KeepaliveInterval: 100000,
+			BufferedSamples:   30,
+		},
 		ChannelFilterMask: 0xF,
-		KeepaliveInterval: 100,
-		BufferSize:        20,
 	}
 	err = c.StartStream(config, handleSample)
 	if err != nil {

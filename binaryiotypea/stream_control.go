@@ -19,16 +19,18 @@ func (c *Client) StreamStatus() bool {
 
 // StreamConfiguration defines the configuration of a stream
 type StreamConfiguration struct {
+	Generic           functionblock.StreamConfiguration
 	ChannelFilterMask uint32
-	KeepaliveInterval uint32
-	BufferSize        uint32
 }
 
 var (
 	defaultConfiguration = &StreamConfiguration{
+		Generic: functionblock.StreamConfiguration{
+			BucketSamples:     DefaultBucketSamples,
+			KeepaliveInterval: DefaultKeepaliveInterval,
+			BufferedSamples:   DefaultBufferedSamples,
+		},
 		ChannelFilterMask: DefaultChannelFilterMask,
-		KeepaliveInterval: DefaultKeepaliveInterval,
-		BufferSize:        DefaultBufferSize,
 	}
 )
 
@@ -43,13 +45,16 @@ func (c *Client) StartStream(config *StreamConfiguration, callback func(*binio.S
 		if config == nil {
 			config = defaultConfiguration
 		}
+		genericConfig := functionblock.StreamConfiguration{
+			BucketSamples:     config.Generic.BucketSamples,
+			KeepaliveInterval: config.Generic.KeepaliveInterval,
+			BufferedSamples:   config.Generic.BufferedSamples,
+		}
 		cmd := binio.StreamControlStart{
 			ChannelFilterMask: config.ChannelFilterMask,
-			KeepaliveInterval: config.KeepaliveInterval,
-			BufferSize:        config.BufferSize,
 		}
 
-		envelopeCmd, err := functionblock.StreamControlStart(&cmd)
+		envelopeCmd, err := functionblock.StreamControlStart(&genericConfig, &cmd)
 		if err != nil {
 			return err
 		}
