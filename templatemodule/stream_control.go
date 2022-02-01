@@ -1,4 +1,4 @@
-package templateModule
+package templatemodule
 
 import (
 	"fmt"
@@ -12,37 +12,45 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 )
 
+// StreamStatus returns true if the stream is up
 func (c *Client) StreamStatus() bool {
 	return c.streamStatus
 }
 
+// StreamConfiguration defines the configuration of a stream
 type StreamConfiguration struct {
-	KeepaliveInterval uint32
-	BufferSize        uint32
+	Generic functionblock.StreamConfiguration
 }
 
 var (
 	defaultConfiguration = &StreamConfiguration{
-		KeepaliveInterval: DefaultKeepaliveInterval,
-		BufferSize:        DefaultBufferSize,
+		Generic: functionblock.StreamConfiguration{
+			BucketSamples:     DefaultBucketSamples,
+			KeepaliveInterval: DefaultKeepaliveInterval,
+			BufferedSamples:   DefaultBufferedSamples,
+		},
 	}
 )
 
+// StreamDefaultConfiguration returns the default stream configuration
 func (c *Client) StreamDefaultConfiguration() *StreamConfiguration {
 	return defaultConfiguration
 }
 
+// StartStream starts the stream
 func (c *Client) StartStream(config *StreamConfiguration, callback func(*templateModule.Sample, uint32)) error {
 	if c.connected {
 		if config == nil {
 			config = defaultConfiguration
 		}
-		cmd := templateModule.StreamControlStart{
-			KeepaliveInterval: config.KeepaliveInterval,
-			BufferSize:        config.BufferSize,
+		genericConfig := functionblock.StreamConfiguration{
+			BucketSamples:     config.Generic.BucketSamples,
+			KeepaliveInterval: config.Generic.KeepaliveInterval,
+			BufferedSamples:   config.Generic.BufferedSamples,
 		}
+		cmd := templateModule.StreamControlStart{}
 
-		envelopeCmd, err := functionblock.StreamControlStart(&cmd)
+		envelopeCmd, err := functionblock.StreamControlStart(&genericConfig, &cmd)
 		if err != nil {
 			return err
 		}
@@ -53,7 +61,7 @@ func (c *Client) StartStream(config *StreamConfiguration, callback func(*templat
 		if res.Status == functionblockV1.Status_NOT_IMPLEMENTED {
 			return fmt.Errorf("not implemented")
 		}
-		if res.Status == functionblockV1.Status_ERROR {
+		if res.Status != functionblockV1.Status_OK {
 			return fmt.Errorf(res.Error.Error)
 		}
 		go func(c *Client, callback func(*templateModule.Sample, uint32)) {
@@ -90,6 +98,7 @@ func (c *Client) StartStream(config *StreamConfiguration, callback func(*templat
 	return fmt.Errorf("not connected")
 }
 
+// StopStream stops the stream
 func (c *Client) StopStream() error {
 	if c.connected {
 		cmd, err := functionblock.StreamControlStop()
@@ -103,7 +112,7 @@ func (c *Client) StopStream() error {
 		if res.Status == functionblockV1.Status_NOT_IMPLEMENTED {
 			return fmt.Errorf("not implemented")
 		}
-		if res.Status == functionblockV1.Status_ERROR {
+		if res.Status != functionblockV1.Status_OK {
 			return fmt.Errorf(res.Error.Error)
 		}
 

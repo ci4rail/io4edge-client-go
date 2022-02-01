@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/ci4rail/firmware-packaging-go v0.0.0-20210910120607-093c436aeccc
-	github.com/ci4rail/io4edge_api v0.3.4-0.20220201072631-fec9fdc2f8e5
+	github.com/ci4rail/io4edge_api v0.3.4-0.20220201123116-38acbd4ec790
 	github.com/docker/distribution v2.7.1+incompatible
 	github.com/godbus/dbus/v5 v5.0.5
 	github.com/golang/protobuf v1.5.2

@@ -1,4 +1,4 @@
-package templateModule
+package templatemodule
 
 import (
 	"fmt"
@@ -11,14 +11,16 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 )
 
+// Configuration is the type for set/get configuration
 type Configuration struct {
 }
 
+// SetConfiguration sets configuration
 func (c *Client) SetConfiguration(config Configuration) error {
 	if c.connected {
-		cmd := templateModule.ConfigurationControlSet{}
+		cmd := templateModule.ConfigurationSet{}
 
-		envelopeCmd, err := functionblock.ConfigurationControlSet(&cmd)
+		envelopeCmd, err := functionblock.ConfigurationSet(&cmd)
 		if err != nil {
 			return err
 		}
@@ -30,10 +32,7 @@ func (c *Client) SetConfiguration(config Configuration) error {
 		if res.Status == functionblockV1.Status_NOT_IMPLEMENTED {
 			return fmt.Errorf("not implemented")
 		}
-		if res.Status == functionblockV1.Status_WRONG_CLIENT {
-			return fmt.Errorf("wrong client")
-		}
-		if res.Status == functionblockV1.Status_ERROR {
+		if res.Status != functionblockV1.Status_OK {
 			return fmt.Errorf(res.Error.Error)
 		}
 		return nil
@@ -41,10 +40,11 @@ func (c *Client) SetConfiguration(config Configuration) error {
 	return fmt.Errorf("not connected")
 }
 
+// GetConfiguration gets configuration
 func (c *Client) GetConfiguration() (*Configuration, error) {
 	if c.connected {
-		cmd := templateModule.ConfigurationControlGet{}
-		envelopeCmd, err := functionblock.ConfigurationControlGet(&cmd)
+		cmd := templateModule.ConfigurationGet{}
+		envelopeCmd, err := functionblock.ConfigurationGet(&cmd)
 		if err != nil {
 			return nil, err
 		}
@@ -56,14 +56,11 @@ func (c *Client) GetConfiguration() (*Configuration, error) {
 		if res.Status == functionblockV1.Status_NOT_IMPLEMENTED {
 			return nil, fmt.Errorf("not implemented")
 		}
-		if res.Status == functionblockV1.Status_WRONG_CLIENT {
-			return nil, fmt.Errorf("wrong client")
-		}
-		if res.Status == functionblockV1.Status_ERROR {
+		if res.Status != functionblockV1.Status_OK {
 			return nil, fmt.Errorf(res.Error.Error)
 		}
-		get := templateModule.ConfigurationControlResponse{}
-		err = anypb.UnmarshalTo(res.GetConfigurationControl().FunctionSpecificConfigurationControlResponse, &get, proto.UnmarshalOptions{})
+		get := templateModule.ConfigurationGetResponse{}
+		err = anypb.UnmarshalTo(res.GetConfiguration().GetFunctionSpecificConfigurationGet(), &get, proto.UnmarshalOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -73,10 +70,11 @@ func (c *Client) GetConfiguration() (*Configuration, error) {
 	return nil, fmt.Errorf("not connected")
 }
 
-func (c *Client) Describe() (*templateModule.ConfigurationControlDescribeResponse, error) {
+// Describe the function
+func (c *Client) Describe() (*templateModule.ConfigurationDescribeResponse, error) {
 	if c.connected {
-		cmd := templateModule.ConfigurationControlDescribe{}
-		envelopeCmd, err := functionblock.ConfigurationControlDescribe(&cmd)
+		cmd := templateModule.ConfigurationDescribe{}
+		envelopeCmd, err := functionblock.ConfigurationDescribe(&cmd)
 		if err != nil {
 			return nil, err
 		}
@@ -88,14 +86,11 @@ func (c *Client) Describe() (*templateModule.ConfigurationControlDescribeRespons
 		if res.Status == functionblockV1.Status_NOT_IMPLEMENTED {
 			return nil, fmt.Errorf("not implemented")
 		}
-		if res.Status == functionblockV1.Status_WRONG_CLIENT {
-			return nil, fmt.Errorf("wrong client")
-		}
-		if res.Status == functionblockV1.Status_ERROR {
+		if res.Status != functionblockV1.Status_OK {
 			return nil, fmt.Errorf(res.Error.Error)
 		}
-		describe := templateModule.ConfigurationControlResponse{}
-		err = anypb.UnmarshalTo(res.GetConfigurationControl().FunctionSpecificConfigurationControlResponse, &describe, proto.UnmarshalOptions{})
+		describe := templateModule.ConfigurationResponse{}
+		err = anypb.UnmarshalTo(res.GetConfiguration().GetFunctionSpecificConfigurationDescribe(), &describe, proto.UnmarshalOptions{})
 		if err != nil {
 			return nil, err
 		}

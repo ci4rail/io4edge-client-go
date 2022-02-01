@@ -1,4 +1,4 @@
-package templateModule
+package templatemodule
 
 import (
 	"fmt"
@@ -9,6 +9,7 @@ import (
 	functionblockV1 "github.com/ci4rail/io4edge_api/io4edge/go/functionblock/v1alpha1"
 )
 
+// ReadResponses read responses in background
 func (c *Client) ReadResponses() {
 	log.Debug("about to start go ReadResponses()")
 	go func(c *Client) {
@@ -48,6 +49,7 @@ func (c *Client) ReadResponses() {
 	}(c)
 }
 
+// GetResponse ???
 func (c *Client) GetResponse(context string) *functionblockV1.Response {
 	res, ok := c.responses.LoadAndDelete(context)
 	if !ok {
@@ -56,6 +58,7 @@ func (c *Client) GetResponse(context string) *functionblockV1.Response {
 	return res.(*functionblockV1.Response)
 }
 
+// WaitForResponse waits for a response
 func (c *Client) WaitForResponse(context string, timeout time.Duration) (*functionblockV1.Response, error) {
 	timeoutChan := make(chan bool, 1)
 	if timeout > 0 {

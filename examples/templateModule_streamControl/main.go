@@ -23,11 +23,12 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/ci4rail/io4edge-client-go/templateModule"
-	templateModulePb "github.com/ci4rail/io4edge_api/templateModule/go/templateModule/v1alpha1"
+	"github.com/ci4rail/io4edge-client-go/functionblock"
+	"github.com/ci4rail/io4edge-client-go/templatemodule"
+	templatemodulePb "github.com/ci4rail/io4edge_api/templateModule/go/templateModule/v1alpha1"
 )
 
-func handleSample(sample *templateModulePb.Sample, sequenceNumber uint32) {
+func handleSample(sample *templatemodulePb.Sample, sequenceNumber uint32) {
 	fmt.Printf("\r")
 	fmt.Printf("seq %d: %d: %d\n", sequenceNumber, sample.Timestamp, sample.Value)
 }
@@ -36,7 +37,7 @@ func myrecover() {
 	fmt.Println("Lost connecetion to io4edge device. Exiting now.")
 }
 
-func functionControl(c *templateModule.Client, wg *sync.WaitGroup, quit chan bool) {
+func functionControl(c *templatemodule.Client, wg *sync.WaitGroup, quit chan bool) {
 	go func() {
 		var value uint32 = 0
 		for {
@@ -57,8 +58,8 @@ func functionControl(c *templateModule.Client, wg *sync.WaitGroup, quit chan boo
 	}()
 }
 
-func configuration_control(c *templateModule.Client) {
-	err := c.SetConfiguration(templateModule.Configuration{})
+func configurationControl(c *templatemodule.Client) {
+	err := c.SetConfiguration(templatemodule.Configuration{})
 	if err != nil {
 		fmt.Printf("Failed to set configuration: %v\n", err)
 	}
@@ -88,29 +89,32 @@ func main() {
 	address := os.Args[2]
 
 	// Create a client object to work with the io4edge device at <address>
-	var c *templateModule.Client
+	var c *templatemodule.Client
 	var err error
 	var quit chan bool = make(chan bool)
 	var wg sync.WaitGroup = sync.WaitGroup{}
 
 	if addressType == "svc" {
-		c, err = templateModule.NewClientFromService(address, timeout)
+		c, err = templatemodule.NewClientFromService(address, timeout)
 	} else {
-		c, err = templateModule.NewClientFromSocketAddress(address)
+		c, err = templatemodule.NewClientFromSocketAddress(address)
 	}
 	if err != nil {
-		log.Fatalf("Failed to create templateModule client: %v\n", err)
+		log.Fatalf("Failed to create templatemodule client: %v\n", err)
 	}
 
 	c.SetRecover(myrecover)
 
-	configuration_control(c)
+	configurationControl(c)
 
 	wg.Add(1)
 	functionControl(c, &wg, quit)
-	config := &templateModule.StreamConfiguration{
-		KeepaliveInterval: 10,
-		BufferSize:        5,
+	config := &templatemodule.StreamConfiguration{
+		Generic: functionblock.StreamConfiguration{
+			BucketSamples:     10,
+			KeepaliveInterval: 100000,
+			BufferedSamples:   30,
+		},
 	}
 	err = c.StartStream(config, handleSample)
 	if err != nil {

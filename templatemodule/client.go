@@ -1,4 +1,4 @@
-package templateModule
+package templatemodule
 
 import (
 	"errors"
@@ -11,6 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// ClientInterface provides the interface to establish the socket
 type ClientInterface interface {
 	NewClientFromSocketAddress(address string) (*Client, error)
 	NewClientFromService(serviceAddr string, timeout time.Duration) (*Client, error)
@@ -31,6 +32,7 @@ type Client struct {
 	streamKeepaliveInterval uint32
 }
 
+// NewClient creates a new client and waits for responses
 func NewClient(c *client.Client) *Client {
 	client := &Client{
 		funcClient:              c,
@@ -76,7 +78,7 @@ func NewClientFromService(serviceAddr string, timeout time.Duration) (*Client, e
 // Command issues a command cmd to a channel, waits for the devices response and returns it in res
 func (c *Client) Command(cmd *fbv1.Command, timeout time.Duration) (*fbv1.Response, error) {
 	log.Debug("sending command with context: ", cmd.Context)
-	c.responsePending += 1
+	c.responsePending++
 	err := c.funcClient.Ch.WriteMessage(cmd)
 	if err != nil {
 		return nil, err
@@ -85,7 +87,7 @@ func (c *Client) Command(cmd *fbv1.Command, timeout time.Duration) (*fbv1.Respon
 	if err != nil {
 		return nil, err
 	}
-	c.responsePending -= 1
+	c.responsePending--
 	return res, nil
 }
 

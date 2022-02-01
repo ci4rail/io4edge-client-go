@@ -1,4 +1,4 @@
-package templateModule
+package templatemodule
 
 import (
 	"fmt"
@@ -11,6 +11,7 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 )
 
+// Set the value of the template module
 func (c *Client) Set(value uint32) error {
 	if c.connected {
 		cmd := templateModule.FunctionControlSet{
@@ -27,10 +28,7 @@ func (c *Client) Set(value uint32) error {
 		if res.Status == functionblockV1.Status_NOT_IMPLEMENTED {
 			return fmt.Errorf("not implemented")
 		}
-		if res.Status == functionblockV1.Status_WRONG_CLIENT {
-			return fmt.Errorf("wrong client")
-		}
-		if res.Status == functionblockV1.Status_ERROR {
+		if res.Status != functionblockV1.Status_OK {
 			return fmt.Errorf(res.Error.Error)
 		}
 		return nil
@@ -38,6 +36,7 @@ func (c *Client) Set(value uint32) error {
 	return fmt.Errorf("not connected")
 }
 
+// Get the value of the template module
 func (c *Client) Get() (uint32, error) {
 	if c.connected {
 		cmd := templateModule.FunctionControlGet{}
@@ -52,18 +51,15 @@ func (c *Client) Get() (uint32, error) {
 		if res.Status == functionblockV1.Status_NOT_IMPLEMENTED {
 			return 0, fmt.Errorf("not implemented")
 		}
-		if res.Status == functionblockV1.Status_WRONG_CLIENT {
-			return 0, fmt.Errorf("wrong client")
-		}
-		if res.Status == functionblockV1.Status_ERROR {
+		if res.Status != functionblockV1.Status_OK {
 			return 0, fmt.Errorf(res.Error.Error)
 		}
-		get := templateModule.FunctionControlResponse{}
-		err = anypb.UnmarshalTo(res.GetFunctionControl().FunctionSpecificFunctionControlResponse, &get, proto.UnmarshalOptions{})
+		get := templateModule.FunctionControlGetResponse{}
+		err = anypb.UnmarshalTo(res.GetFunctionControl().GetFunctionSpecificFunctionControlGet(), &get, proto.UnmarshalOptions{})
 		if err != nil {
 			return 0, err
 		}
-		return get.GetGet().Value, nil
+		return get.Value, nil
 	}
 	return 0, fmt.Errorf("not connected")
 }
