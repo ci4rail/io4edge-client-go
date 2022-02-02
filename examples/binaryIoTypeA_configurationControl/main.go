@@ -47,51 +47,15 @@ func main() {
 	}
 
 	err = c.SetConfiguration(binaryiotypea.Configuration{
-		OutputFritting:        -1,
-		OutputWatchdog:        -1,
-		OutputWatchdogTimeout: 11000,
+		OutputFritting:        0xf,
+		OutputWatchdog:        0xf,
+		OutputWatchdogTimeout: 1000,
 	})
 	if err != nil {
 		fmt.Printf("Failed to set configuration: %v\n", err)
 	}
 
 	readConfig, err := c.GetConfiguration()
-	if err != nil {
-		fmt.Printf("Failed to get configuration: %v\n", err)
-	} else {
-		fmt.Printf("OutputFritting: %v\n", readConfig.OutputFritting)
-		fmt.Printf("OutputWatchdog: %v\n", readConfig.OutputWatchdog)
-		fmt.Printf("OutputWatchdogTimeout: %v\n", readConfig.OutputWatchdogTimeout)
-	}
-
-	err = c.SetConfiguration(binaryiotypea.Configuration{
-		OutputFritting:        0x05,
-		OutputWatchdog:        0,
-		OutputWatchdogTimeout: 100,
-	})
-	if err != nil {
-		fmt.Printf("Failed to set configuration: %v\n", err)
-	}
-
-	readConfig, err = c.GetConfiguration()
-	if err != nil {
-		fmt.Printf("Failed to get configuration: %v\n", err)
-	} else {
-		fmt.Printf("OutputFritting: %v\n", readConfig.OutputFritting)
-		fmt.Printf("OutputWatchdog: %v\n", readConfig.OutputWatchdog)
-		fmt.Printf("OutputWatchdogTimeout: %v\n", readConfig.OutputWatchdogTimeout)
-	}
-
-	err = c.SetConfiguration(binaryiotypea.Configuration{
-		OutputFritting:        0x06,
-		OutputWatchdog:        0x07,
-		OutputWatchdogTimeout: 1250,
-	})
-	if err != nil {
-		fmt.Printf("Failed to set configuration: %v\n", err)
-	}
-
-	readConfig, err = c.GetConfiguration()
 	if err != nil {
 		fmt.Printf("Failed to get configuration: %v\n", err)
 	} else {
