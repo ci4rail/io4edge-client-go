@@ -14,8 +14,8 @@ type StreamConfiguration struct {
 	BufferedSamples   uint32
 }
 
-// StreamControlStart returns the marshalled message to start the stream
-func StreamControlStart(config *StreamConfiguration, fscmd protoiface.MessageV1) (*fbv1.Command, error) {
+// StreamControlStartMessage returns the marshalled message to start the stream
+func StreamControlStartMessage(config *StreamConfiguration, fscmd protoiface.MessageV1) (*fbv1.Command, error) {
 	anyCmd, err := any.MarshalAny(fscmd)
 	if err != nil {
 		return nil, err
@@ -38,8 +38,8 @@ func StreamControlStart(config *StreamConfiguration, fscmd protoiface.MessageV1)
 	}, nil
 }
 
-// StreamControlStop returns the marshalled message to stop the stream
-func StreamControlStop() (*fbv1.Command, error) {
+// StreamControlStopMessage returns the marshalled message to stop the stream
+func StreamControlStopMessage() (*fbv1.Command, error) {
 	return &fbv1.Command{
 		Context: &fbv1.Context{Value: uuid.Generate().String()},
 		Type: &fbv1.Command_StreamControl{
