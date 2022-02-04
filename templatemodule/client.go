@@ -40,7 +40,9 @@ func (c *Client) ConfigurationSet(config *Configuration) error {
 func (c *Client) ConfigurationGet() (*Configuration, error) {
 	fsCmd := &fspb.ConfigurationGet{}
 	any, err := c.fbClient.ConfigurationGet(fsCmd)
-
+	if err != nil {
+		return nil, err
+	}
 	res := new(fspb.ConfigurationGetResponse)
 	if err := any.UnmarshalTo(res); err != nil {
 		return nil, err
@@ -55,7 +57,9 @@ func (c *Client) ConfigurationGet() (*Configuration, error) {
 func (c *Client) ConfigurationDescribe() (*Description, error) {
 	fsCmd := &fspb.ConfigurationDescribe{}
 	any, err := c.fbClient.ConfigurationDescribe(fsCmd)
-
+	if err != nil {
+		return nil, err
+	}
 	res := new(fspb.ConfigurationDescribeResponse)
 	if err := any.UnmarshalTo(res); err != nil {
 		return nil, err
@@ -64,4 +68,27 @@ func (c *Client) ConfigurationDescribe() (*Description, error) {
 		Ident: res.Ident,
 	}
 	return desc, err
+}
+
+// SetCounter sets the templates module counter in the device
+func (c *Client) SetCounter(value uint32) error {
+	fsCmd := &fspb.FunctionControlSet{
+		Value: value,
+	}
+	_, err := c.fbClient.FunctionControlSet(fsCmd)
+	return err
+}
+
+// GetCounter reads the templates module counter from the device
+func (c *Client) GetCounter() (uint32, error) {
+	fsCmd := &fspb.FunctionControlGet{}
+	any, err := c.fbClient.FunctionControlGet(fsCmd)
+	if err != nil {
+		return 0, err
+	}
+	res := new(fspb.FunctionControlGetResponse)
+	if err := any.UnmarshalTo(res); err != nil {
+		return 0, err
+	}
+	return res.Value, nil
 }

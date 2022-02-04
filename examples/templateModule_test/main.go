@@ -58,4 +58,15 @@ func main() {
 	}
 	fmt.Printf("Description: %v\n", desc)
 
+	err = c.SetCounter(1234)
+	if err != nil {
+		log.Errorf("SetCounter failed: %v\n", err)
+	}
+
+	cnt, err := c.GetCounter()
+	if err != nil {
+		log.Errorf("SetCounter failed: %v\n", err)
+	}
+	fmt.Printf("counter: %d\n", cnt)
+
 }

@@ -14,7 +14,6 @@ func (c *Client) ConfigurationSet(fsCmd proto.Message) (*anypb.Any, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	res, err := c.command(cmd)
 	if err != nil {
 		return nil, err
