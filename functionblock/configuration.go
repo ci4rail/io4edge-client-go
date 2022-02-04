@@ -2,20 +2,32 @@ package functionblock
 
 import (
 	fbv1 "github.com/ci4rail/io4edge_api/io4edge/go/functionblock/v1alpha1"
-	"github.com/docker/distribution/uuid"
-	any "github.com/golang/protobuf/ptypes"
-	"google.golang.org/protobuf/runtime/protoiface"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/anypb"
 )
 
-// ConfigurationSet writes a new configuration
-func ConfigurationSet(cmd protoiface.MessageV1) (*fbv1.Command, error) {
-	anyCmd, err := any.MarshalAny(cmd)
+func (c *Client) ConfigurationSet(fsCmd proto.Message) (*anypb.Any, error) {
+	cmd, err := configurationSetMessage(fsCmd)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := c.Command(cmd)
+	if err != nil {
+		return nil, err
+	}
+	fsRes := res.GetConfiguration().GetFunctionSpecificConfigurationSet()
+	return fsRes, nil
+}
+
+// configurationSetMessage returns a functionblock level ConfigurationSet Message with function specific fsCmd embedded
+func configurationSetMessage(fsCmd proto.Message) (*fbv1.Command, error) {
+	anyCmd, err := anypb.New(fsCmd)
 	if err != nil {
 		return nil, err
 	}
 
 	return &fbv1.Command{
-		Context: &fbv1.Context{Value: uuid.Generate().String()},
 		Type: &fbv1.Command_Configuration{
 
 			Configuration: &fbv1.Configuration{
@@ -27,15 +39,14 @@ func ConfigurationSet(cmd protoiface.MessageV1) (*fbv1.Command, error) {
 	}, nil
 }
 
-// ConfigurationGet reads the configuration
-func ConfigurationGet(cmd protoiface.MessageV1) (*fbv1.Command, error) {
-	anyCmd, err := any.MarshalAny(cmd)
+// configurationGetMessage returns a functionblock level ConfigurationGet Message with function specific fsCmd embedded
+func configurationGetMessage(fsCmd proto.Message) (*fbv1.Command, error) {
+	anyCmd, err := anypb.New(fsCmd)
 	if err != nil {
 		return nil, err
 	}
 
 	return &fbv1.Command{
-		Context: &fbv1.Context{Value: uuid.Generate().String()},
 		Type: &fbv1.Command_Configuration{
 			Configuration: &fbv1.Configuration{
 				Action: &fbv1.Configuration_FunctionSpecificConfigurationGet{
@@ -46,15 +57,13 @@ func ConfigurationGet(cmd protoiface.MessageV1) (*fbv1.Command, error) {
 	}, nil
 }
 
-// ConfigurationDescribe describes the unit
-func ConfigurationDescribe(cmd protoiface.MessageV1) (*fbv1.Command, error) {
-	anyCmd, err := any.MarshalAny(cmd)
+// configurationDescribe returns a functionblock level ConfigurationDescribe Message with function specific fsCmd embedded
+func configurationDescribeMessage(fsCmd proto.Message) (*fbv1.Command, error) {
+	anyCmd, err := anypb.New(fsCmd)
 	if err != nil {
 		return nil, err
 	}
-	ctx := uuid.Generate().String()
 	return &fbv1.Command{
-		Context: &fbv1.Context{Value: ctx},
 		Type: &fbv1.Command_Configuration{
 			Configuration: &fbv1.Configuration{
 				Action: &fbv1.Configuration_FunctionSpecificConfigurationDescribe{

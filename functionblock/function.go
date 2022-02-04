@@ -2,18 +2,16 @@ package functionblock
 
 import (
 	fbv1 "github.com/ci4rail/io4edge_api/io4edge/go/functionblock/v1alpha1"
-	"github.com/docker/distribution/uuid"
-	any "github.com/golang/protobuf/ptypes"
-	"google.golang.org/protobuf/runtime/protoiface"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/anypb"
 )
 
-func FunctionControlSet(cmd protoiface.MessageV1) (*fbv1.Command, error) {
-	anyCmd, err := any.MarshalAny(cmd)
+func functionControlSetMessage(fsCmd proto.Message) (*fbv1.Command, error) {
+	anyCmd, err := anypb.New(fsCmd)
 	if err != nil {
 		return nil, err
 	}
 	return &fbv1.Command{
-		Context: &fbv1.Context{Value: uuid.Generate().String()},
 		Type: &fbv1.Command_FunctionControl{
 			FunctionControl: &fbv1.FunctionControl{
 				Action: &fbv1.FunctionControl_FunctionSpecificFunctionControlSet{
@@ -24,14 +22,13 @@ func FunctionControlSet(cmd protoiface.MessageV1) (*fbv1.Command, error) {
 	}, nil
 }
 
-func FunctionControlGet(cmd protoiface.MessageV1) (*fbv1.Command, error) {
-	anyCmd, err := any.MarshalAny(cmd)
+func functionControlGetMessage(fsCmd proto.Message) (*fbv1.Command, error) {
+	anyCmd, err := anypb.New(fsCmd)
 	if err != nil {
 		return nil, err
 	}
 
 	return &fbv1.Command{
-		Context: &fbv1.Context{Value: uuid.Generate().String()},
 		Type: &fbv1.Command_FunctionControl{
 			FunctionControl: &fbv1.FunctionControl{
 				Action: &fbv1.FunctionControl_FunctionSpecificFunctionControlGet{
