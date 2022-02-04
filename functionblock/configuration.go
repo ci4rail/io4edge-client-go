@@ -7,7 +7,7 @@ import (
 )
 
 // ConfigurationSet executes the configuration set command on the device
-// fsCmd is tne function specific configuration
+// fsCmd is the function specific configuration set object
 // returns the function specific response as a protobuf any object
 func (c *Client) ConfigurationSet(fsCmd proto.Message) (*anypb.Any, error) {
 	cmd, err := configurationSetMessage(fsCmd)
@@ -20,6 +20,39 @@ func (c *Client) ConfigurationSet(fsCmd proto.Message) (*anypb.Any, error) {
 		return nil, err
 	}
 	fsRes := res.GetConfiguration().GetFunctionSpecificConfigurationSet()
+	return fsRes, nil
+}
+
+// ConfigurationGet executes the configuration get command on the device
+// fsCmd is the function specific configuration get object
+// returns the function specific response as a protobuf any object
+func (c *Client) ConfigurationGet(fsCmd proto.Message) (*anypb.Any, error) {
+	cmd, err := configurationGetMessage(fsCmd)
+	if err != nil {
+		return nil, err
+	}
+	res, err := c.command(cmd)
+	if err != nil {
+		return nil, err
+	}
+	fsRes := res.GetConfiguration().GetFunctionSpecificConfigurationGet()
+	return fsRes, nil
+}
+
+// ConfigurationDescribe executes the configuration describe command on the device
+// fsCmd is the function specific configuration describe object
+// returns the function specific response as a protobuf any object
+func (c *Client) ConfigurationDescribe(fsCmd proto.Message) (*anypb.Any, error) {
+	cmd, err := configurationDescribeMessage(fsCmd)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := c.command(cmd)
+	if err != nil {
+		return nil, err
+	}
+	fsRes := res.GetConfiguration().GetFunctionSpecificConfigurationDescribe()
 	return fsRes, nil
 }
 
