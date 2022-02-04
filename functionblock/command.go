@@ -97,5 +97,6 @@ func (c *Client) readResponses() {
 				go wakeupCommand(c, res)
 			}
 		}
+		log.Error("ReadResponses exit")
 	}(c)
 }

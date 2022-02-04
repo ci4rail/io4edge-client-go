@@ -69,4 +69,5 @@ func main() {
 	}
 	fmt.Printf("counter: %d\n", cnt)
 
+	time.Sleep(20 * time.Second)
 }
