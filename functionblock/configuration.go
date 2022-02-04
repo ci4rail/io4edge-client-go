@@ -6,13 +6,16 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 )
 
+// ConfigurationSet executes the configuration set command on the device
+// fsCmd is tne function specific configuration
+// returns the function specific response as a protobuf any object
 func (c *Client) ConfigurationSet(fsCmd proto.Message) (*anypb.Any, error) {
 	cmd, err := configurationSetMessage(fsCmd)
 	if err != nil {
 		return nil, err
 	}
 
-	res, err := c.Command(cmd)
+	res, err := c.command(cmd)
 	if err != nil {
 		return nil, err
 	}

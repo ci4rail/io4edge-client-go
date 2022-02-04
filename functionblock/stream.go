@@ -2,9 +2,9 @@ package functionblock
 
 import (
 	fbv1 "github.com/ci4rail/io4edge_api/io4edge/go/functionblock/v1alpha1"
-	"github.com/docker/distribution/uuid"
-	any "github.com/golang/protobuf/ptypes"
-	"google.golang.org/protobuf/runtime/protoiface"
+	log "github.com/sirupsen/logrus"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/anypb"
 )
 
 // StreamConfiguration defines the configuration of a stream
@@ -14,15 +14,44 @@ type StreamConfiguration struct {
 	BufferedSamples   uint32
 }
 
+// StreamCallback is the type for the callback function to receive stream data
+type StreamCallback func(*fbv1.StreamData)
+
+// StreamStart starts the stream with configuration config, passing the function specific configuration from fscmd
+func (c *Client) StreamStart(config *StreamConfiguration, fscmd anypb.Any) error {
+	cmd, err := StreamControlStartMessage(config, &fscmd)
+	if err != nil {
+		return err
+	}
+	_, err = c.command(cmd)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// StreamStop stops the stream
+func (c *Client) StreamStop() error {
+	cmd, err := StreamControlStopMessage()
+	if err != nil {
+		return err
+	}
+	_, err = c.command(cmd)
+	if err != nil {
+		return err
+	}
+	log.Debug("Stopped stream")
+	return nil
+}
+
 // StreamControlStartMessage returns the marshalled message to start the stream
-func StreamControlStartMessage(config *StreamConfiguration, fscmd protoiface.MessageV1) (*fbv1.Command, error) {
-	anyCmd, err := any.MarshalAny(fscmd)
+func StreamControlStartMessage(config *StreamConfiguration, fsCmd proto.Message) (*fbv1.Command, error) {
+	anyCmd, err := anypb.New(fsCmd)
 	if err != nil {
 		return nil, err
 	}
 
 	return &fbv1.Command{
-		Context: &fbv1.Context{Value: uuid.Generate().String()},
 		Type: &fbv1.Command_StreamControl{
 			StreamControl: &fbv1.StreamControl{
 				Action: &fbv1.StreamControl_Start{
@@ -41,7 +70,6 @@ func StreamControlStartMessage(config *StreamConfiguration, fscmd protoiface.Mes
 // StreamControlStopMessage returns the marshalled message to stop the stream
 func StreamControlStopMessage() (*fbv1.Command, error) {
 	return &fbv1.Command{
-		Context: &fbv1.Context{Value: uuid.Generate().String()},
 		Type: &fbv1.Command_StreamControl{
 			StreamControl: &fbv1.StreamControl{
 				Action: &fbv1.StreamControl_Stop{
