@@ -84,14 +84,13 @@ func (c *Client) readResponses() {
 		for {
 			log.Debug("ReadResponses loop")
 			res := &fbv1.Response{}
-			err := c.funcClient.ReadMessage(res, time.Second*time.Duration(c.streamKeepaliveInterval))
+			err := c.funcClient.ReadMessage(res, 0)
 			if err != nil {
 				break
 			}
 			switch res.Type.(type) {
 			case *fbv1.Response_Stream:
-				// c.streamStatus = true
-				// c.streamData <- res.GetStream()
+				c.streamChan <- res.GetStream()
 
 			default:
 				go wakeupCommand(c, res)

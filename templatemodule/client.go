@@ -92,3 +92,20 @@ func (c *Client) GetCounter() (uint32, error) {
 	}
 	return res.Value, nil
 }
+
+// StartStream starts the stream on this connection
+func (c *Client) StartStream(genericConfig *functionblock.StreamConfiguration, increment uint32) error {
+	fsCmd := &fspb.StreamControlStart{
+		SampleIncrement: increment,
+	}
+	err := c.fbClient.StartStream(genericConfig, fsCmd)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// StopStream stops the stream on this connection
+func (c *Client) StopStream() error {
+	return c.fbClient.StopStream()
+}

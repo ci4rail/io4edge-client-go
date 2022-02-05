@@ -35,7 +35,7 @@ func main() {
 	}
 	c = templatemodule.NewClient(fbClient)
 
-	err = c.ConfigurationSet(&templatemodule.Configuration{SampleRate: 100})
+	err = c.ConfigurationSet(&templatemodule.Configuration{SampleRate: 8000})
 	if err != nil {
 		log.Errorf("ConfigurationSet failed: %v\n", err)
 	}
@@ -69,5 +69,22 @@ func main() {
 	}
 	fmt.Printf("counter: %d\n", cnt)
 
-	time.Sleep(20 * time.Second)
+	err = c.StartStream(&functionblock.StreamConfiguration{
+		BucketSamples:     400,
+		BufferedSamples:   1000,
+		KeepaliveInterval: 2000,
+	}, 4)
+	if err != nil {
+		log.Errorf("StartStream failed: %v\n", err)
+	}
+
+	for {
+		sd, err := fbClient.ReadStreamData(time.Second * 5)
+
+		if err != nil {
+			log.Errorf("ReadStreamData failed: %v\n", err)
+		} else {
+			fmt.Printf("got stream data %d\n", sd.Sequence)
+		}
+	}
 }

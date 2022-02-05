@@ -7,18 +7,18 @@ import (
 
 	"github.com/ci4rail/io4edge-client-go/client"
 	fbv1 "github.com/ci4rail/io4edge_api/io4edge/go/functionblock/v1alpha1"
-
-	log "github.com/sirupsen/logrus"
 )
 
 // Client represents a client for a generic functionblock
 type Client struct {
-	funcClient              *client.Client
-	customRecover           func()
-	commandTimeout          int
-	streamKeepaliveInterval uint32
-	cmdSeqNo                uint32
-	cmdMutex                sync.Mutex
+	funcClient     *client.Client
+	customRecover  func()
+	commandTimeout int
+	//streamKeepaliveInterval uint32
+	streamChan chan *fbv1.StreamData
+
+	cmdSeqNo uint32
+	cmdMutex sync.Mutex
 	// command/response handshake
 	waitingCmdSeqChan chan uint32 // waiting sequence number
 	responseChan      chan *fbv1.Response
@@ -26,14 +26,15 @@ type Client struct {
 
 func newClient(c *client.Client) *Client {
 	client := &Client{
-		funcClient:              c,
-		customRecover:           nil,
-		commandTimeout:          5,
-		streamKeepaliveInterval: 10,
-		waitingCmdSeqChan:       make(chan uint32),
-		responseChan:            make(chan *fbv1.Response),
+		funcClient:     c,
+		customRecover:  nil,
+		commandTimeout: 5,
+		streamChan:     make(chan *fbv1.StreamData, 100),
+		//streamKeepaliveInterval: 10,
+		waitingCmdSeqChan: make(chan uint32),
+		responseChan:      make(chan *fbv1.Response),
 	}
-	log.SetLevel(log.DebugLevel)
+	//log.SetLevel(log.DebugLevel)
 	client.readResponses()
 	return client
 }

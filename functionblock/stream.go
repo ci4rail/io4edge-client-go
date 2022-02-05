@@ -1,6 +1,9 @@
 package functionblock
 
 import (
+	"errors"
+	"time"
+
 	fbv1 "github.com/ci4rail/io4edge_api/io4edge/go/functionblock/v1alpha1"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/proto"
@@ -14,12 +17,9 @@ type StreamConfiguration struct {
 	BufferedSamples   uint32
 }
 
-// StreamCallback is the type for the callback function to receive stream data
-type StreamCallback func(*fbv1.StreamData)
-
-// StreamStart starts the stream with configuration config, passing the function specific configuration from fscmd
-func (c *Client) StreamStart(config *StreamConfiguration, fscmd anypb.Any) error {
-	cmd, err := StreamControlStartMessage(config, &fscmd)
+// StartStream starts the stream with configuration config, passing the function specific configuration from fscmd
+func (c *Client) StartStream(config *StreamConfiguration, fsCmd proto.Message) error {
+	cmd, err := StreamControlStartMessage(config, fsCmd)
 	if err != nil {
 		return err
 	}
@@ -30,8 +30,8 @@ func (c *Client) StreamStart(config *StreamConfiguration, fscmd anypb.Any) error
 	return nil
 }
 
-// StreamStop stops the stream
-func (c *Client) StreamStop() error {
+// StopStream stops the stream
+func (c *Client) StopStream() error {
 	cmd, err := StreamControlStopMessage()
 	if err != nil {
 		return err
@@ -42,6 +42,19 @@ func (c *Client) StreamStop() error {
 	}
 	log.Debug("Stopped stream")
 	return nil
+}
+
+// ReadStreamData reads the next stream data object from the buffer
+func (c *Client) ReadStreamData(timeout time.Duration) (*fbv1.StreamData, error) {
+	select {
+	case d := <-c.streamChan:
+		log.Debug("got stream data seq", d.Sequence)
+		return d, nil
+
+	case <-time.After(timeout):
+		log.Warn("ReadStreamData timeout")
+	}
+	return nil, errors.New("timeout waiting for stream data")
 }
 
 // StreamControlStartMessage returns the marshalled message to start the stream
