@@ -7,6 +7,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/ci4rail/io4edge-client-go/functionblock"
 	"github.com/ci4rail/io4edge-client-go/templatemodule"
 )
 
@@ -29,7 +30,7 @@ func main() {
 		log.Fatalf("Failed to create templateModule client: %v\n", err)
 	}
 
-	err = c.UploadConfiguration(&templatemodule.Configuration{SampleRate: 4000})
+	err = c.UploadConfiguration(&templatemodule.Configuration{SampleRate: 40})
 	if err != nil {
 		log.Errorf("ConfigurationSet failed: %v\n", err)
 	}
@@ -63,22 +64,25 @@ func main() {
 	}
 	fmt.Printf("counter: %d\n", cnt)
 
-	// err = c.StartStream(&functionblock.StreamConfiguration{
-	// 	BucketSamples:     400,
-	// 	BufferedSamples:   1000,
-	// 	KeepaliveInterval: 2000,
-	// }, 4)
-	// if err != nil {
-	// 	log.Errorf("StartStream failed: %v\n", err)
-	// }
+	err = c.StartStream(&functionblock.StreamConfiguration{
+		BucketSamples:     40,
+		BufferedSamples:   1000,
+		KeepaliveInterval: 2000,
+	}, 4)
+	if err != nil {
+		log.Errorf("StartStream failed: %v\n", err)
+	}
 
-	// for {
-	// 	sd, err := fbClient.ReadStreamData(time.Second * 5)
+	for {
+		sd, err := c.ReadStream(time.Second * 5)
 
-	// 	if err != nil {
-	// 		log.Errorf("ReadStreamData failed: %v\n", err)
-	// 	} else {
-	// 		fmt.Printf("got stream data %d\n", sd.Sequence)
-	// 	}
-	// }
+		if err != nil {
+			log.Errorf("ReadStreamData failed: %v\n", err)
+		} else {
+
+			samples := sd.FSData.GetSamples()
+			fmt.Printf("got stream data %d samples: %v\n", sd.Sequence, samples)
+		}
+
+	}
 }

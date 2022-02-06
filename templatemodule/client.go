@@ -1,6 +1,7 @@
 package templatemodule
 
 import (
+	"errors"
 	"time"
 
 	"github.com/ci4rail/io4edge-client-go/functionblock"
@@ -20,6 +21,12 @@ type Configuration struct {
 // Description represents the describe response of the templateModule
 type Description struct {
 	Ident string
+}
+
+// StreamData contains the meta data of the stream and the unmarshalled function specific data
+type StreamData struct {
+	functionblock.StreamDataMeta
+	FSData *fspb.StreamData
 }
 
 // NewClientFromUniversalAddress creates a new templateModule client from addrOrService.
@@ -118,4 +125,24 @@ func (c *Client) StartStream(genericConfig *functionblock.StreamConfiguration, i
 // StopStream stops the stream on this connection
 func (c *Client) StopStream() error {
 	return c.fbClient.StopStream()
+}
+
+// ReadStream reads the next stream data object from the buffer
+// returns the meta data and the unmarshalled function specific stream data
+func (c *Client) ReadStream(timeout time.Duration) (*StreamData, error) {
+	genericSD, err := c.fbClient.ReadStream(timeout)
+	if err != nil {
+		return nil, err
+	}
+
+	fsSD := new(fspb.StreamData)
+	if err := genericSD.FSData.UnmarshalTo(fsSD); err != nil {
+		return nil, errors.New("can't unmarshall samples")
+	}
+
+	sd := &StreamData{
+		StreamDataMeta: genericSD.StreamDataMeta,
+		FSData:         fsSD,
+	}
+	return sd, nil
 }

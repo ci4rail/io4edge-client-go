@@ -17,6 +17,18 @@ type StreamConfiguration struct {
 	BufferedSamples   uint32
 }
 
+// StreamDataMeta contains meta information about a Stream Data message
+type StreamDataMeta struct {
+	DeliveryTimestamp uint64
+	Sequence          uint32
+}
+
+// StreamData contains the meta data of the stream and the function specific message
+type StreamData struct {
+	StreamDataMeta
+	FSData *anypb.Any // function specific data
+}
+
 // StartStream starts the stream with configuration config, passing the function specific configuration from fscmd
 func (c *Client) StartStream(config *StreamConfiguration, fsCmd proto.Message) error {
 	cmd, err := streamControlStartMessage(config, fsCmd)
@@ -44,17 +56,26 @@ func (c *Client) StopStream() error {
 	return nil
 }
 
-// ReadStreamData reads the next stream data object from the buffer
-func (c *Client) ReadStreamData(timeout time.Duration) (*fbv1.StreamData, error) {
+// ReadStream reads the next stream data object from the buffer
+func (c *Client) ReadStream(timeout time.Duration) (*StreamData, error) {
 	select {
 	case d := <-c.streamChan:
 		log.Debug("got stream data seq", d.Sequence)
-		return d, nil
+
+		sd := &StreamData{
+			StreamDataMeta: StreamDataMeta{
+				DeliveryTimestamp: d.DeliveryTimestampUs,
+				Sequence:          d.Sequence,
+			},
+			FSData: d.FunctionSpecificStreamData,
+		}
+		return sd, nil
 
 	case <-time.After(timeout):
+		// TODO: Specific error code!
 		log.Warn("ReadStreamData timeout")
+		return nil, errors.New("timeout waiting for stream data")
 	}
-	return nil, errors.New("timeout waiting for stream data")
 }
 
 // streamControlStartMessage returns the message to start the stream
