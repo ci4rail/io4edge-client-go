@@ -19,7 +19,7 @@ type StreamConfiguration struct {
 
 // StartStream starts the stream with configuration config, passing the function specific configuration from fscmd
 func (c *Client) StartStream(config *StreamConfiguration, fsCmd proto.Message) error {
-	cmd, err := StreamControlStartMessage(config, fsCmd)
+	cmd, err := streamControlStartMessage(config, fsCmd)
 	if err != nil {
 		return err
 	}
@@ -32,7 +32,7 @@ func (c *Client) StartStream(config *StreamConfiguration, fsCmd proto.Message) e
 
 // StopStream stops the stream
 func (c *Client) StopStream() error {
-	cmd, err := StreamControlStopMessage()
+	cmd, err := streamControlStopMessage()
 	if err != nil {
 		return err
 	}
@@ -57,8 +57,8 @@ func (c *Client) ReadStreamData(timeout time.Duration) (*fbv1.StreamData, error)
 	return nil, errors.New("timeout waiting for stream data")
 }
 
-// StreamControlStartMessage returns the marshalled message to start the stream
-func StreamControlStartMessage(config *StreamConfiguration, fsCmd proto.Message) (*fbv1.Command, error) {
+// streamControlStartMessage returns the message to start the stream
+func streamControlStartMessage(config *StreamConfiguration, fsCmd proto.Message) (*fbv1.Command, error) {
 	anyCmd, err := anypb.New(fsCmd)
 	if err != nil {
 		return nil, err
@@ -80,8 +80,8 @@ func StreamControlStartMessage(config *StreamConfiguration, fsCmd proto.Message)
 	}, nil
 }
 
-// StreamControlStopMessage returns the marshalled message to stop the stream
-func StreamControlStopMessage() (*fbv1.Command, error) {
+// streamControlStopMessage returns the message to stop the stream
+func streamControlStopMessage() (*fbv1.Command, error) {
 	return &fbv1.Command{
 		Type: &fbv1.Command_StreamControl{
 			StreamControl: &fbv1.StreamControl{

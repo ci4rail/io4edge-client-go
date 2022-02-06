@@ -37,19 +37,19 @@ func NewClientFromUniversalAddress(addrOrService string, timeout time.Duration) 
 	}, nil
 }
 
-// ConfigurationSet configures the template function block
-func (c *Client) ConfigurationSet(config *Configuration) error {
+// UploadConfiguration configures the template function block
+func (c *Client) UploadConfiguration(config *Configuration) error {
 	fsCmd := &fspb.ConfigurationSet{
 		SampleRate: config.SampleRate,
 	}
-	_, err := c.fbClient.ConfigurationSet(fsCmd)
+	_, err := c.fbClient.UploadConfiguration(fsCmd)
 	return err
 }
 
-// ConfigurationGet reads the template function block configuration
-func (c *Client) ConfigurationGet() (*Configuration, error) {
+// DownloadConfiguration reads the template function block configuration
+func (c *Client) DownloadConfiguration() (*Configuration, error) {
 	fsCmd := &fspb.ConfigurationGet{}
-	any, err := c.fbClient.ConfigurationGet(fsCmd)
+	any, err := c.fbClient.DownloadConfiguration(fsCmd)
 	if err != nil {
 		return nil, err
 	}
@@ -63,10 +63,10 @@ func (c *Client) ConfigurationGet() (*Configuration, error) {
 	return cfg, err
 }
 
-// ConfigurationDescribe reads the template function block description
-func (c *Client) ConfigurationDescribe() (*Description, error) {
+// Describe reads the template function block description
+func (c *Client) Describe() (*Description, error) {
 	fsCmd := &fspb.ConfigurationDescribe{}
-	any, err := c.fbClient.ConfigurationDescribe(fsCmd)
+	any, err := c.fbClient.Describe(fsCmd)
 	if err != nil {
 		return nil, err
 	}

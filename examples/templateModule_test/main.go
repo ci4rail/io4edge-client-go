@@ -29,24 +29,24 @@ func main() {
 		log.Fatalf("Failed to create templateModule client: %v\n", err)
 	}
 
-	err = c.ConfigurationSet(&templatemodule.Configuration{SampleRate: 4000})
+	err = c.UploadConfiguration(&templatemodule.Configuration{SampleRate: 4000})
 	if err != nil {
 		log.Errorf("ConfigurationSet failed: %v\n", err)
 	}
 
 	// provoke error
-	err = c.ConfigurationSet(&templatemodule.Configuration{SampleRate: 100000})
+	err = c.UploadConfiguration(&templatemodule.Configuration{SampleRate: 100000})
 	if err != nil {
 		log.Errorf("ConfigurationSet failed: %v\n", err)
 	}
 
-	cfg, err := c.ConfigurationGet()
+	cfg, err := c.DownloadConfiguration()
 	if err != nil {
 		log.Errorf("ConfigurationGet failed: %v\n", err)
 	}
 	fmt.Printf("Configuration: %v\n", cfg)
 
-	desc, err := c.ConfigurationDescribe()
+	desc, err := c.Describe()
 	if err != nil {
 		log.Errorf("ConfigurationDescribe failed: %v\n", err)
 	}

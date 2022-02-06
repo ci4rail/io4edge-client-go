@@ -6,10 +6,10 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 )
 
-// ConfigurationSet executes the configuration set command on the device
+// UploadConfiguration executes the configuration set command on the device
 // fsCmd is the function specific configuration set object
 // returns the function specific response as a protobuf any object
-func (c *Client) ConfigurationSet(fsCmd proto.Message) (*anypb.Any, error) {
+func (c *Client) UploadConfiguration(fsCmd proto.Message) (*anypb.Any, error) {
 	cmd, err := configurationSetMessage(fsCmd)
 	if err != nil {
 		return nil, err
@@ -22,10 +22,10 @@ func (c *Client) ConfigurationSet(fsCmd proto.Message) (*anypb.Any, error) {
 	return fsRes, nil
 }
 
-// ConfigurationGet executes the configuration get command on the device
+// DownloadConfiguration executes the configuration get command on the device
 // fsCmd is the function specific configuration get object
 // returns the function specific response as a protobuf any object
-func (c *Client) ConfigurationGet(fsCmd proto.Message) (*anypb.Any, error) {
+func (c *Client) DownloadConfiguration(fsCmd proto.Message) (*anypb.Any, error) {
 	cmd, err := configurationGetMessage(fsCmd)
 	if err != nil {
 		return nil, err
@@ -38,10 +38,10 @@ func (c *Client) ConfigurationGet(fsCmd proto.Message) (*anypb.Any, error) {
 	return fsRes, nil
 }
 
-// ConfigurationDescribe executes the configuration describe command on the device
+// Describe executes the configuration describe command on the device
 // fsCmd is the function specific configuration describe object
 // returns the function specific response as a protobuf any object
-func (c *Client) ConfigurationDescribe(fsCmd proto.Message) (*anypb.Any, error) {
+func (c *Client) Describe(fsCmd proto.Message) (*anypb.Any, error) {
 	cmd, err := configurationDescribeMessage(fsCmd)
 	if err != nil {
 		return nil, err
