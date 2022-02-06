@@ -1,7 +1,6 @@
 package functionblock
 
 import (
-	"errors"
 	"sync"
 	"time"
 
@@ -39,21 +38,12 @@ func newClient(c *client.Client) *Client {
 	return client
 }
 
-// NewClientFromSocketAddress creates a new functionblock client from a socket with the specified address in the form "ip:port"
-func NewClientFromSocketAddress(address string) (*Client, error) {
-	io4eClient, err := client.NewClientFromSocketAddress(address)
-	if err != nil {
-		return nil, errors.New("can't create function client: " + err.Error())
-	}
-	c := newClient(io4eClient)
-
-	return c, nil
-}
-
-// NewClientFromService creates a new new functionblock client from a device with the mdns serviceName .
-// The timeout specifies the maximal time waiting for a service to show up.
-func NewClientFromService(serviceName string, timeout time.Duration) (*Client, error) {
-	io4eClient, err := client.NewClientFromService(serviceName, timeout)
+// NewClientFromUniversalAddress creates a new functionblock client from addrOrService.
+// If addrOrService is of the form "host:port", it creates the client from that host/port,
+// otherwise it assumes addrOrService is a mnds service name.
+// The timeout specifies the maximal time waiting for a service to show up. Not used for "host:port"
+func NewClientFromUniversalAddress(addrOrService string, timeout time.Duration) (*Client, error) {
+	io4eClient, err := client.NewClientFromUniversalAddress(addrOrService, timeout)
 
 	if err != nil {
 		return nil, err

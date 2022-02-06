@@ -1,6 +1,8 @@
 package templatemodule
 
 import (
+	"time"
+
 	"github.com/ci4rail/io4edge-client-go/functionblock"
 	fspb "github.com/ci4rail/io4edge_api/templateModule/go/templateModule/v1alpha1"
 )
@@ -20,11 +22,19 @@ type Description struct {
 	Ident string
 }
 
-// NewClient creates a new new templateModule client from a functionBlock client
-func NewClient(fbClient *functionblock.Client) *Client {
-	return &Client{
-		fbClient: fbClient,
+// NewClientFromUniversalAddress creates a new templateModule client from addrOrService.
+// If addrOrService is of the form "host:port", it creates the client from that host/port,
+// otherwise it assumes addrOrService is a mnds service name.
+// The timeout specifies the maximal time waiting for a service to show up. Not used for "host:port"
+func NewClientFromUniversalAddress(addrOrService string, timeout time.Duration) (*Client, error) {
+	io4eClient, err := functionblock.NewClientFromUniversalAddress(addrOrService, timeout)
+
+	if err != nil {
+		return nil, err
 	}
+	return &Client{
+		fbClient: io4eClient,
+	}, nil
 }
 
 // ConfigurationSet configures the template function block

@@ -19,6 +19,8 @@ package client
 
 import (
 	"errors"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/ci4rail/io4edge-client-go/transport"
@@ -26,8 +28,8 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// ClientIf is a interface for the Client
-type ClientIf interface {
+// If is a interface for the Client
+type If interface {
 	Command(cmd proto.Message, res proto.Message, timeout time.Duration) error
 	ReadMessage(res proto.Message, timeout time.Duration) error
 }
@@ -92,6 +94,22 @@ func NewClientFromService(serviceAddr string, timeout time.Duration) (*Client, e
 	return c, err
 }
 
+// NewClientFromUniversalAddress creates a new function client from addrOrService.
+// If addrOrService is of the form "host:port", it creates the client from that host/port,
+// otherwise it assumes addrOrService is a mnds service name.
+// The timeout specifies the maximal time waiting for a service to show up. Not used for "host:port"
+func NewClientFromUniversalAddress(addrOrService string, timeout time.Duration) (*Client, error) {
+	var c *Client
+	var err error
+
+	if _, _, err = netAddressSplit(addrOrService); err == nil {
+		c, err = NewClientFromSocketAddress(addrOrService)
+	} else {
+		c, err = NewClientFromService(addrOrService, timeout)
+	}
+	return c, err
+}
+
 // Command issues a command cmd to a channel, waits for the devices response and returns it in res
 func (c *Client) Command(cmd proto.Message, res proto.Message, timeout time.Duration) error {
 	err := c.Ch.WriteMessage(cmd)
@@ -105,10 +123,25 @@ func (c *Client) Command(cmd proto.Message, res proto.Message, timeout time.Dura
 	return err
 }
 
+// ReadMessage reads the next message from the channel and unmarshalles it
 func (c *Client) ReadMessage(res proto.Message, timeout time.Duration) error {
 	err := c.Ch.ReadMessage(res, timeout)
 	if err != nil {
 		return errors.New("Failed to read forever: " + err.Error())
 	}
 	return nil
+}
+
+// netAddressSplit splits addr to host and port
+// example: addr="myhost.example.com:1234" -> host="myhost.example.com", port=1234
+func netAddressSplit(addr string) (host string, port int, err error) {
+	fields := strings.Split(addr, ":")
+	if len(fields) != 2 {
+		return "", 0, errors.New("invalid address " + addr)
+	}
+	port, err = strconv.Atoi(fields[1])
+	if err != nil {
+		return "", 0, errors.New("invalid port in " + addr)
+	}
+	return fields[0], port, nil
 }
