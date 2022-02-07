@@ -29,3 +29,17 @@ func responseErrorNew(action string, response *fbv1.Response) error {
 		Action:        action,
 	}
 }
+
+// HaveResponseStatus checks if err corresponds to functionblock status error code
+func HaveResponseStatus(err error, status fbv1.Status) bool {
+	if err == nil {
+		return false
+	}
+	re, ok := err.(*ResponseError)
+	if ok {
+		if re.Status == status {
+			return true
+		}
+	}
+	return false
+}

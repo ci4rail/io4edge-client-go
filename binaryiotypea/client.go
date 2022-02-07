@@ -114,7 +114,7 @@ func (c *Client) SetOutput(channel int, state bool) error {
 // In the error state, no outputs can be set and no inputs can be read.
 // This call tells the binary output controller to try again. This call does however not wait
 // if the recovery was successful or not.
-func (c *Client) ExitErrorState(channel int, state bool) error {
+func (c *Client) ExitErrorState() error {
 	fsCmd := &fspb.FunctionControlSet{
 
 		Type: &fspb.FunctionControlSet_ExitError{},
