@@ -34,7 +34,7 @@ type StreamData struct {
 // otherwise it assumes addrOrService is a mnds service name.
 // The timeout specifies the maximal time waiting for a service to show up. Not used for "host:port"
 func NewClientFromUniversalAddress(addrOrService string, timeout time.Duration) (*Client, error) {
-	io4eClient, err := functionblock.NewClientFromUniversalAddress(addrOrService, timeout)
+	io4eClient, err := functionblock.NewClientFromUniversalAddress(addrOrService, "_io4edge_templateModule._tcp", timeout)
 
 	if err != nil {
 		return nil, err
