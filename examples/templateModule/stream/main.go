@@ -15,9 +15,8 @@ func main() {
 	const timeout = 5 * time.Second
 
 	if len(os.Args) != 2 {
-		log.Fatalf("Usage: identify svc <mdns-service-address>  OR  identify ip <ip:port>")
+		log.Fatalf("Usage: %s <mdns-service-address>  OR  %s <ip:port>", os.Args[0], os.Args[0])
 	}
-	//addressType := os.Args[1]
 	address := os.Args[1]
 
 	// Create a client object to work with the io4edge device at <address>
@@ -25,7 +24,6 @@ func main() {
 	var err error
 
 	c, err = templatemodule.NewClientFromUniversalAddress(address, timeout)
-
 	if err != nil {
 		log.Fatalf("Failed to create templateModule client: %v\n", err)
 	}
@@ -83,6 +81,5 @@ func main() {
 			samples := sd.FSData.GetSamples()
 			fmt.Printf("got stream data %d samples: %v\n", sd.Sequence, samples)
 		}
-
 	}
 }

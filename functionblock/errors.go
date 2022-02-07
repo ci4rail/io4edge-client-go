@@ -1,3 +1,19 @@
+/*
+Copyright © 2022 Ci4Rail GmbH <engineering@ci4rail.com>
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package functionblock
 
 import (
@@ -28,4 +44,18 @@ func responseErrorNew(action string, response *fbv1.Response) error {
 		FwErrorString: response.Error.String(),
 		Action:        action,
 	}
+}
+
+// HaveResponseStatus checks if err corresponds to functionblock status error code
+func HaveResponseStatus(err error, status fbv1.Status) bool {
+	if err == nil {
+		return false
+	}
+	re, ok := err.(*ResponseError)
+	if ok {
+		if re.Status == status {
+			return true
+		}
+	}
+	return false
 }

@@ -1,3 +1,20 @@
+/*
+Copyright © 2022 Ci4Rail GmbH <engineering@ci4rail.com>
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+// Package templatemodule provides the API for the io4edeg template functionblock
 package templatemodule
 
 import (
@@ -31,10 +48,10 @@ type StreamData struct {
 
 // NewClientFromUniversalAddress creates a new templateModule client from addrOrService.
 // If addrOrService is of the form "host:port", it creates the client from that host/port,
-// otherwise it assumes addrOrService is a mnds service name.
+// otherwise it assumes addrOrService is the instance name of a mdns service (without _io4edge_templateModule._tcp).
 // The timeout specifies the maximal time waiting for a service to show up. Not used for "host:port"
 func NewClientFromUniversalAddress(addrOrService string, timeout time.Duration) (*Client, error) {
-	io4eClient, err := functionblock.NewClientFromUniversalAddress(addrOrService, timeout)
+	io4eClient, err := functionblock.NewClientFromUniversalAddress(addrOrService, "_io4edge_templateModule._tcp", timeout)
 
 	if err != nil {
 		return nil, err
