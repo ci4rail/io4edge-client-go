@@ -1,3 +1,20 @@
+/*
+Copyright © 2022 Ci4Rail GmbH <engineering@ci4rail.com>
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+// Package functionblock provides the API for the io4edge function blocks
 package functionblock
 
 import (
@@ -11,13 +28,10 @@ import (
 // Client represents a client for a generic functionblock
 type Client struct {
 	funcClient     *client.Client
-	customRecover  func()
 	commandTimeout int
-	//streamKeepaliveInterval uint32
-	streamChan chan *fbv1.StreamData
-
-	cmdSeqNo uint32
-	cmdMutex sync.Mutex
+	streamChan     chan *fbv1.StreamData
+	cmdSeqNo       uint32
+	cmdMutex       sync.Mutex
 	// command/response handshake
 	waitingCmdSeqChan chan uint32 // waiting sequence number
 	responseChan      chan *fbv1.Response
@@ -25,15 +39,12 @@ type Client struct {
 
 func newClient(c *client.Client) *Client {
 	client := &Client{
-		funcClient:     c,
-		customRecover:  nil,
-		commandTimeout: 5,
-		streamChan:     make(chan *fbv1.StreamData, 100),
-		//streamKeepaliveInterval: 10,
+		funcClient:        c,
+		commandTimeout:    5,
+		streamChan:        make(chan *fbv1.StreamData, 100),
 		waitingCmdSeqChan: make(chan uint32),
 		responseChan:      make(chan *fbv1.Response),
 	}
-	//log.SetLevel(log.DebugLevel)
 	client.readResponses()
 	return client
 }
@@ -55,18 +66,3 @@ func NewClientFromUniversalAddress(addrOrService string, service string, timeout
 
 	return c, nil
 }
-
-// SetRecover sets a function to inform the client about a panic event like timeout.
-func (c *Client) SetRecover(customRecover func()) {
-	c.customRecover = customRecover
-}
-
-// func (c *Client) recover() {
-// 	if r := recover(); r != nil {
-// 		fmt.Println("Recovered in binaryIoTypeA Client", r)
-// 	}
-
-// 	if c.customRecover != nil {
-// 		c.customRecover()
-// 	}
-// }-uu80ö---.

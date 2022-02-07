@@ -1,3 +1,20 @@
+/*
+Copyright © 2022 Ci4Rail GmbH <engineering@ci4rail.com>
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+// Package binaryiotypea provides the API for the io4edge binaryIoTypeA functionblock
 package binaryiotypea
 
 import (
@@ -8,19 +25,19 @@ import (
 	fspb "github.com/ci4rail/io4edge_api/binaryIoTypeA/go/binaryIoTypeA/v1alpha1"
 )
 
-// Client represents a client for the templateModule
+// Client represents a client for the binaryIoTypeA Module
 type Client struct {
 	fbClient *functionblock.Client
 }
 
-// Configuration represents the configuration parameters of the templateModule
+// Configuration represents the configuration parameters of the binaryIoTypeA function
 type Configuration struct {
 	OutputFrittingMask    uint8
 	OutputWatchdogMask    uint8
 	OutputWatchdogTimeout uint32
 }
 
-// Description represents the describe response of the templateModule
+// Description represents the describe response of the binaryIoTypeA function
 type Description struct {
 	NumberOfChannels int
 }
@@ -31,9 +48,9 @@ type StreamData struct {
 	FSData *fspb.StreamData
 }
 
-// NewClientFromUniversalAddress creates a new templateModule client from addrOrService.
+// NewClientFromUniversalAddress creates a new binaryIoTypeA client from addrOrService.
 // If addrOrService is of the form "host:port", it creates the client from that host/port,
-// otherwise it assumes addrOrService is a mnds service name.
+// otherwise it assumes addrOrService is the instance name of a mdns service (without _io4edge_binaryIoTypeA._tcp).
 // The timeout specifies the maximal time waiting for a service to show up. Not used for "host:port"
 func NewClientFromUniversalAddress(addrOrService string, timeout time.Duration) (*Client, error) {
 	io4eClient, err := functionblock.NewClientFromUniversalAddress(addrOrService, "_io4edge_binaryIoTypeA._tcp", timeout)
@@ -46,7 +63,7 @@ func NewClientFromUniversalAddress(addrOrService string, timeout time.Duration) 
 	}, nil
 }
 
-// UploadConfiguration configures the template function block
+// UploadConfiguration configures the binaryIoTypeA function block
 func (c *Client) UploadConfiguration(config *Configuration) error {
 	fsCmd := &fspb.ConfigurationSet{
 		OutputFrittingMask:    uint32(config.OutputFrittingMask),
@@ -57,7 +74,7 @@ func (c *Client) UploadConfiguration(config *Configuration) error {
 	return err
 }
 
-// DownloadConfiguration reads the template function block configuration
+// DownloadConfiguration reads the binaryIoTypeA function block configuration
 func (c *Client) DownloadConfiguration() (*Configuration, error) {
 	fsCmd := &fspb.ConfigurationGet{}
 	any, err := c.fbClient.DownloadConfiguration(fsCmd)
@@ -76,7 +93,7 @@ func (c *Client) DownloadConfiguration() (*Configuration, error) {
 	return cfg, err
 }
 
-// Describe reads the template function block description
+// Describe reads the binaryIoTypeA function block description
 func (c *Client) Describe() (*Description, error) {
 	fsCmd := &fspb.ConfigurationDescribe{}
 	any, err := c.fbClient.Describe(fsCmd)
