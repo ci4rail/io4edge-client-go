@@ -52,9 +52,11 @@ func newClient(c *client.Client) *Client {
 // NewClientFromUniversalAddress creates a new functionblock client from addrOrService.
 // If addrOrService is of the form "host:port", it creates the client from that host/port,
 // otherwise it assumes addrOrService is the instance name of an mdns service.
+//
 // If service is non-empty and addrOrService is a mdns instance name, it is appended to the addrOrService.
 // .e.g. if addrOrService is "iou01-sn01-binio" and service is "_io4edge_binaryIoTypeA._tcp", the mdns instance
 // name "iou01-sn01-binio._io4edge_binaryIoTypeA._tcp" is used.
+//
 // The timeout specifies the maximal time waiting for a service to show up. Not used for "host:port"
 func NewClientFromUniversalAddress(addrOrService string, service string, timeout time.Duration) (*Client, error) {
 	io4eClient, err := client.NewClientFromUniversalAddress(addrOrService, service, timeout)

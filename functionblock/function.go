@@ -22,8 +22,10 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 )
 
-// FunctionControlSet executes the function control set command on the device
+// FunctionControlSet executes the function control set command on the device.
+//
 // fsCmd is the function specific command object
+//
 // returns the function specific response as a protobuf any object
 func (c *Client) FunctionControlSet(fsCmd proto.Message) (*anypb.Any, error) {
 	cmd, err := functionControlSetMessage(fsCmd)
@@ -38,8 +40,10 @@ func (c *Client) FunctionControlSet(fsCmd proto.Message) (*anypb.Any, error) {
 	return fsRes, nil
 }
 
-// FunctionControlGet executes the function control get command on the device
+// FunctionControlGet executes the function control get command on the device.
+//
 // fsCmd is the function specific command object
+//
 // returns the function specific response as a protobuf any object
 func (c *Client) FunctionControlGet(fsCmd proto.Message) (*anypb.Any, error) {
 	cmd, err := functionControlGetMessage(fsCmd)
