@@ -126,9 +126,11 @@ func (c *Client) SetOutput(channel int, state bool) error {
 	return err
 }
 
-// ExitErrorState tries to recover the binary output controller from error state
-// The binary output controller enters error state when there is an overurrent condition for a long time
-// In the error state, no outputs can be set and no inputs can be read.
+// ExitErrorState tries to recover the binary output controller from error state.
+//
+// The binary output controller enters error state when there is an overurrent condition for a long time.
+//
+// In the error state, no outputs can be set; inputs can still be read.
 // This call tells the binary output controller to try again. This call does however not wait
 // if the recovery was successful or not.
 func (c *Client) ExitErrorState() error {
@@ -141,7 +143,9 @@ func (c *Client) ExitErrorState() error {
 }
 
 // SetAllOutputs sets all or a group of output channels
+//
 // states: binary coded map of outputs. 0 means switch off, 1 means switch on, LSB is Output0
+//
 // mask: defines which channels are affected by the set all command.
 func (c *Client) SetAllOutputs(states uint8, mask uint8) error {
 	fsCmd := &fspb.FunctionControlSet{
@@ -157,8 +161,9 @@ func (c *Client) SetAllOutputs(states uint8, mask uint8) error {
 	return err
 }
 
-// Input reads the state of the input pin of a single channel
-// the returned value is false if the input level is below switching threshold, true otherwise
+// Input reads the state of the input pin of a single channel.
+//
+// The returned value is false if the input level is below switching threshold, true otherwise
 func (c *Client) Input(channel int) (bool, error) {
 	fsCmd := &fspb.FunctionControlGet{
 		Type: &fspb.FunctionControlGet_Single{
@@ -179,7 +184,8 @@ func (c *Client) Input(channel int) (bool, error) {
 }
 
 // AllInputs reads the state of all input pins defined by mask.
-// each bit in the returned value corresponds to one channel, bit0 being channel 0.
+//
+// Each bit in the returned value corresponds to one channel, bit0 being channel 0.
 // The bit is false if the input level is below switching threshold, true otherwise.
 // Channels whose bit is cleared in mask are reported as 0
 func (c *Client) AllInputs(mask uint8) (uint8, error) {
@@ -201,7 +207,8 @@ func (c *Client) AllInputs(mask uint8) (uint8, error) {
 	return uint8(res.GetAll().Inputs), nil
 }
 
-// StartStream starts the stream on this connection
+// StartStream starts the stream on this connection.
+//
 // channelFilterMask defines the watched channels. Only changes on those channels generate samples in the stream
 func (c *Client) StartStream(genericConfig *functionblock.StreamConfiguration, channelFilterMask uint8) error {
 	fsCmd := &fspb.StreamControlStart{
@@ -219,8 +226,9 @@ func (c *Client) StopStream() error {
 	return c.fbClient.StopStream()
 }
 
-// ReadStream reads the next stream data object from the buffer
-// returns the meta data and the unmarshalled function specific stream data
+// ReadStream reads the next stream data object from the buffer.
+//
+// Returns the meta data and the unmarshalled function specific stream data
 func (c *Client) ReadStream(timeout time.Duration) (*StreamData, error) {
 	genericSD, err := c.fbClient.ReadStream(timeout)
 	if err != nil {
