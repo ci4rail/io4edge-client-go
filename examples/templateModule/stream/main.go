@@ -18,6 +18,7 @@ func main() {
 		log.Fatalf("Usage: %s <mdns-service-address>  OR  %s <ip:port>", os.Args[0], os.Args[0])
 	}
 	address := os.Args[1]
+	log.SetLevel(log.DebugLevel)
 
 	// Create a client object to work with the io4edge device at <address>
 	var c *templatemodule.Client

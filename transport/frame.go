@@ -116,9 +116,7 @@ func (fs *FramedStream) writeBytesSafe(payload []byte) error {
 // ReadMsg reads a io4edge standard message from transport stream
 func (fs *FramedStream) ReadMsg() ([]byte, error) {
 	// make sure we have the magic bytes
-	log.Debug("reading magic bytes, dude")
 	err := fs.readMagicBytes()
-	log.Debug("error: err")
 	if err != nil {
 		return nil, err
 	}
@@ -127,13 +125,10 @@ func (fs *FramedStream) ReadMsg() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Debugf("length: 0x%.4x\n", length)
 	payload, err := fs.readPayload(length)
-	log.Debug("error: err")
 	if err != nil {
 		return nil, err
 	}
-	log.Debug("payload: ", payload)
 	return payload, nil
 }
 
@@ -158,8 +153,7 @@ func (fs *FramedStream) readMagicBytes() error {
 
 // readLength reads 4 bytes from transport stream and returns the length as uint of the message.
 func (fs *FramedStream) readLength() (uint, error) {
-	// lengthBytes := make([]byte, 4)
-	lengthBytes, err := fs.readAll(4) //fs.Trans.Read(lengthBytes)
+	lengthBytes, err := fs.readAll(4)
 	if err != nil {
 		return 0, err
 	}
@@ -185,12 +179,12 @@ func (fs *FramedStream) Close() error {
 }
 
 func (fs *FramedStream) readAll(length uint) ([]byte, error) {
-	log.Debug("readAll length:", length)
 	payload := []byte{}
 	received := 0
 	for {
 		chunk := make([]byte, length-uint(received))
 		n, err := fs.Trans.Read(chunk)
+		log.Debugf("fstream readAll: Read returned n=%d err=%v\n", n, err)
 		if err != nil {
 			return nil, err
 		}
