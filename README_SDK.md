@@ -12,8 +12,9 @@ This package provides a Go API to
 	* Set and get persistent parameter
 
 * make use of the function blocks, such as
-	* [AnalogInTypeA](https://github.com/ci4rail/esp_io4edge_analogInTypeA)
-	* [BinaryIoTypeA](https://github.com/ci4rail/esp_io4edge_binaryIoTypeA)
+	* [Analog In TypeA](analogintypea)
+	* [Binary IO TypeA](binaryiotypea)
+	* [Template Module](templatemodule)
 
 Current version uses TCP sockets for communication. May be later extended to further transport protocols such as websockets.
 
