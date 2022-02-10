@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -60,7 +59,7 @@ func streamToCsv(c *anain.Client, fileName string, duration time.Duration) {
 					fmt.Sprintf("%d", sample.Timestamp),
 					fmt.Sprintf("%.4f", sample.Value),
 				}
-				record[1] = strings.Replace(record[1], ".", ",", 1)
+				//record[1] = strings.Replace(record[1], ".", ",", 1)
 
 				if err := w.Write(record); err != nil {
 					log.Fatalln("error writing record to file", err)
