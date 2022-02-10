@@ -3,12 +3,17 @@ go client sdk for io4edge
 
 io4edge devices are intelligent I/O devices invented by [Ci4Rail](https://www.ci4rail.com), connected to the host via network.
 
-This package currently provides a Go API to manage those devices, such as:
-* Identify the currently running firmware
-* Load new firmware
-* Identify HW (name, revision, serial number)
-* Program HW identification
-* Set and get persistent parameter
+This package provides a Go API to
+* manage those devices, such as:
+	* Identify the currently running firmware
+	* Load new firmware
+	* Identify HW (name, revision, serial number)
+	* Program HW identification
+	* Set and get persistent parameter
+
+* make use of the function blocks, such as
+	* [AnalogInTypeA](https://github.com/ci4rail/esp_io4edge_analogInTypeA)
+	* [BinaryIoTypeA](https://github.com/ci4rail/esp_io4edge_binaryIoTypeA)
 
 Current version uses TCP sockets for communication. May be later extended to further transport protocols such as websockets.
 
@@ -22,7 +27,7 @@ This sdk uses the Avahi Go package to browse for mdns services, which provides b
 $ go get github.com/ci4rail/io4edge-client-go
 ```
 
-## Examples
+## Examples for Management of io4edge Devices
 
 ### Indentify currently running firmware
 
@@ -140,6 +145,6 @@ func main() {
 
 ## Copyright
 
-Copyright © 2021 Ci4Rail GmbH <engineering@ci4rail.com>
+Copyright © 2021-2022 Ci4Rail GmbH <engineering@ci4rail.com>
 
 io4edge package released unter Apache 2.0 License, see [LICENSE](LICENSE) for details.
