@@ -1,5 +1,5 @@
-io4edge-go
-==========
+io4edge-client-go
+=================
 
 This repository contains the SDK for golang for io4edge and a command line tool to interact with it.
 

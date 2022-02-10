@@ -16,7 +16,10 @@ This package provides a Go API to
 	* [Binary IO TypeA](binaryiotypea)
 	* [Template Module](templatemodule)
 
-Current version uses TCP sockets for communication. May be later extended to further transport protocols such as websockets.
+# Documentation
+
+https://pkg.go.dev/github.com/ci4rail/io4edge-client-go
+
 
 ## System Dependencies
 
