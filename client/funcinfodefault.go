@@ -2,8 +2,6 @@ package client
 
 import (
 	"errors"
-	"strconv"
-	"strings"
 )
 
 // FuncInfoDefault provides the default FunctionInfo implementation
@@ -26,15 +24,7 @@ func NewFuncInfoDefaultWithAuxPort(address string, auxPort int, auxProtocol stri
 
 // NetAddress gives the caller the ip address and port of the service
 func (f *FuncInfoDefault) NetAddress() (string, int, error) {
-	fields := strings.Split(f.address, ":")
-	if len(fields) != 2 {
-		return "", 0, errors.New("invalid address " + f.address)
-	}
-	port, err := strconv.Atoi(fields[1])
-	if err != nil {
-		return "", 0, errors.New("invalid port in " + f.address)
-	}
-	return fields[0], port, nil
+	return netAddressSplit(f.address)
 }
 
 // FuncClass gives the caller the funcclass value of the service

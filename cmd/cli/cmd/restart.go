@@ -14,22 +14,30 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package core
+package cmd
 
 import (
 	"time"
 
-	api "github.com/ci4rail/io4edge_api/io4edge/go/core_api/v1alpha2"
+	"github.com/ci4rail/io4edge-client-go/internal/client"
+	e "github.com/ci4rail/io4edge-client-go/internal/errors"
+	"github.com/spf13/cobra"
 )
 
-// Restart performs a device restart
-func (c *Client) Restart(timeout time.Duration) (restartingNow bool, err error) {
-	cmd := &api.CoreCommand{
-		Id: api.CommandId_RESTART,
-	}
-	res := &api.CoreResponse{}
-	if err := c.Command(cmd, res, timeout); err != nil {
-		return false, err
-	}
-	return res.RestartingNow, nil
+var restartCmd = &cobra.Command{
+	Use:   "restart",
+	Short: "Restart device",
+	Run:   restart,
+}
+
+func restart(cmd *cobra.Command, args []string) {
+	c, err := client.NewCliClient(deviceID, ipAddrPort)
+	e.ErrChk(err)
+
+	_, err = c.Restart(time.Duration(timeoutSecs) * time.Second)
+	e.ErrChk(err)
+}
+
+func init() {
+	rootCmd.AddCommand(restartCmd)
 }

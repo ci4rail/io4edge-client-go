@@ -23,7 +23,7 @@ import (
 	"time"
 
 	"github.com/ci4rail/io4edge-client-go/client"
-	api "github.com/ci4rail/io4edge-client-go/core/v1alpha2"
+	api "github.com/ci4rail/io4edge_api/io4edge/go/core_api/v1alpha2"
 )
 
 // Client represents a client for the io4edge core function

@@ -19,12 +19,21 @@ package client
 
 import (
 	"errors"
+	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/ci4rail/io4edge-client-go/transport"
 	"github.com/ci4rail/io4edge-client-go/transport/socket"
 	"google.golang.org/protobuf/proto"
 )
+
+// If is a interface for the Client
+type If interface {
+	Command(cmd proto.Message, res proto.Message, timeout time.Duration) error
+	ReadMessage(res proto.Message, timeout time.Duration) error
+}
 
 // FunctionInfo is an interface to query properties of the io4edge function
 type FunctionInfo interface {
@@ -44,13 +53,13 @@ type FunctionInfo interface {
 
 // Client represents a client for an io4edge function
 type Client struct {
-	ch       *Channel
+	Ch       *Channel
 	FuncInfo FunctionInfo
 }
 
 // NewClient creates a new client for an io4edge function
 func NewClient(c *Channel, funcInfo FunctionInfo) *Client {
-	return &Client{ch: c, FuncInfo: funcInfo}
+	return &Client{Ch: c, FuncInfo: funcInfo}
 }
 
 // NewClientFromSocketAddress creates a new function client from a socket with the specified address.
@@ -86,15 +95,60 @@ func NewClientFromService(serviceAddr string, timeout time.Duration) (*Client, e
 	return c, err
 }
 
+// NewClientFromUniversalAddress creates a new function client from addrOrService.
+// If addrOrService is of the form "host:port", it creates the client from that host/port,
+// otherwise it assumes addrOrService is the instance name of an mdns service.
+// If service is non-empty and addrOrService is a mdns instance name, it is appended to the addrOrService.
+// .e.g. if addrOrService is "iou01-sn01-binio" and service is "_io4edge_binaryIoTypeA._tcp", the mdns instance
+// name "iou01-sn01-binio._io4edge_binaryIoTypeA._tcp" is used.
+// The timeout specifies the maximal time waiting for a service to show up. Not used for "host:port"
+func NewClientFromUniversalAddress(addrOrService string, service string, timeout time.Duration) (*Client, error) {
+	var c *Client
+	var err error
+
+	if _, _, err = netAddressSplit(addrOrService); err == nil {
+		c, err = NewClientFromSocketAddress(addrOrService)
+	} else {
+		if service != "" {
+			addrOrService = fmt.Sprintf("%s.%s", addrOrService, service)
+		}
+		c, err = NewClientFromService(addrOrService, timeout)
+	}
+	return c, err
+}
+
 // Command issues a command cmd to a channel, waits for the devices response and returns it in res
 func (c *Client) Command(cmd proto.Message, res proto.Message, timeout time.Duration) error {
-	err := c.ch.WriteMessage(cmd)
+	err := c.Ch.WriteMessage(cmd)
 	if err != nil {
 		return err
 	}
-	err = c.ch.ReadMessage(res, timeout)
+	err = c.Ch.ReadMessage(res, timeout)
 	if err != nil {
 		return errors.New("Failed to receive device response: " + err.Error())
 	}
 	return err
+}
+
+// ReadMessage reads the next message from the channel and unmarshalles it
+func (c *Client) ReadMessage(res proto.Message, timeout time.Duration) error {
+	err := c.Ch.ReadMessage(res, timeout)
+	if err != nil {
+		return errors.New("Failed to read forever: " + err.Error())
+	}
+	return nil
+}
+
+// netAddressSplit splits addr to host and port
+// example: addr="myhost.example.com:1234" -> host="myhost.example.com", port=1234
+func netAddressSplit(addr string) (host string, port int, err error) {
+	fields := strings.Split(addr, ":")
+	if len(fields) != 2 {
+		return "", 0, errors.New("invalid address " + addr)
+	}
+	port, err = strconv.Atoi(fields[1])
+	if err != nil {
+		return "", 0, errors.New("invalid port in " + addr)
+	}
+	return fields[0], port, nil
 }

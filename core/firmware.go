@@ -27,7 +27,7 @@ import (
 	"time"
 
 	fwpkg "github.com/ci4rail/firmware-packaging-go"
-	api "github.com/ci4rail/io4edge-client-go/core/v1alpha2"
+	api "github.com/ci4rail/io4edge_api/io4edge/go/core_api/v1alpha2"
 )
 
 // FirmwareAlreadyPresentError is returned by LoadFirmware as a dummy error
@@ -55,7 +55,7 @@ func (c *Client) IdentifyFirmware(timeout time.Duration) (name string, version s
 // Checks first if the firmware is compatible with the device.
 // Checks then if the device's firmware version is the same
 // timeout is for each chunk
-func (c *Client) LoadFirmware(file string, chunkSize uint, timeout time.Duration) (restartingNow bool, err error) {
+func (c *Client) LoadFirmware(file string, chunkSize uint, timeout time.Duration, prog func(bytes uint)) (restartingNow bool, err error) {
 	restartingNow = false
 
 	pkg, err := fwpkg.NewFirmwarePackageConsumerFromFile(file)
@@ -98,13 +98,13 @@ func (c *Client) LoadFirmware(file string, chunkSize uint, timeout time.Duration
 		return restartingNow, err
 	}
 
-	restartingNow, err = c.LoadFirmwareBinary(bufio.NewReader(fwFile), chunkSize, timeout)
+	restartingNow, err = c.LoadFirmwareBinary(bufio.NewReader(fwFile), chunkSize, timeout, prog)
 	return restartingNow, err
 }
 
 // LoadFirmwareBinaryFromFile loads new firmware from file into the device device
 // timeout is for each chunk
-func (c *Client) LoadFirmwareBinaryFromFile(file string, chunkSize uint, timeout time.Duration) (restartingNow bool, err error) {
+func (c *Client) LoadFirmwareBinaryFromFile(file string, chunkSize uint, timeout time.Duration, prog func(bytes uint)) (restartingNow bool, err error) {
 	f, err := os.Open(file)
 	if err != nil {
 		return false, errors.New("cannot open file " + file + " : " + err.Error())
@@ -113,12 +113,13 @@ func (c *Client) LoadFirmwareBinaryFromFile(file string, chunkSize uint, timeout
 	defer f.Close()
 
 	r := bufio.NewReader(f)
-	return c.LoadFirmwareBinary(r, chunkSize, timeout)
+	return c.LoadFirmwareBinary(r, chunkSize, timeout, prog)
 }
 
 // LoadFirmwareBinary loads new firmware via r into the device device
+// prog is a callback function that gets called after loading a chunk. The callback gets passed the number of bytes transferred yet
 // timeout is for each chunk
-func (c *Client) LoadFirmwareBinary(r *bufio.Reader, chunkSize uint, timeout time.Duration) (restartingNow bool, err error) {
+func (c *Client) LoadFirmwareBinary(r *bufio.Reader, chunkSize uint, timeout time.Duration, prog func(bytes uint)) (restartingNow bool, err error) {
 
 	cmd := &api.CoreCommand{
 		Id: api.CommandId_LOAD_FIRMWARE_CHUNK,
@@ -131,6 +132,7 @@ func (c *Client) LoadFirmwareBinary(r *bufio.Reader, chunkSize uint, timeout tim
 	data := cmd.GetLoadFirmwareChunk().Data
 
 	chunkNumber := uint32(0)
+	totalBytes := uint(0)
 	restartingNow = false
 
 	for {
@@ -155,6 +157,9 @@ func (c *Client) LoadFirmwareBinary(r *bufio.Reader, chunkSize uint, timeout tim
 		if err != nil {
 			return restartingNow, errors.New("load firmware chunk command failed: " + err.Error())
 		}
+		totalBytes += uint(len(data))
+		prog(totalBytes)
+
 		restartingNow = res.RestartingNow
 		if atEOF {
 			break
