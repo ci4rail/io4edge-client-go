@@ -65,6 +65,15 @@ func (c *Client) StopStream() error {
 	return c.fbClient.StopStream()
 }
 
+// SendPattern sends a string to the self-test generator
+func (c *Client) SendPattern(s string) error {
+	fsCmd := &fspb.FunctionControlSet{
+		GeneratorPattern: s,
+	}
+	_, err := c.fbClient.FunctionControlSet(fsCmd)
+	return err
+}
+
 // ReadStream reads the next stream data object from the buffer.
 //
 // Returns the meta data and the unmarshalled function specific stream data
