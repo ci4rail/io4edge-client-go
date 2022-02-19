@@ -22,7 +22,6 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/ci4rail/io4edge-client-go/examples/mvbSniffer/pcap/busshark"
 	"github.com/ci4rail/io4edge-client-go/examples/mvbSniffer/pcap/pcap"
 	"github.com/ci4rail/io4edge-client-go/functionblock"
 	sniffer "github.com/ci4rail/io4edge-client-go/mvbsniffer"
@@ -53,7 +52,7 @@ func sampleFrameType(sample *fspb.Sample) int {
 
 func readStreamFor(c *sniffer.Client, w *pcap.Writer, duration time.Duration) {
 	start := time.Now()
-	frameNumber := uint64(0)
+	//frameNumber := uint64(0)
 
 	for {
 		if time.Since(start) > duration {
@@ -73,13 +72,15 @@ func readStreamFor(c *sniffer.Client, w *pcap.Writer, duration time.Duration) {
 		fmt.Printf("got stream data seq=%d pkts=%d ts=%d td=%v\n", sd.Sequence, len(samples), sd.DeliveryTimestamp, timeDelta)
 
 		for i, sample := range samples {
-			m := busshark.Pkt(frameNumber, 50*sample.Timestamp, sampleLine(sample), sampleFrameType(sample), sample.Payload)
+			//m := busshark.Pkt(frameNumber, 50*sample.Timestamp, sampleLine(sample), sampleFrameType(sample), sample.Payload)
 
-			if err := w.AddPacket(sample.Timestamp+timeDelta, m); err != nil {
-				log.Errorf("pcap add packet faile: %v\n", err)
+			// if err := w.AddPacket(sample.Timestamp+timeDelta, m); err != nil {
+			// 	log.Errorf("pcap add packet faile: %v\n", err)
+			// }
+
+			if sample.Error != fspb.SampleError_NONE {
+				fmt.Printf("  #%d: %v\n", i, sample)
 			}
-
-			fmt.Printf("  #%d: %v\n", i, sample)
 		}
 	}
 }
@@ -111,8 +112,8 @@ func main() {
 
 	// start stream
 	err = c.StartStream(&functionblock.StreamConfiguration{
-		BucketSamples:     100,
-		BufferedSamples:   200,
+		BucketSamples:     300,
+		BufferedSamples:   600,
 		KeepaliveInterval: 1000,
 	})
 	if err != nil {
