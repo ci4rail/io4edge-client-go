@@ -22,37 +22,22 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/ci4rail/io4edge-client-go/examples/mvbSniffer/pcap/busshark"
 	"github.com/ci4rail/io4edge-client-go/examples/mvbSniffer/pcap/pcap"
 	"github.com/ci4rail/io4edge-client-go/functionblock"
 	sniffer "github.com/ci4rail/io4edge-client-go/mvbsniffer"
 	fspb "github.com/ci4rail/io4edge_api/mvbSniffer/go/mvbSniffer/v1"
 )
 
+// TODO: This is not 100% correct, as deliverytimestamp is ESP time and sample timestamps are from FPGA
 func timeDeltaSnifferToHost(snifferTs uint64) uint64 {
 	hostTs := time.Now().UnixMicro()
 	return uint64(hostTs) - snifferTs
 }
 
-func sampleLine(sample *fspb.Sample) int {
-	if sample.Line == fspb.Line_A {
-		return 1
-	}
-	return 2
-}
-
-func sampleFrameType(sample *fspb.Sample) int {
-	if sample.FrameType == fspb.FrameType_MASTER {
-		return 1
-	} else if sample.FrameType == fspb.FrameType_SLAVE {
-		return 2
-	} else {
-		return 0
-	}
-}
-
 func readStreamFor(c *sniffer.Client, w *pcap.Writer, duration time.Duration) {
 	start := time.Now()
-	//frameNumber := uint64(0)
+	frameNumber := uint64(0)
 
 	for {
 		if time.Since(start) > duration {
@@ -72,11 +57,20 @@ func readStreamFor(c *sniffer.Client, w *pcap.Writer, duration time.Duration) {
 		fmt.Printf("got stream data seq=%d pkts=%d ts=%d td=%v\n", sd.Sequence, len(samples), sd.DeliveryTimestamp, timeDelta)
 
 		for i, sample := range samples {
-			//m := busshark.Pkt(frameNumber, 50*sample.Timestamp, sampleLine(sample), sampleFrameType(sample), sample.Payload)
+			// generate fake master packet
+			m := busshark.Pkt(frameNumber, 50*sample.Timestamp, 1 /*A*/, 1 /*Master*/, []byte{byte(sample.FCode<<4 + sample.Address>>12), byte(sample.Address & 0xff)})
 
-			// if err := w.AddPacket(sample.Timestamp+timeDelta, m); err != nil {
-			// 	log.Errorf("pcap add packet faile: %v\n", err)
-			// }
+			if err := w.AddPacket(sample.Timestamp+timeDelta, m); err != nil {
+				log.Errorf("pcap add packet faile: %v\n", err)
+			}
+
+			m = busshark.Pkt(frameNumber, 50*sample.Timestamp, 1 /*A*/, 2 /*Slave*/, sample.Payload)
+
+			if err := w.AddPacket(sample.Timestamp+timeDelta, m); err != nil {
+				log.Errorf("pcap add packet faile: %v\n", err)
+			}
+
+			frameNumber++
 
 			if sample.Error != fspb.SampleError_NONE {
 				fmt.Printf("  #%d: %v\n", i, sample)
