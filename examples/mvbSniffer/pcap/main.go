@@ -63,6 +63,7 @@ func readStreamFor(c *sniffer.Client, w *pcap.Writer, duration time.Duration) {
 			if err := w.AddPacket(sample.Timestamp+timeDelta, m); err != nil {
 				log.Errorf("pcap add packet faile: %v\n", err)
 			}
+			frameNumber++
 
 			m = busshark.Pkt(frameNumber, 50*sample.Timestamp, 1 /*A*/, 2 /*Slave*/, sample.Payload)
 
