@@ -23,10 +23,10 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/ci4rail/io4edge-client-go/functionblock"
-	anain "github.com/ci4rail/io4edge-client-go/mvbsniffer"
+	"github.com/ci4rail/io4edge-client-go/mvbsniffer"
 )
 
-func readStreamFor(c *anain.Client, duration time.Duration) {
+func readStreamFor(c *mvbsniffer.Client, duration time.Duration) {
 	start := time.Now()
 
 	for {
@@ -58,14 +58,14 @@ func main() {
 	address := os.Args[1]
 
 	// Create a client object to work with the io4edge device
-	var c *anain.Client
+	var c *mvbsniffer.Client
 	var err error
 
 	if err != nil {
 		log.Fatalf("Can't convert sample rate: %v\n", err)
 	}
 
-	c, err = anain.NewClientFromUniversalAddress(address, timeout)
+	c, err = mvbsniffer.NewClientFromUniversalAddress(address, timeout)
 	if err != nil {
 		log.Fatalf("Failed to create anain client: %v\n", err)
 	}
