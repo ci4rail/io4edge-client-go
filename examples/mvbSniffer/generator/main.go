@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"time"
@@ -9,20 +10,28 @@ import (
 
 	"github.com/ci4rail/io4edge-client-go/functionblock"
 	"github.com/ci4rail/io4edge-client-go/mvbsniffer"
+	fspb "github.com/ci4rail/io4edge_api/mvbSniffer/go/mvbSniffer/v1"
 )
+
+func errChk(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
 
 func generatePattern() string {
 	cl := mvbsniffer.NewCommandList()
 
-	cl.AddMasterFrame(0, false, 5, 0x1, 567)
-	cl.AddMasterFrame(0, false, 3, 0x1, 888)
+	errChk(cl.AddMasterFrame(0, false, 5, 0x1, 567))
+	errChk(cl.AddMasterFrame(0, false, 50, 0x1, 888))
 
-	cl.AddMasterFrame(0, false, 5, 0x1, 123)
-	cl.AddSlaveFrame(0, false, 2, []uint8{0xaa, 0xbb, 0xcc, 0xdd})
-	cl.AddMasterFrame(0, false, 5, 0x0, 200)
-	cl.AddSlaveFrame(0, false, 2, []uint8{0x12, 0x34})
-	cl.AddMasterFrame(0, false, 5, 0x1, 567)
-	cl.AddMasterFrame(0, false, 400, 0x1, 888)
+	errChk(cl.AddMasterFrame(0, false, 5, 0x1, 123))
+	errChk(cl.AddSlaveFrame(0, false, 2, []uint8{0xaa, 0xbb, 0xcc, 0xdd}))
+	errChk(cl.AddMasterFrame(0, false, 5, 0x0, 200))
+	errChk(cl.AddSlaveFrame(0, false, 2, []uint8{0x12, 0x34}))
+	for i := 0; i < 30; i++ {
+		errChk(cl.AddMasterFrame(0, false, 5, 0xe, 567))
+	}
 
 	return cl.StartGeneratorString(true)
 }
@@ -50,6 +59,9 @@ func readStreamFor(c *mvbsniffer.Client, duration time.Duration) {
 
 			for _, sample := range samples {
 				//fmt.Printf("st=%d #%d: %v\n", state, i, sample)
+				if sample.Error != fspb.SampleError_NONE {
+					log.Errorf("#%d: %v\n", n, sample)
+				}
 
 				switch state {
 				case StInit:
@@ -67,9 +79,13 @@ func readStreamFor(c *mvbsniffer.Client, duration time.Duration) {
 					} else {
 
 						dt := sample.Timestamp - prevTs
-						if dt < 410 || dt > 580 {
+						if dt < 1000 || dt > 1100 {
 							log.Errorf("#%d FRM123 wrong dt %d (%v/%v)", n, dt, sample.Timestamp, prevTs)
 						}
+						if !bytes.Equal(sample.Payload, []uint8{0xaa, 0xbb, 0xcc, 0xdd}) {
+							log.Errorf("#%d FRM123 wrong bytes %v", n, sample.Payload)
+						}
+
 						state = StFrm200
 					}
 				case StFrm200:
@@ -80,6 +96,9 @@ func readStreamFor(c *mvbsniffer.Client, duration time.Duration) {
 						if dt < 7 || dt > 60 {
 							log.Errorf("#%d FRM200 wrong dt %d (%v/%v)", n, dt, sample.Timestamp, prevTs)
 						}
+						if !bytes.Equal(sample.Payload, []uint8{0x12, 0x34}) {
+							log.Errorf("#%d FRM200 wrong bytes %v", n, sample.Payload)
+						}
 						state = StFrm123
 					}
 				}
@@ -88,6 +107,7 @@ func readStreamFor(c *mvbsniffer.Client, duration time.Duration) {
 			}
 		}
 		if time.Since(start) > duration {
+			fmt.Printf("%d frames received\n", n)
 			return
 		}
 	}
@@ -101,13 +121,14 @@ func main() {
 	}
 	address := os.Args[1]
 
-	pattern := generatePattern()
-
-	fmt.Printf("Generator pattern: %s\n", pattern)
 	c, err := mvbsniffer.NewClientFromUniversalAddress(address, timeout)
 	if err != nil {
 		log.Fatalf("Failed to create mvbsniffer client: %v\n", err)
 	}
+
+	// ensure pattern is stopped
+	errChk(c.SendPattern(c.StopGeneratorString()))
+	time.Sleep(500 * time.Millisecond)
 
 	// start stream
 	err = c.StartStream(&functionblock.StreamConfiguration{
@@ -121,10 +142,9 @@ func main() {
 
 	fmt.Println("Started stream")
 
-	err = c.SendPattern(pattern)
-	if err != nil {
-		log.Errorf("SendPattern failed: %v\n", err)
-	}
+	pattern := generatePattern()
+	fmt.Printf("Generator pattern: %s\n", pattern)
+	errChk(c.SendPattern(pattern))
 
 	readStreamFor(c, time.Second*10)
 }

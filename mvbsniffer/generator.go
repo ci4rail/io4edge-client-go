@@ -58,7 +58,7 @@ func (c *CommandList) StartGeneratorString(internalLoop bool) string {
 }
 
 // StopGeneratorString generates a string to stop the MVB pattern generator
-func (c *CommandList) StopGeneratorString(internalLoop bool) string {
+func (c *Client) StopGeneratorString() string {
 	return "0"
 }
 
