@@ -1,0 +1,20 @@
+@startuml io4edge
+!theme crt-amber
+node device {
+  card core
+  card function1
+  card function2
+}
+
+node host {
+    card "io4edge-cli" as cli
+    card client1
+    card client2
+}
+
+cli --> core  : management
+client1 --> function1
+client2 --> function2
+host <-[#blue;#green,dashed,thickness=4]-> device : TCP/Protobuf
+
+@enduml

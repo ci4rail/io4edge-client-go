@@ -18,7 +18,7 @@ limitations under the License.
 package mvbsniffer
 
 import (
-	"errors"
+	"fmt"
 	"time"
 
 	"github.com/ci4rail/io4edge-client-go/functionblock"
@@ -33,7 +33,7 @@ type Client struct {
 // StreamData contains the meta data of the stream and the unmarshalled function specific data
 type StreamData struct {
 	functionblock.StreamDataMeta
-	FSData *fspb.StreamData
+	FSData *fspb.TelegramCollection
 }
 
 // NewClientFromUniversalAddress creates a new mvbSniffer client from addrOrService.
@@ -83,9 +83,9 @@ func (c *Client) ReadStream(timeout time.Duration) (*StreamData, error) {
 		return nil, err
 	}
 
-	fsSD := new(fspb.StreamData)
+	fsSD := new(fspb.TelegramCollection)
 	if err := genericSD.FSData.UnmarshalTo(fsSD); err != nil {
-		return nil, errors.New("can't unmarshall samples")
+		return nil, fmt.Errorf("can't unmarshall samples: %v", err)
 	}
 
 	sd := &StreamData{
