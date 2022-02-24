@@ -53,19 +53,19 @@ func readStreamFor(c *sniffer.Client, w *pcap.Writer, duration time.Duration) {
 
 		timeDelta := timeDeltaSnifferToHost(sd.DeliveryTimestamp)
 
-		samples := sd.FSData.GetSamples()
+		samples := sd.FSData.GetEntry()
 		fmt.Printf("got stream data seq=%d pkts=%d ts=%d td=%v\n", sd.Sequence, len(samples), sd.DeliveryTimestamp, timeDelta)
 
 		for i, sample := range samples {
 			// generate fake master packet
-			m := busshark.Pkt(frameNumber, 50*sample.Timestamp, 1 /*A*/, 1 /*Master*/, []byte{byte(sample.FCode<<4 + sample.Address>>12), byte(sample.Address & 0xff)})
+			m := busshark.Pkt(frameNumber, 50*sample.Timestamp, 1 /*A*/, 1 /*Master*/, []byte{byte(uint8(sample.Type)<<4 + uint8(sample.Address>>12)), byte(sample.Address & 0xff)})
 
 			if err := w.AddPacket(sample.Timestamp+timeDelta, m); err != nil {
 				log.Errorf("pcap add packet faile: %v\n", err)
 			}
 			frameNumber++
 
-			m = busshark.Pkt(frameNumber, 50*sample.Timestamp, 1 /*A*/, 2 /*Slave*/, sample.Payload)
+			m = busshark.Pkt(frameNumber, 50*sample.Timestamp, 1 /*A*/, 2 /*Slave*/, sample.Data)
 
 			if err := w.AddPacket(sample.Timestamp+timeDelta, m); err != nil {
 				log.Errorf("pcap add packet faile: %v\n", err)
@@ -73,7 +73,7 @@ func readStreamFor(c *sniffer.Client, w *pcap.Writer, duration time.Duration) {
 
 			frameNumber++
 
-			if sample.Error != fspb.SampleError_NONE {
+			if sample.State != fspb.Telegram_kSuccessful {
 				fmt.Printf("  #%d: %v\n", i, sample)
 			}
 		}

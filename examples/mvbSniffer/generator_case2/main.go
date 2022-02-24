@@ -22,25 +22,36 @@ func errChk(err error) {
 func generatePattern() string {
 	cl := mvbsniffer.NewCommandList()
 
-	errChk(cl.AddMasterFrame(0, false, 5, 0x1, 567))
-	errChk(cl.AddMasterFrame(0, false, 50, 0x1, 888))
+	errChk(cl.AddMasterFrame(0, false, 43, 3, 11))
 
-	errChk(cl.AddMasterFrame(0, false, 5, 0x1, 123))
-	errChk(cl.AddSlaveFrame(0, false, 2, []uint8{0xaa, 0xbb, 0xcc, 0xdd}))
-	errChk(cl.AddMasterFrame(0, false, 5, 0x0, 200))
-	errChk(cl.AddSlaveFrame(0, false, 2, []uint8{0x12, 0x34}))
-	for i := 0; i < 30; i++ {
-		errChk(cl.AddMasterFrame(0, false, 5, 0xe, 567))
-	}
+	errChk(cl.AddMasterFrame(0, false, 43, 9, 528))
+	errChk(cl.AddMasterFrame(0, false, 43, 9, 528))
+	errChk(cl.AddMasterFrame(0, false, 800, 9, 272))
+
+	errChk(cl.AddMasterFrame(0, false, 3, 0, 2))
+	errChk(cl.AddSlaveFrame(0, false, 3, []uint8{0x00, 0x00}))
+
+	errChk(cl.AddMasterFrame(0, false, 43, 9, 528))
+	errChk(cl.AddMasterFrame(0, false, 43, 9, 528))
+	errChk(cl.AddMasterFrame(0, false, 800, 9, 272))
+
+	errChk(cl.AddMasterFrame(0, false, 3, 0, 3))
+	errChk(cl.AddSlaveFrame(0, false, 3, []uint8{0x00, 0x00}))
+
+	errChk(cl.AddMasterFrame(0, false, 43, 9, 528))
+	errChk(cl.AddMasterFrame(0, false, 43, 9, 528))
+	errChk(cl.AddMasterFrame(0, false, 800, 9, 272))
+
+	errChk(cl.AddMasterFrame(0, false, 43, 4, 6))
 
 	return cl.StartGeneratorString(true)
 }
 
 func readStreamFor(c *mvbsniffer.Client, duration time.Duration) {
 	const (
-		StInit   = 0
-		StFrm123 = 1
-		StFrm200 = 2
+		StInit = 0
+		StFrm2 = 1
+		StFrm3 = 2
 	)
 
 	state := StInit
@@ -66,40 +77,40 @@ func readStreamFor(c *mvbsniffer.Client, duration time.Duration) {
 				switch state {
 				case StInit:
 					switch sample.Address {
-					case 123:
-						state = StFrm200
-					case 200:
-						state = StFrm123
+					case 2:
+						state = StFrm3
+					case 3:
+						state = StFrm2
 					default:
 						log.Errorf("#%d Bad address received %d", n, sample.Address)
 					}
-				case StFrm123:
-					if sample.Address != 123 {
-						log.Errorf("#%d FRM123 Bad address received %d", n, sample.Address)
+				case StFrm2:
+					if sample.Address != 2 {
+						log.Errorf("#%d FRM2 Bad address received %d", n, sample.Address)
 					} else {
 
 						dt := sample.Timestamp - prevTs
-						if dt < 1000 || dt > 1100 {
-							log.Errorf("#%d FRM123 wrong dt %d (%v/%v)", n, dt, sample.Timestamp, prevTs)
+						if dt < 2000 || dt > 2100 {
+							log.Errorf("#%d FRM2 wrong dt %d (%v/%v)", n, dt, sample.Timestamp, prevTs)
 						}
-						if !bytes.Equal(sample.Data, []uint8{0xaa, 0xbb, 0xcc, 0xdd}) {
-							log.Errorf("#%d FRM123 wrong bytes %v", n, sample.Data)
+						if !bytes.Equal(sample.Data, []uint8{0x00, 0x00}) {
+							log.Errorf("#%d FRM2 wrong bytes %v", n, sample.Data)
 						}
 
-						state = StFrm200
+						state = StFrm3
 					}
-				case StFrm200:
-					if sample.Address != 200 {
-						log.Errorf("#%d FRM200 Bad address received %d", n, sample.Address)
+				case StFrm3:
+					if sample.Address != 3 {
+						log.Errorf("#%d FRM3 Bad address received %d", n, sample.Address)
 					} else {
 						dt := sample.Timestamp - prevTs
-						if dt < 7 || dt > 60 {
-							log.Errorf("#%d FRM200 wrong dt %d (%v/%v)", n, dt, sample.Timestamp, prevTs)
+						if dt < 1000 || dt > 1010 {
+							log.Errorf("#%d FRM3 wrong dt %d (%v/%v)", n, dt, sample.Timestamp, prevTs)
 						}
-						if !bytes.Equal(sample.Data, []uint8{0x12, 0x34}) {
-							log.Errorf("#%d FRM200 wrong bytes %v", n, sample.Data)
+						if !bytes.Equal(sample.Data, []uint8{0x00, 0x00}) {
+							log.Errorf("#%d FRM3 wrong bytes %v", n, sample.Data)
 						}
-						state = StFrm123
+						state = StFrm2
 					}
 				}
 				prevTs = sample.Timestamp

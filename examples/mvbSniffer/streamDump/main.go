@@ -36,7 +36,7 @@ func readStreamFor(c *mvbsniffer.Client, duration time.Duration) {
 		if err != nil {
 			log.Errorf("ReadStreamData failed: %v\n", err)
 		} else {
-			samples := sd.FSData.GetSamples()
+			samples := sd.FSData.GetEntry()
 			fmt.Printf("got stream data seq=%d ts=%d\n", sd.Sequence, sd.DeliveryTimestamp)
 
 			for i, sample := range samples {
