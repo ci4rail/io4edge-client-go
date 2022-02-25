@@ -25,6 +25,7 @@ import (
 	"github.com/ci4rail/io4edge-client-go/examples/mvbSniffer/pcap/busshark"
 	"github.com/ci4rail/io4edge-client-go/examples/mvbSniffer/pcap/pcap"
 	"github.com/ci4rail/io4edge-client-go/functionblock"
+	"github.com/ci4rail/io4edge-client-go/mvbsniffer"
 	sniffer "github.com/ci4rail/io4edge-client-go/mvbsniffer"
 	fspb "github.com/ci4rail/io4edge_api/mvbSniffer/go/mvbSniffer/v1"
 )
@@ -110,6 +111,10 @@ func main() {
 		BucketSamples:     300,
 		BufferedSamples:   600,
 		KeepaliveInterval: 1000,
+	}, mvbsniffer.StreamFilter{
+		Masks: []mvbsniffer.FilterMask{
+			{FCodeMask: 0xFFFF, Address: 0x0000, Mask: 0x0000}, // receive any telegram
+		},
 	})
 	if err != nil {
 		log.Errorf("StartStream failed: %v\n", err)
