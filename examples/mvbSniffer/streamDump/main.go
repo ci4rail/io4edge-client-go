@@ -75,6 +75,10 @@ func main() {
 		BucketSamples:     100,
 		BufferedSamples:   200,
 		KeepaliveInterval: 1000,
+	}, mvbsniffer.StreamFilter{
+		Masks: []mvbsniffer.FilterMask{
+			{FCodeMask: 0xFFFF, Address: 0x0000, Mask: 0x0000}, // receive any telegram
+		},
 	})
 	if err != nil {
 		log.Errorf("StartStream failed: %v\n", err)

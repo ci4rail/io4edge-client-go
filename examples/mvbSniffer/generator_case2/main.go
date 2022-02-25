@@ -146,6 +146,10 @@ func main() {
 		BucketSamples:     100,
 		BufferedSamples:   200,
 		KeepaliveInterval: 1000,
+	}, mvbsniffer.StreamFilter{
+		Masks: []mvbsniffer.FilterMask{
+			{FCodeMask: 0x0001, Address: 0x0000, Mask: 0xFFC},
+		},
 	})
 	if err != nil {
 		log.Errorf("StartStream failed: %v\n", err)

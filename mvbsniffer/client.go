@@ -36,6 +36,22 @@ type StreamData struct {
 	FSData *fspb.TelegramCollection
 }
 
+// FilterMask defines a specific filter for MVB telegrams
+type FilterMask struct {
+	// MVB f_codes filter mask. Each bit corresponds to a specific f_code, bit 0=fcode-0, bit 1=fcode-1 etc
+	FCodeMask uint16
+	// Address to compare
+	Address uint16
+	// mask for comparison. Only bits set to one are compared against address
+	Mask uint16
+}
+
+// StreamFilter defines the MVB filter to be applied to a stream
+// Refer to firmware documentation for max. numeber of Masks supported
+type StreamFilter struct {
+	Masks []FilterMask
+}
+
 // NewClientFromUniversalAddress creates a new mvbSniffer client from addrOrService.
 // If addrOrService is of the form "host:port", it creates the client from that host/port,
 // otherwise it assumes addrOrService is the instance name of a mdns service (without _io4edge_mvbSniffer._tcp).
@@ -52,8 +68,21 @@ func NewClientFromUniversalAddress(addrOrService string, timeout time.Duration) 
 }
 
 // StartStream starts the stream on this connection.
-func (c *Client) StartStream(genericConfig *functionblock.StreamConfiguration) error {
-	err := c.fbClient.StartStream(genericConfig, &fspb.StreamControlStart{})
+func (c *Client) StartStream(genericConfig *functionblock.StreamConfiguration, filter StreamFilter) error {
+	fil := make([]*fspb.FilterMask, len(filter.Masks))
+	fmt.Printf("len filter %d\n", len(filter.Masks))
+	for i := 0; i < len(fil); i++ {
+		fil[i] = &fspb.FilterMask{
+			FCodeMask: uint32(filter.Masks[i].FCodeMask),
+			Address:   uint32(filter.Masks[i].Address),
+			Mask:      uint32(filter.Masks[i].Mask),
+		}
+	}
+
+	err := c.fbClient.StartStream(genericConfig, &fspb.StreamControlStart{
+		Filter: fil,
+	})
+
 	if err != nil {
 		return err
 	}
