@@ -59,7 +59,7 @@ func readStreamFor(c *mvbsniffer.Client, duration time.Duration) {
 
 			for _, sample := range samples {
 				//fmt.Printf("st=%d #%d: %v\n", state, i, sample)
-				if sample.State != fspb.Telegram_kSuccessful {
+				if sample.State != uint32(fspb.Telegram_kSuccessful) {
 					log.Errorf("#%d: %v\n", n, sample)
 				}
 

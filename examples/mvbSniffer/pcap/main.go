@@ -74,7 +74,7 @@ func readStreamFor(c *sniffer.Client, w *pcap.Writer, duration time.Duration) {
 
 			frameNumber++
 
-			if sample.State != fspb.Telegram_kSuccessful {
+			if sample.State != uint32(fspb.Telegram_kSuccessful) {
 				fmt.Printf("  #%d: %v\n", i, sample)
 			}
 		}
