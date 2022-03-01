@@ -22,29 +22,29 @@ func errChk(err error) {
 func generatePattern() string {
 	cl := mvbsniffer.NewCommandList()
 
-	errChk(cl.AddMasterFrame(0, false, 43, 3, 11))
+	errChk(cl.AddMasterFrame(7500, false, 43, 3, 11))
 
-	errChk(cl.AddMasterFrame(0, false, 43, 9, 528))
-	errChk(cl.AddMasterFrame(0, false, 43, 9, 528))
-	errChk(cl.AddMasterFrame(0, false, 800, 9, 272))
+	errChk(cl.AddMasterFrame(7500, false, 43, 9, 528))
+	errChk(cl.AddMasterFrame(7500, false, 43, 9, 528))
+	errChk(cl.AddMasterFrame(7500, false, 800, 9, 272))
 
-	errChk(cl.AddMasterFrame(0, false, 3, 0, 2))
-	errChk(cl.AddSlaveFrame(0, false, 3, []uint8{0x00, 0x00}))
+	errChk(cl.AddMasterFrame(7500, false, 3, 0, 2))
+	errChk(cl.AddSlaveFrame(7500, false, 3, []uint8{0x00, 0x00}))
 
-	errChk(cl.AddMasterFrame(0, false, 43, 9, 528))
-	errChk(cl.AddMasterFrame(0, false, 43, 9, 528))
-	errChk(cl.AddMasterFrame(0, false, 800, 9, 272))
+	errChk(cl.AddMasterFrame(7500, false, 43, 9, 528))
+	errChk(cl.AddMasterFrame(7500, false, 43, 9, 528))
+	errChk(cl.AddMasterFrame(7500, false, 800, 9, 272))
 
-	errChk(cl.AddMasterFrame(0, false, 3, 0, 3))
-	errChk(cl.AddSlaveFrame(0, false, 3, []uint8{0x00, 0x00}))
+	errChk(cl.AddMasterFrame(7500, false, 3, 0, 3))
+	errChk(cl.AddSlaveFrame(7500, false, 3, []uint8{0x00, 0x00}))
 
-	errChk(cl.AddMasterFrame(0, false, 43, 9, 528))
-	errChk(cl.AddMasterFrame(0, false, 43, 9, 528))
-	errChk(cl.AddMasterFrame(0, false, 800, 9, 272))
+	errChk(cl.AddMasterFrame(7500, false, 43, 9, 528))
+	errChk(cl.AddMasterFrame(7500, false, 43, 9, 528))
+	errChk(cl.AddMasterFrame(7500, false, 800, 9, 272))
 
-	errChk(cl.AddMasterFrame(0, false, 43, 4, 6))
+	errChk(cl.AddMasterFrame(7500, false, 43, 4, 6))
 
-	return cl.StartGeneratorString(true)
+	return cl.StartGeneratorString(true) // internal loop
 }
 
 func readStreamFor(c *mvbsniffer.Client, duration time.Duration) {
@@ -53,7 +53,6 @@ func readStreamFor(c *mvbsniffer.Client, duration time.Duration) {
 		StFrm2 = 1
 		StFrm3 = 2
 	)
-
 	state := StInit
 	start := time.Now()
 	prevTs := uint64(0)
@@ -73,7 +72,6 @@ func readStreamFor(c *mvbsniffer.Client, duration time.Duration) {
 				if sample.State != uint32(fspb.Telegram_kSuccessful) {
 					log.Errorf("#%d: %v\n", n, sample)
 				}
-
 				switch state {
 				case StInit:
 					switch sample.Address {
@@ -90,11 +88,14 @@ func readStreamFor(c *mvbsniffer.Client, duration time.Duration) {
 					} else {
 
 						dt := sample.Timestamp - prevTs
-						if dt < 2000 || dt > 2100 {
+						if dt < 2000 || dt > 2200 {
 							log.Errorf("#%d FRM2 wrong dt %d (%v/%v)", n, dt, sample.Timestamp, prevTs)
 						}
 						if !bytes.Equal(sample.Data, []uint8{0x00, 0x00}) {
 							log.Errorf("#%d FRM2 wrong bytes %v", n, sample.Data)
+						}
+						if sample.Line != fspb.Telegram_kA {
+							log.Errorf("#%d FRM2 wrong line %v", n, sample.Line)
 						}
 
 						state = StFrm3
@@ -104,11 +105,14 @@ func readStreamFor(c *mvbsniffer.Client, duration time.Duration) {
 						log.Errorf("#%d FRM3 Bad address received %d", n, sample.Address)
 					} else {
 						dt := sample.Timestamp - prevTs
-						if dt < 1000 || dt > 1010 {
+						if dt < 1000 || dt > 1050 {
 							log.Errorf("#%d FRM3 wrong dt %d (%v/%v)", n, dt, sample.Timestamp, prevTs)
 						}
 						if !bytes.Equal(sample.Data, []uint8{0x00, 0x00}) {
 							log.Errorf("#%d FRM3 wrong bytes %v", n, sample.Data)
+						}
+						if sample.Line != fspb.Telegram_kB {
+							log.Errorf("#%d FRM3 wrong line %v", n, sample.Line)
 						}
 						state = StFrm2
 					}
