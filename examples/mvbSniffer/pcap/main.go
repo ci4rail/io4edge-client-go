@@ -25,7 +25,6 @@ import (
 	"github.com/ci4rail/io4edge-client-go/examples/mvbSniffer/pcap/busshark"
 	"github.com/ci4rail/io4edge-client-go/examples/mvbSniffer/pcap/pcap"
 	"github.com/ci4rail/io4edge-client-go/functionblock"
-	"github.com/ci4rail/io4edge-client-go/mvbsniffer"
 	sniffer "github.com/ci4rail/io4edge-client-go/mvbsniffer"
 	fspb "github.com/ci4rail/io4edge_api/mvbSniffer/go/mvbSniffer/v1"
 )
@@ -54,28 +53,28 @@ func readStreamFor(c *sniffer.Client, w *pcap.Writer, duration time.Duration) {
 
 		timeDelta := timeDeltaSnifferToHost(sd.DeliveryTimestamp)
 
-		samples := sd.FSData.GetEntry()
-		fmt.Printf("got stream data seq=%d pkts=%d ts=%d td=%v\n", sd.Sequence, len(samples), sd.DeliveryTimestamp, timeDelta)
+		telegramCollection := sd.FSData.GetEntry()
+		fmt.Printf("got stream data seq=%d pkts=%d ts=%d td=%v\n", sd.Sequence, len(telegramCollection), sd.DeliveryTimestamp, timeDelta)
 
-		for i, sample := range samples {
+		for i, telegram := range telegramCollection {
 			// generate fake master packet
-			m := busshark.Pkt(frameNumber, 50*sample.Timestamp, 1 /*A*/, 1 /*Master*/, []byte{byte(uint8(sample.Type)<<4 + uint8(sample.Address>>12)), byte(sample.Address & 0xff)})
+			m := busshark.Pkt(frameNumber, 50*telegram.Timestamp, 1 /*A*/, 1 /*Master*/, []byte{byte(uint8(telegram.Type)<<4 + uint8(telegram.Address>>12)), byte(telegram.Address & 0xff)})
 
-			if err := w.AddPacket(sample.Timestamp+timeDelta, m); err != nil {
+			if err := w.AddPacket(telegram.Timestamp+timeDelta, m); err != nil {
 				log.Errorf("pcap add packet faile: %v\n", err)
 			}
 			frameNumber++
 
-			m = busshark.Pkt(frameNumber, 50*sample.Timestamp, 1 /*A*/, 2 /*Slave*/, sample.Data)
+			m = busshark.Pkt(frameNumber, 50*telegram.Timestamp, 1 /*A*/, 2 /*Slave*/, telegram.Data)
 
-			if err := w.AddPacket(sample.Timestamp+timeDelta, m); err != nil {
+			if err := w.AddPacket(telegram.Timestamp+timeDelta, m); err != nil {
 				log.Errorf("pcap add packet faile: %v\n", err)
 			}
 
 			frameNumber++
 
-			if sample.State != uint32(fspb.Telegram_kSuccessful) {
-				fmt.Printf("  #%d: %v\n", i, sample)
+			if telegram.State != uint32(fspb.Telegram_kSuccessful) {
+				fmt.Printf("  #%d: %v\n", i, telegram)
 			}
 		}
 	}
@@ -111,8 +110,8 @@ func main() {
 		BucketSamples:     300,
 		BufferedSamples:   600,
 		KeepaliveInterval: 1000,
-	}, mvbsniffer.StreamFilter{
-		Masks: []mvbsniffer.FilterMask{
+	}, sniffer.StreamFilter{
+		Masks: []sniffer.FilterMask{
 			{FCodeMask: 0xFFFF, Address: 0x0000, Mask: 0x0000}, // receive any telegram
 		},
 	})
