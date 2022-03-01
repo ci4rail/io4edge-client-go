@@ -36,7 +36,7 @@ func generatePattern() string {
 	errChk(cl.AddMasterFrame(7500, false, 800, 9, 272))
 
 	errChk(cl.AddMasterFrame(7500, false, 3, 0, 3))
-	errChk(cl.AddSlaveFrame(7500, false, 3, []uint8{0x00, 0x00}))
+	errChk(cl.AddSlaveFrame(7500, true, 3, []uint8{0x00, 0x00}))
 
 	errChk(cl.AddMasterFrame(7500, false, 43, 9, 528))
 	errChk(cl.AddMasterFrame(7500, false, 43, 9, 528))
@@ -94,7 +94,7 @@ func readStreamFor(c *mvbsniffer.Client, duration time.Duration) {
 						if !bytes.Equal(sample.Data, []uint8{0x00, 0x00}) {
 							log.Errorf("#%d FRM2 wrong bytes %v", n, sample.Data)
 						}
-						if sample.Line != fspb.Telegram_kA {
+						if sample.Line != fspb.Telegram_kB { // TBC
 							log.Errorf("#%d FRM2 wrong line %v", n, sample.Line)
 						}
 
@@ -111,7 +111,7 @@ func readStreamFor(c *mvbsniffer.Client, duration time.Duration) {
 						if !bytes.Equal(sample.Data, []uint8{0x00, 0x00}) {
 							log.Errorf("#%d FRM3 wrong bytes %v", n, sample.Data)
 						}
-						if sample.Line != fspb.Telegram_kB {
+						if sample.Line != fspb.Telegram_kA { // TBC
 							log.Errorf("#%d FRM3 wrong line %v", n, sample.Line)
 						}
 						state = StFrm2
@@ -170,5 +170,5 @@ func main() {
 	fmt.Printf("Generator pattern: %s\n", pattern)
 	errChk(c.SendPattern(pattern))
 
-	readStreamFor(c, time.Hour*2)
+	readStreamFor(c, time.Second*10)
 }
