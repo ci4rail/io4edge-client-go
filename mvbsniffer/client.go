@@ -44,6 +44,8 @@ type FilterMask struct {
 	Address uint16
 	// mask for comparison. Only bits set to one are compared against address
 	Mask uint16
+	// whether to include frames without slave response
+	IncludeTimedoutFrames bool
 }
 
 // StreamFilter defines the MVB filter to be applied to a stream
@@ -73,9 +75,10 @@ func (c *Client) StartStream(genericConfig *functionblock.StreamConfiguration, f
 	fmt.Printf("len filter %d\n", len(filter.Masks))
 	for i := 0; i < len(fil); i++ {
 		fil[i] = &fspb.FilterMask{
-			FCodeMask: uint32(filter.Masks[i].FCodeMask),
-			Address:   uint32(filter.Masks[i].Address),
-			Mask:      uint32(filter.Masks[i].Mask),
+			FCodeMask:             uint32(filter.Masks[i].FCodeMask),
+			Address:               uint32(filter.Masks[i].Address),
+			Mask:                  uint32(filter.Masks[i].Mask),
+			IncludeTimedoutFrames: filter.Masks[i].IncludeTimedoutFrames,
 		}
 	}
 

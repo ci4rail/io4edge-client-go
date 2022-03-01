@@ -36,11 +36,11 @@ func readStreamFor(c *mvbsniffer.Client, duration time.Duration) {
 		if err != nil {
 			log.Errorf("ReadStreamData failed: %v\n", err)
 		} else {
-			samples := sd.FSData.GetEntry()
+			telegramCollection := sd.FSData.GetEntry()
 			fmt.Printf("got stream data seq=%d ts=%d\n", sd.Sequence, sd.DeliveryTimestamp)
 
-			for i, sample := range samples {
-				fmt.Printf("  #%d: %v\n", i, sample)
+			for i, telegram := range telegramCollection {
+				fmt.Printf("  #%d: %v\n", i, telegram)
 			}
 		}
 		if time.Since(start) > duration {
@@ -77,7 +77,13 @@ func main() {
 		KeepaliveInterval: 1000,
 	}, mvbsniffer.StreamFilter{
 		Masks: []mvbsniffer.FilterMask{
-			{FCodeMask: 0xFFFF, Address: 0x0000, Mask: 0x0000}, // receive any telegram
+			// receive any telegram, except timed out frames
+			{
+				FCodeMask:             0xFFFF,
+				Address:               0x0000,
+				Mask:                  0x0000,
+				IncludeTimedoutFrames: false,
+			},
 		},
 	})
 	if err != nil {
