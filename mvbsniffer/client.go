@@ -72,7 +72,6 @@ func NewClientFromUniversalAddress(addrOrService string, timeout time.Duration) 
 // StartStream starts the stream on this connection.
 func (c *Client) StartStream(genericConfig *functionblock.StreamConfiguration, filter StreamFilter) error {
 	fil := make([]*fspb.FilterMask, len(filter.Masks))
-	fmt.Printf("len filter %d\n", len(filter.Masks))
 	for i := 0; i < len(fil); i++ {
 		fil[i] = &fspb.FilterMask{
 			FCodeMask:             uint32(filter.Masks[i].FCodeMask),

@@ -61,7 +61,7 @@ func readStreamFor(c *mvbsniffer.Client, duration time.Duration) {
 						if !bytes.Equal(sample.Data, []uint8{0x00, 0x00}) {
 							log.Errorf("#%d FRM2 wrong bytes %v", n, sample.Data)
 						}
-						if sample.Line != fspb.Telegram_kA {
+						if sample.Line != fspb.Telegram_kB { //TBC
 							log.Errorf("#%d FRM2 wrong line %v", n, sample.Line)
 						}
 
@@ -78,7 +78,7 @@ func readStreamFor(c *mvbsniffer.Client, duration time.Duration) {
 						if !bytes.Equal(sample.Data, []uint8{0x00, 0x00}) {
 							log.Errorf("#%d FRM3 wrong bytes %v", n, sample.Data)
 						}
-						if sample.Line != fspb.Telegram_kB {
+						if sample.Line != fspb.Telegram_kA { //TBC
 							log.Errorf("#%d FRM3 wrong line %v", n, sample.Line)
 						}
 						state = StFrm2
