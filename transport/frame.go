@@ -51,52 +51,27 @@ func NewFramedStreamFromTransport(t Transport) *FramedStream {
 // WriteMsg writes io4edge standard message to the transport stream
 func (fs *FramedStream) WriteMsg(payload []byte) error {
 	fs.mutex.Lock()
-	// make sure we have the magic bytes
-	err := fs.writeMagicBytes()
-	if err != nil {
-		fs.mutex.Unlock()
-		return err
-	}
+	defer fs.mutex.Unlock()
 
-	length := uint(len(payload))
-	err = fs.writeLength(length)
-	if err != nil {
-		fs.mutex.Unlock()
-		return err
-	}
+	msg := make([]byte, 0)
 
-	err = fs.writePayload(payload)
-	if err != nil {
-		fs.mutex.Unlock()
-		return err
-	}
-	fs.mutex.Unlock()
-	return nil
-}
+	msg = append(msg, magicBytes...)
+	msg = append(msg, fs.genLength(uint(len(payload)))...)
+	msg = append(msg, payload...)
 
-// writeMagicBytes write the magic bytes 0xFE, 0xED to transport stream
-func (fs *FramedStream) writeMagicBytes() error {
-	err := fs.writeBytesSafe(magicBytes)
+	err := fs.writeBytesSafe(msg)
 	return err
 }
 
-// writeLength writes 4 bytes to transport stream with the length
-func (fs *FramedStream) writeLength(length uint) error {
+// genLength writes 4 bytes to transport stream with the length
+func (fs *FramedStream) genLength(length uint) []byte {
 	lengthBytes := make([]byte, 4)
 
 	lengthBytes[0] = byte(length & 0xFF)
 	lengthBytes[1] = byte((length >> 8) & 0xFF)
 	lengthBytes[2] = byte((length >> 16) & 0xFF)
 	lengthBytes[3] = byte((length >> 24) & 0xFF)
-
-	err := fs.writeBytesSafe(lengthBytes)
-	return err
-}
-
-// writePayload write the payload to transport stream.
-func (fs *FramedStream) writePayload(payload []byte) error {
-	err := fs.writeBytesSafe(payload)
-	return err
+	return lengthBytes
 }
 
 // writeBytesSafe retries writing to transport stream until all bytes are written
