@@ -30,11 +30,18 @@ type Client struct {
 	fbClient *functionblock.Client
 }
 
-// Configuration represents the configuration parameters of the binaryIoTypeA function
+// ConfigOption is a type to pass options to UploadConfiguration()
+type ConfigOption func(*fspb.ConfigurationSet)
+
+// Configuration describes the current configuration of the binaryIoTypeA function.
+// Returned by DownloadConfiguration()
 type Configuration struct {
-	OutputFrittingMask    uint8
-	OutputWatchdogMask    uint8
-	OutputWatchdogTimeout uint32
+	// InputFrittingMask reflects on which inputs the fritting pulses are enabled
+	InputFrittingMask uint8
+	// OutputWatchdogMask reflects on which outputs the watchdog is enabled
+	OutputWatchdogMask uint8
+	// OutputWatchdogTimeoutMs reflects the watchdog timeout in ms
+	OutputWatchdogTimeoutMs uint32
 }
 
 // Description represents the describe response of the binaryIoTypeA function
@@ -63,12 +70,40 @@ func NewClientFromUniversalAddress(addrOrService string, timeout time.Duration) 
 	}, nil
 }
 
-// UploadConfiguration configures the binaryIoTypeA function block
-func (c *Client) UploadConfiguration(config *Configuration) error {
+// WithInputFritting may be passed to UploadConfiguration.
+// mask defines on which inputs the fritting pulses shall be enabled (bit0=first IO).
+func WithInputFritting(mask uint8) ConfigOption {
+	return func(c *fspb.ConfigurationSet) {
+		c.OutputFrittingMask = uint32(mask)
+	}
+}
+
+// WithOutputWatchdog may be passed to UploadConfiguration.
+// mask defines to which outputs the watchdog shall apply (bit0=first IO).
+// timeoutMs defines the watchdog timeout in ms, it's the same for all selected outputs
+func WithOutputWatchdog(mask uint8, timoutMs uint32) ConfigOption {
+	return func(c *fspb.ConfigurationSet) {
+		c.OutputWatchdogMask = uint32(mask)
+		c.OutputWatchdogTimeout = timoutMs
+	}
+}
+
+// UploadConfiguration configures the binaryIoTypeA function block.
+// Arguments may be one or more of the following functions:
+//  - WithOutputWatchdog
+//  - WithInputFritting
+// Options that are not specified take default values.
+func (c *Client) UploadConfiguration(opts ...ConfigOption) error {
+
+	// set defaults
 	fsCmd := &fspb.ConfigurationSet{
-		OutputFrittingMask:    uint32(config.OutputFrittingMask),
-		OutputWatchdogMask:    uint32(config.OutputWatchdogMask),
-		OutputWatchdogTimeout: config.OutputWatchdogTimeout,
+		OutputFrittingMask:    uint32(0x0f),
+		OutputWatchdogMask:    uint32(0x00),
+		OutputWatchdogTimeout: 0,
+	}
+
+	for _, opt := range opts {
+		opt(fsCmd)
 	}
 	_, err := c.fbClient.UploadConfiguration(fsCmd)
 	return err
@@ -86,9 +121,9 @@ func (c *Client) DownloadConfiguration() (*Configuration, error) {
 		return nil, err
 	}
 	cfg := &Configuration{
-		OutputFrittingMask:    uint8(res.OutputFrittingMask),
-		OutputWatchdogMask:    uint8(res.OutputWatchdogMask),
-		OutputWatchdogTimeout: res.OutputWatchdogTimeout,
+		InputFrittingMask:       uint8(res.OutputFrittingMask),
+		OutputWatchdogMask:      uint8(res.OutputWatchdogMask),
+		OutputWatchdogTimeoutMs: res.OutputWatchdogTimeout,
 	}
 	return cfg, err
 }
