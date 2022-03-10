@@ -24,6 +24,7 @@ limitations under the License.
 package transport
 
 import (
+	"fmt"
 	"sync"
 
 	log "github.com/sirupsen/logrus"
@@ -58,6 +59,10 @@ func (fs *FramedStream) WriteMsg(payload []byte) error {
 	msg = append(msg, magicBytes...)
 	msg = append(msg, fs.genLength(uint(len(payload)))...)
 	msg = append(msg, payload...)
+
+	for i := 0; i < len(msg); i++ {
+		fmt.Printf("%d: %02x", i, msg[i])
+	}
 
 	err := fs.writeBytesSafe(msg)
 	return err
