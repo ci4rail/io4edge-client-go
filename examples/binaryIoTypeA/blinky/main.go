@@ -54,6 +54,7 @@ func main() {
 			log.Fatalf("can't switch on: %v", err)
 		}
 		time.Sleep(time.Second)
+		i++
 	}
 }
 
