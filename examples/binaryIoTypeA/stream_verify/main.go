@@ -24,7 +24,6 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	binio "github.com/ci4rail/io4edge-client-go/binaryiotypea"
-	"github.com/ci4rail/io4edge-client-go/functionblock"
 	fspb "github.com/ci4rail/io4edge_api/binaryIoTypeA/go/binaryIoTypeA/v1alpha1"
 )
 
@@ -129,11 +128,7 @@ func main() {
 	wg.Add(1)
 
 	// start stream. Trigger on changes of all channels
-	err = c.StartStream(&functionblock.StreamConfiguration{
-		BucketSamples:     10,
-		BufferedSamples:   30,
-		KeepaliveInterval: 2000,
-	}, 0xF)
+	err = c.StartStream(binio.WithChannelFilterMask(0xf))
 	if err != nil {
 		log.Errorf("StartStream failed: %v\n", err)
 	}

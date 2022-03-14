@@ -242,14 +242,50 @@ func (c *Client) AllInputs(mask uint8) (uint8, error) {
 	return uint8(res.GetAll().Inputs), nil
 }
 
-// StartStream starts the stream on this connection.
+// StreamConfigOption is a type to pass options to StartStream()
+type StreamConfigOption func(*StreamConfiguration)
+
+// StreamConfiguration defines the configuration of a stream
+type StreamConfiguration struct {
+	ChannelFilterMask uint8
+	FBOptions         []functionblock.StreamConfigOption
+}
+
+// WithChannelFilterMask may be passed to StartStream.
 //
 // channelFilterMask defines the watched channels. Only changes on those channels generate samples in the stream
-func (c *Client) StartStream(genericConfig *functionblock.StreamConfiguration, channelFilterMask uint8) error {
-	fsCmd := &fspb.StreamControlStart{
-		ChannelFilterMask: uint32(channelFilterMask),
+func WithChannelFilterMask(channelFilterMask uint8) StreamConfigOption {
+	return func(c *StreamConfiguration) {
+		c.ChannelFilterMask = channelFilterMask
 	}
-	err := c.fbClient.StartStream(genericConfig, fsCmd)
+}
+
+// WithFBStreamOption may be passed to StartStream.
+//
+// opt is one of the functions that may be passed to functionblock.StartStream, e.g. WithBucketSamples()
+func WithFBStreamOption(opt functionblock.StreamConfigOption) StreamConfigOption {
+	return func(c *StreamConfiguration) {
+		c.FBOptions = append(c.FBOptions, opt)
+	}
+}
+
+// StartStream starts the stream on this connection.
+// Arguments may be one or more of the following functions:
+//  - WithChannelFilterMask
+//  - WithFBStreamOption(functionblock.WithXXXX(...))
+// Options that are not specified take default values.
+func (c *Client) StartStream(opts ...StreamConfigOption) error {
+	config := &StreamConfiguration{
+		ChannelFilterMask: 0xff,
+	}
+	for _, opt := range opts {
+		opt(config)
+	}
+
+	fsCmd := &fspb.StreamControlStart{
+		ChannelFilterMask: uint32(config.ChannelFilterMask),
+	}
+	err := c.fbClient.StartStream(config.FBOptions, fsCmd)
 	if err != nil {
 		return err
 	}

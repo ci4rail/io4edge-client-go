@@ -29,13 +29,13 @@ func main() {
 		log.Fatalf("Failed to create templateModule client: %v\n", err)
 	}
 
-	err = c.UploadConfiguration(&templatemodule.Configuration{SampleRate: 40})
+	err = c.UploadConfiguration(templatemodule.WithSampleRate(40))
 	if err != nil {
 		log.Errorf("ConfigurationSet failed: %v\n", err)
 	}
 
 	// provoke error
-	err = c.UploadConfiguration(&templatemodule.Configuration{SampleRate: 100000})
+	err = c.UploadConfiguration(templatemodule.WithSampleRate(100000))
 	if err != nil {
 		log.Errorf("ConfigurationSet failed: %v\n", err)
 	}
@@ -63,11 +63,12 @@ func main() {
 	}
 	fmt.Printf("counter: %d\n", cnt)
 
-	err = c.StartStream(&functionblock.StreamConfiguration{
-		BucketSamples:     40,
-		BufferedSamples:   1000,
-		KeepaliveInterval: 2000,
-	}, 4)
+	err = c.StartStream(
+		templatemodule.WithModulo(4),
+		templatemodule.WithFBStreamOption(functionblock.WithBucketSamples(40)),
+		templatemodule.WithFBStreamOption(functionblock.WithBufferedSamples(1000)),
+		templatemodule.WithFBStreamOption(functionblock.WithKeepaliveInterval(2000)),
+	)
 	if err != nil {
 		log.Errorf("StartStream failed: %v\n", err)
 	}

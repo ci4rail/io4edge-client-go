@@ -31,7 +31,11 @@ type Client struct {
 	fbClient *functionblock.Client
 }
 
-// Configuration represents the configuration parameters of the analogInTypeA function
+// ConfigOption is a type to pass options to UploadConfiguration()
+type ConfigOption func(*fspb.ConfigurationSet)
+
+// Configuration describes the current configuration of the analogInTypeA function.
+// Returned by DownloadConfiguration()
 type Configuration struct {
 	SampleRate uint32
 }
@@ -57,11 +61,28 @@ func NewClientFromUniversalAddress(addrOrService string, timeout time.Duration) 
 	}, nil
 }
 
-// UploadConfiguration configures the analogInTypeA function block
-func (c *Client) UploadConfiguration(config *Configuration) error {
-	fsCmd := &fspb.ConfigurationSet{
-		SampleRate: config.SampleRate,
+// WithSampleRate may be passed to UploadConfiguration.
+//
+// sampleRate defines the sample rate in Hz (300..4000).
+func WithSampleRate(sampleRate uint32) ConfigOption {
+	return func(c *fspb.ConfigurationSet) {
+		c.SampleRate = sampleRate
 	}
+}
+
+// UploadConfiguration configures the analogInTypeA function block
+// Arguments may be one or more of the following functions:
+//  - WithSampleRate
+// Options that are not specified take default values.
+func (c *Client) UploadConfiguration(opts ...ConfigOption) error {
+	fsCmd := &fspb.ConfigurationSet{
+		SampleRate: 300,
+	}
+
+	for _, opt := range opts {
+		opt(fsCmd)
+	}
+
 	_, err := c.fbClient.UploadConfiguration(fsCmd)
 	return err
 }
@@ -98,8 +119,11 @@ func (c *Client) Value(channel int) (float32, error) {
 }
 
 // StartStream starts the stream on this connection.
-func (c *Client) StartStream(genericConfig *functionblock.StreamConfiguration) error {
-	err := c.fbClient.StartStream(genericConfig, &fspb.StreamControlStart{})
+// Arguments may be one or more of the functionblock.WithXXX() functions that
+// may be passed to functionblock.StartStream()
+// Options that are not specified take default values.
+func (c *Client) StartStream(opts ...functionblock.StreamConfigOption) error {
+	err := c.fbClient.StartStream(opts, &fspb.StreamControlStart{})
 	if err != nil {
 		return err
 	}
