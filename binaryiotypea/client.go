@@ -30,11 +30,18 @@ type Client struct {
 	fbClient *functionblock.Client
 }
 
-// Configuration represents the configuration parameters of the binaryIoTypeA function
+// ConfigOption is a type to pass options to UploadConfiguration()
+type ConfigOption func(*fspb.ConfigurationSet)
+
+// Configuration describes the current configuration of the binaryIoTypeA function.
+// Returned by DownloadConfiguration()
 type Configuration struct {
-	OutputFrittingMask    uint8
-	OutputWatchdogMask    uint8
-	OutputWatchdogTimeout uint32
+	// InputFrittingMask reflects on which inputs the fritting pulses are enabled
+	InputFrittingMask uint8
+	// OutputWatchdogMask reflects on which outputs the watchdog is enabled
+	OutputWatchdogMask uint8
+	// OutputWatchdogTimeoutMs reflects the watchdog timeout in ms
+	OutputWatchdogTimeoutMs uint32
 }
 
 // Description represents the describe response of the binaryIoTypeA function
@@ -63,12 +70,40 @@ func NewClientFromUniversalAddress(addrOrService string, timeout time.Duration) 
 	}, nil
 }
 
-// UploadConfiguration configures the binaryIoTypeA function block
-func (c *Client) UploadConfiguration(config *Configuration) error {
+// WithInputFritting may be passed to UploadConfiguration.
+// mask defines on which inputs the fritting pulses shall be enabled (bit0=first IO).
+func WithInputFritting(mask uint8) ConfigOption {
+	return func(c *fspb.ConfigurationSet) {
+		c.OutputFrittingMask = uint32(mask)
+	}
+}
+
+// WithOutputWatchdog may be passed to UploadConfiguration.
+// mask defines to which outputs the watchdog shall apply (bit0=first IO).
+// timeoutMs defines the watchdog timeout in ms, it's the same for all selected outputs
+func WithOutputWatchdog(mask uint8, timoutMs uint32) ConfigOption {
+	return func(c *fspb.ConfigurationSet) {
+		c.OutputWatchdogMask = uint32(mask)
+		c.OutputWatchdogTimeout = timoutMs
+	}
+}
+
+// UploadConfiguration configures the binaryIoTypeA function block.
+// Arguments may be one or more of the following functions:
+//  - WithOutputWatchdog
+//  - WithInputFritting
+// Options that are not specified take default values.
+func (c *Client) UploadConfiguration(opts ...ConfigOption) error {
+
+	// set defaults
 	fsCmd := &fspb.ConfigurationSet{
-		OutputFrittingMask:    uint32(config.OutputFrittingMask),
-		OutputWatchdogMask:    uint32(config.OutputWatchdogMask),
-		OutputWatchdogTimeout: config.OutputWatchdogTimeout,
+		OutputFrittingMask:    uint32(0x0f),
+		OutputWatchdogMask:    uint32(0x00),
+		OutputWatchdogTimeout: 0,
+	}
+
+	for _, opt := range opts {
+		opt(fsCmd)
 	}
 	_, err := c.fbClient.UploadConfiguration(fsCmd)
 	return err
@@ -86,9 +121,9 @@ func (c *Client) DownloadConfiguration() (*Configuration, error) {
 		return nil, err
 	}
 	cfg := &Configuration{
-		OutputFrittingMask:    uint8(res.OutputFrittingMask),
-		OutputWatchdogMask:    uint8(res.OutputWatchdogMask),
-		OutputWatchdogTimeout: res.OutputWatchdogTimeout,
+		InputFrittingMask:       uint8(res.OutputFrittingMask),
+		OutputWatchdogMask:      uint8(res.OutputWatchdogMask),
+		OutputWatchdogTimeoutMs: res.OutputWatchdogTimeout,
 	}
 	return cfg, err
 }
@@ -207,14 +242,50 @@ func (c *Client) AllInputs(mask uint8) (uint8, error) {
 	return uint8(res.GetAll().Inputs), nil
 }
 
-// StartStream starts the stream on this connection.
+// StreamConfigOption is a type to pass options to StartStream()
+type StreamConfigOption func(*StreamConfiguration)
+
+// StreamConfiguration defines the configuration of a stream
+type StreamConfiguration struct {
+	ChannelFilterMask uint8
+	FBOptions         []functionblock.StreamConfigOption
+}
+
+// WithChannelFilterMask may be passed to StartStream.
 //
 // channelFilterMask defines the watched channels. Only changes on those channels generate samples in the stream
-func (c *Client) StartStream(genericConfig *functionblock.StreamConfiguration, channelFilterMask uint8) error {
-	fsCmd := &fspb.StreamControlStart{
-		ChannelFilterMask: uint32(channelFilterMask),
+func WithChannelFilterMask(channelFilterMask uint8) StreamConfigOption {
+	return func(c *StreamConfiguration) {
+		c.ChannelFilterMask = channelFilterMask
 	}
-	err := c.fbClient.StartStream(genericConfig, fsCmd)
+}
+
+// WithFBStreamOption may be passed to StartStream.
+//
+// opt is one of the functions that may be passed to functionblock.StartStream, e.g. WithBucketSamples()
+func WithFBStreamOption(opt functionblock.StreamConfigOption) StreamConfigOption {
+	return func(c *StreamConfiguration) {
+		c.FBOptions = append(c.FBOptions, opt)
+	}
+}
+
+// StartStream starts the stream on this connection.
+// Arguments may be one or more of the following functions:
+//  - WithChannelFilterMask
+//  - WithFBStreamOption(functionblock.WithXXXX(...))
+// Options that are not specified take default values.
+func (c *Client) StartStream(opts ...StreamConfigOption) error {
+	config := &StreamConfiguration{
+		ChannelFilterMask: 0xff,
+	}
+	for _, opt := range opts {
+		opt(config)
+	}
+
+	fsCmd := &fspb.StreamControlStart{
+		ChannelFilterMask: uint32(config.ChannelFilterMask),
+	}
+	err := c.fbClient.StartStream(config.FBOptions, fsCmd)
 	if err != nil {
 		return err
 	}

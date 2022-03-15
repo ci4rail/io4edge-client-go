@@ -26,16 +26,17 @@ func client(clientNum int, duration time.Duration, address string, wg *sync.Wait
 	}
 	log.Printf("Client %d connected", clientNum)
 
-	err = c.UploadConfiguration(&templatemodule.Configuration{SampleRate: 100})
+	err = c.UploadConfiguration(templatemodule.WithSampleRate(100))
 	if err != nil {
 		log.Errorf("%d: ConfigurationSet failed: %v\n", clientNum, err)
 	}
 
-	err = c.StartStream(&functionblock.StreamConfiguration{
-		BucketSamples:     30,
-		BufferedSamples:   50,
-		KeepaliveInterval: 2000,
-	}, 1)
+	err = c.StartStream(
+		templatemodule.WithModulo(1),
+		templatemodule.WithFBStreamOption(functionblock.WithBucketSamples(30)),
+		templatemodule.WithFBStreamOption(functionblock.WithBufferedSamples(50)),
+		templatemodule.WithFBStreamOption(functionblock.WithKeepaliveInterval(2000)),
+	)
 	if err != nil {
 		log.Errorf("%d: StartStream failed: %v\n", clientNum, err)
 	}

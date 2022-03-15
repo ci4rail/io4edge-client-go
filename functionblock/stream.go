@@ -26,6 +26,9 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 )
 
+// StreamConfigOption is a type to pass options to StartStream()
+type StreamConfigOption func(*StreamConfiguration)
+
 // StreamConfiguration defines the configuration of a stream
 type StreamConfiguration struct {
 	BucketSamples     uint32
@@ -45,8 +48,44 @@ type StreamData struct {
 	FSData *anypb.Any // function specific data
 }
 
+// WithBucketSamples may be passed to StartStream.
+//
+// numSamples define the max number of samples per message in StreamData
+func WithBucketSamples(numSamples uint32) StreamConfigOption {
+	return func(c *StreamConfiguration) {
+		c.BucketSamples = numSamples
+	}
+}
+
+// WithBufferedSamples may be passed to StartStream.
+//
+// numSamples define the number of samples buffered in the device for that stream
+func WithBufferedSamples(numSamples uint32) StreamConfigOption {
+	return func(c *StreamConfiguration) {
+		c.BufferedSamples = numSamples
+	}
+}
+
+// WithKeepaliveInterval may be passed to StartStream.
+//
+// timeMS defines the time in ms after which the devices buffer is flushed and sent to
+// the client, even if the number of buffered samples is less than BucketSamples
+func WithKeepaliveInterval(timeMS uint32) StreamConfigOption {
+	return func(c *StreamConfiguration) {
+		c.KeepaliveInterval = timeMS
+	}
+}
+
 // StartStream starts the stream with configuration config, passing the function specific configuration from fscmd
-func (c *Client) StartStream(config *StreamConfiguration, fsCmd proto.Message) error {
+func (c *Client) StartStream(opts []StreamConfigOption, fsCmd proto.Message) error {
+	config := &StreamConfiguration{
+		BucketSamples:     25,
+		KeepaliveInterval: 1000,
+		BufferedSamples:   50,
+	}
+	for _, opt := range opts {
+		opt(config)
+	}
 	cmd, err := streamControlStartMessage(config, fsCmd)
 	if err != nil {
 		return err

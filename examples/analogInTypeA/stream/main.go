@@ -73,19 +73,15 @@ func main() {
 	}
 
 	// set sampleRate
-	if err := c.UploadConfiguration(
-		&anain.Configuration{
-			SampleRate: uint32(sampleRate),
-		}); err != nil {
+	if err := c.UploadConfiguration(anain.WithSampleRate(uint32(sampleRate))); err != nil {
 		log.Fatalf("Failed to set configuration: %v\n", err)
 	}
 
-	// start stream. Trigger on changes of all channels
-	err = c.StartStream(&functionblock.StreamConfiguration{
-		BucketSamples:     100,
-		BufferedSamples:   200,
-		KeepaliveInterval: 1000,
-	})
+	// start stream
+	err = c.StartStream(
+		functionblock.WithBucketSamples(100),
+		functionblock.WithBufferedSamples(200),
+	)
 	if err != nil {
 		log.Errorf("StartStream failed: %v\n", err)
 	}

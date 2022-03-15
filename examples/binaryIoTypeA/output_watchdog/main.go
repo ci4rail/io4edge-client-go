@@ -29,7 +29,7 @@ func main() {
 	const timeout = 5 * time.Second
 
 	if len(os.Args) != 2 {
-		log.Fatalf("Usage: %s <mdns-service-address>  OR  %s <ip:port>", os.Args[0], os.Args[0])
+		log.Fatalf("Usage: %s <mdns-service-address OR ip:port>", os.Args[0])
 	}
 	address := os.Args[1]
 
@@ -43,12 +43,7 @@ func main() {
 	}
 
 	// set 2 seconds watchdog on output0, but not on other outputs
-	if err := c.UploadConfiguration(
-		&binio.Configuration{
-			OutputWatchdogMask:    0x1,
-			OutputWatchdogTimeout: 2000,
-			OutputFrittingMask:    0,
-		}); err != nil {
+	if err := c.UploadConfiguration(binio.WithOutputWatchdog(0x1, 2000)); err != nil {
 		log.Fatalf("Failed to set configuration: %v\n", err)
 	}
 

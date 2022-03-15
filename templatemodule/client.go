@@ -30,7 +30,11 @@ type Client struct {
 	fbClient *functionblock.Client
 }
 
-// Configuration represents the configuration parameters of the templateModule
+// ConfigOption is a type to pass options to UploadConfiguration()
+type ConfigOption func(*fspb.ConfigurationSet)
+
+// Configuration describes the current configuration of the templateModule function.
+// Returned by DownloadConfiguration()
 type Configuration struct {
 	SampleRate uint32
 }
@@ -61,11 +65,28 @@ func NewClientFromUniversalAddress(addrOrService string, timeout time.Duration) 
 	}, nil
 }
 
-// UploadConfiguration configures the template function block
-func (c *Client) UploadConfiguration(config *Configuration) error {
-	fsCmd := &fspb.ConfigurationSet{
-		SampleRate: config.SampleRate,
+// WithSampleRate may be passed to UploadConfiguration.
+//
+// sampleRate defines the sample rate in Hz (300..4000).
+func WithSampleRate(sampleRate uint32) ConfigOption {
+	return func(c *fspb.ConfigurationSet) {
+		c.SampleRate = sampleRate
 	}
+}
+
+// UploadConfiguration configures the analogInTypeA function block
+// Arguments may be one or more of the following functions:
+//  - WithSampleRate
+// Options that are not specified take default values.
+func (c *Client) UploadConfiguration(opts ...ConfigOption) error {
+	fsCmd := &fspb.ConfigurationSet{
+		SampleRate: 100,
+	}
+
+	for _, opt := range opts {
+		opt(fsCmd)
+	}
+
 	_, err := c.fbClient.UploadConfiguration(fsCmd)
 	return err
 }
@@ -127,12 +148,50 @@ func (c *Client) GetCounter() (uint32, error) {
 	return res.Value, nil
 }
 
-// StartStream starts the stream on this connection
-func (c *Client) StartStream(genericConfig *functionblock.StreamConfiguration, modulo uint32) error {
-	fsCmd := &fspb.StreamControlStart{
-		Modulo: modulo,
+// StreamConfigOption is a type to pass options to StartStream()
+type StreamConfigOption func(*StreamConfiguration)
+
+// StreamConfiguration defines the configuration of a stream
+type StreamConfiguration struct {
+	Modulo    uint32
+	FBOptions []functionblock.StreamConfigOption
+}
+
+// WithModulo may be passed to StartStream.
+//
+// modulo defines how often samples are pushed to the stream
+// modulo==2 pushes each 2nd sample, module==4 pushes each 4th sample and so forth
+func WithModulo(modulo uint32) StreamConfigOption {
+	return func(c *StreamConfiguration) {
+		c.Modulo = modulo
 	}
-	err := c.fbClient.StartStream(genericConfig, fsCmd)
+}
+
+// WithFBStreamOption may be passed to StartStream.
+//
+// opt is one of the functions that may be passed to functionblock.StartStream, e.g. WithBucketSamples()
+func WithFBStreamOption(opt functionblock.StreamConfigOption) StreamConfigOption {
+	return func(c *StreamConfiguration) {
+		c.FBOptions = append(c.FBOptions, opt)
+	}
+}
+
+// StartStream starts the stream on this connection.
+// Arguments may be one or more of the following functions:
+//  - WithModulo
+//  - WithFBStreamOption(functionblock.WithXXXX(...))
+// Options that are not specified take default values.
+func (c *Client) StartStream(opts ...StreamConfigOption) error {
+	config := &StreamConfiguration{
+		Modulo: 1,
+	}
+	for _, opt := range opts {
+		opt(config)
+	}
+	fsCmd := &fspb.StreamControlStart{
+		Modulo: config.Modulo,
+	}
+	err := c.fbClient.StartStream(config.FBOptions, fsCmd)
 	if err != nil {
 		return err
 	}
