@@ -69,20 +69,50 @@ func NewClientFromUniversalAddress(addrOrService string, timeout time.Duration) 
 	}, nil
 }
 
+// StreamConfigOption is a type to pass options to StartStream()
+type StreamConfigOption func(*StreamConfiguration)
+
+// StreamConfiguration defines the configuration of a stream
+type StreamConfiguration struct {
+	FilterMask []*fspb.FilterMask
+	FBOptions  []functionblock.StreamConfigOption
+}
+
+// WithFilterMask may be passed once or multiple times to StartStream.
+func WithFilterMask(mask FilterMask) StreamConfigOption {
+	return func(c *StreamConfiguration) {
+		c.FilterMask = append(c.FilterMask, &fspb.FilterMask{
+			FCodeMask:             uint32(mask.FCodeMask),
+			Address:               uint32(mask.Address),
+			Mask:                  uint32(mask.Mask),
+			IncludeTimedoutFrames: mask.IncludeTimedoutFrames,
+		})
+	}
+}
+
+// WithFBStreamOption may be passed to StartStream.
+//
+// opt is one of the functions that may be passed to functionblock.StartStream, e.g. WithBucketSamples()
+func WithFBStreamOption(opt functionblock.StreamConfigOption) StreamConfigOption {
+	return func(c *StreamConfiguration) {
+		c.FBOptions = append(c.FBOptions, opt)
+	}
+}
+
 // StartStream starts the stream on this connection.
-func (c *Client) StartStream(genericConfig *functionblock.StreamConfiguration, filter StreamFilter) error {
-	fil := make([]*fspb.FilterMask, len(filter.Masks))
-	for i := 0; i < len(fil); i++ {
-		fil[i] = &fspb.FilterMask{
-			FCodeMask:             uint32(filter.Masks[i].FCodeMask),
-			Address:               uint32(filter.Masks[i].Address),
-			Mask:                  uint32(filter.Masks[i].Mask),
-			IncludeTimedoutFrames: filter.Masks[i].IncludeTimedoutFrames,
-		}
+// Arguments may be one or more of the following functions:
+//  - WithFilterMask
+//  - WithFBStreamOption(functionblock.WithXXXX(...))
+// Options that are not specified take default values.
+func (c *Client) StartStream(opts ...StreamConfigOption) error {
+	config := &StreamConfiguration{}
+
+	for _, opt := range opts {
+		opt(config)
 	}
 
-	err := c.fbClient.StartStream(genericConfig, &fspb.StreamControlStart{
-		Filter: fil,
+	err := c.fbClient.StartStream(config.FBOptions, &fspb.StreamControlStart{
+		Filter: config.FilterMask,
 	})
 
 	if err != nil {

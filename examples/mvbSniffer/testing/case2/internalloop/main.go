@@ -146,20 +146,17 @@ func main() {
 	time.Sleep(500 * time.Millisecond)
 
 	// start stream
-	err = c.StartStream(&functionblock.StreamConfiguration{
-		BucketSamples:     100,
-		BufferedSamples:   200,
-		KeepaliveInterval: 1000,
-	}, mvbsniffer.StreamFilter{
-		Masks: []mvbsniffer.FilterMask{
-			{
-				FCodeMask:             0x0001,
-				Address:               0x0000,
-				Mask:                  0xFFC,
-				IncludeTimedoutFrames: false,
-			},
-		},
-	})
+	err = c.StartStream(
+		mvbsniffer.WithFilterMask(mvbsniffer.FilterMask{
+			// receive any telegram, except timed out frames
+			FCodeMask:             0x0001,
+			Address:               0x0000,
+			Mask:                  0x0FFC,
+			IncludeTimedoutFrames: false,
+		}),
+		mvbsniffer.WithFBStreamOption(functionblock.WithBucketSamples(100)),
+		mvbsniffer.WithFBStreamOption(functionblock.WithBufferedSamples(200)),
+	)
 	if err != nil {
 		log.Errorf("StartStream failed: %v\n", err)
 	}

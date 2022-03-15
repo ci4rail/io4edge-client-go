@@ -25,7 +25,7 @@ import (
 	"github.com/ci4rail/io4edge-client-go/examples/mvbSniffer/pcap/busshark"
 	"github.com/ci4rail/io4edge-client-go/examples/mvbSniffer/pcap/pcap"
 	"github.com/ci4rail/io4edge-client-go/functionblock"
-	sniffer "github.com/ci4rail/io4edge-client-go/mvbsniffer"
+	"github.com/ci4rail/io4edge-client-go/mvbsniffer"
 	fspb "github.com/ci4rail/io4edge_api/mvbSniffer/go/mvbSniffer/v1"
 )
 
@@ -35,7 +35,7 @@ func timeDeltaSnifferToHost(snifferTs uint64) uint64 {
 	return uint64(hostTs) - snifferTs
 }
 
-func readStreamFor(c *sniffer.Client, w *pcap.Writer, duration time.Duration) {
+func readStreamFor(c *mvbsniffer.Client, w *pcap.Writer, duration time.Duration) {
 	start := time.Now()
 	frameNumber := uint64(0)
 
@@ -89,7 +89,7 @@ func main() {
 	address := os.Args[1]
 	pcapFile := os.Args[2]
 
-	c, err := sniffer.NewClientFromUniversalAddress(address, timeout)
+	c, err := mvbsniffer.NewClientFromUniversalAddress(address, timeout)
 	if err != nil {
 		log.Fatalf("Failed to create anain client: %v\n", err)
 	}
@@ -106,15 +106,17 @@ func main() {
 	}
 
 	// start stream
-	err = c.StartStream(&functionblock.StreamConfiguration{
-		BucketSamples:     300,
-		BufferedSamples:   600,
-		KeepaliveInterval: 1000,
-	}, sniffer.StreamFilter{
-		Masks: []sniffer.FilterMask{
-			{FCodeMask: 0xFFFF, Address: 0x0000, Mask: 0x0000}, // receive any telegram
-		},
-	})
+	err = c.StartStream(
+		mvbsniffer.WithFilterMask(mvbsniffer.FilterMask{
+			// receive any telegram, except timed out frames
+			FCodeMask:             0xFFFF,
+			Address:               0x0000,
+			Mask:                  0x0000,
+			IncludeTimedoutFrames: false,
+		}),
+		mvbsniffer.WithFBStreamOption(functionblock.WithBucketSamples(300)),
+		mvbsniffer.WithFBStreamOption(functionblock.WithBufferedSamples(600)),
+	)
 	if err != nil {
 		log.Errorf("StartStream failed: %v\n", err)
 	}
