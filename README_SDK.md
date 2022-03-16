@@ -14,6 +14,7 @@ This package provides a Go API to
 * make use of the function blocks, such as
 	* [Analog In TypeA](analogintypea)
 	* [Binary IO TypeA](binaryiotypea)
+	* [MVB Sniffer](mvbsniffer)
 	* [Template Module](templatemodule)
 
 # Documentation
