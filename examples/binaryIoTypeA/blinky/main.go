@@ -53,8 +53,11 @@ func main() {
 		if err != nil {
 			log.Fatalf("can't switch on: %v", err)
 		}
-		time.Sleep(time.Second)
+		time.Sleep(300 * time.Millisecond)
 		i++
+		if i == desc.NumberOfChannels {
+			i = 0
+		}
 	}
 }
 
