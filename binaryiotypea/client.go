@@ -97,7 +97,7 @@ func (c *Client) UploadConfiguration(opts ...ConfigOption) error {
 
 	// set defaults
 	fsCmd := &fspb.ConfigurationSet{
-		OutputFrittingMask:    uint32(0x0f),
+		OutputFrittingMask:    uint32(0x00),
 		OutputWatchdogMask:    uint32(0x00),
 		OutputWatchdogTimeout: 0,
 	}
