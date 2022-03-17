@@ -106,7 +106,7 @@ func (c *Client) DownloadConfiguration() (*Configuration, error) {
 // Value reads the current analog input level
 //
 // range -1 .. +1 (for min/max voltage or current)
-func (c *Client) Value(channel int) (float32, error) {
+func (c *Client) Value() (float32, error) {
 	any, err := c.fbClient.FunctionControlGet(&fspb.FunctionControlGet{})
 	if err != nil {
 		return float32(math.NaN()), err
