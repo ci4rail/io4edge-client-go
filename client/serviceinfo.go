@@ -79,6 +79,45 @@ func initAvahiServer() error {
 	return nil
 }
 
+// ServiceObserver TODO comment
+func ServiceObserver(serviceName string, serviceAdded func(ServiceInfo) error, serviceRemoved func(ServiceInfo) error) error {
+	var svcInf ServiceInfo
+
+	if server == nil {
+		err := initAvahiServer()
+		if err != nil {
+			return err
+		}
+	}
+
+	sb, err := server.ServiceBrowserNew(avahi.InterfaceUnspec, avahi.ProtoUnspec, serviceName, "local", 0)
+	if err != nil {
+		return err
+	}
+
+	for {
+		select {
+		case s := <-sb.AddChannel:
+			s, err = server.ResolveService(s.Interface, s.Protocol, s.Name,
+				s.Type, s.Domain, avahi.ProtoUnspec, 0)
+			if err != nil {
+				return err
+			}
+			svcInf.service = s
+			err = serviceAdded(svcInf)
+			if err != nil {
+				return err
+			}
+		case s := <-sb.RemoveChannel:
+			svcInf.service = s
+			err := serviceRemoved(svcInf)
+			if err != nil {
+				return err
+			}
+		}
+	}
+}
+
 // NewServiceInfo creates a new avahi server if necessary, browses interfaces for the specified mdns service and returns a service info object
 // The service address consists of <instance_name>.<service_name>.<protocol>
 // The instanceName should contain the instance name of the service address
@@ -167,4 +206,9 @@ func (svcInf *ServiceInfo) GetIPAddressPort() string {
 	ipAddress, port, _ := svcInf.NetAddress()
 	ipAddrPort := ipAddress + ":" + strconv.Itoa(port)
 	return ipAddrPort
+}
+
+// GetInstanceName TODO comment
+func (svcInf *ServiceInfo) GetInstanceName() string {
+	return svcInf.service.Name
 }
