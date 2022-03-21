@@ -4,7 +4,7 @@ on:
 
 jobs:
   releases-matrix:
-    name: Release io4edge-cli Go Binary
+    name: Release exec_ttynvt Go Binary
     runs-on: ubuntu-latest
     strategy:
       matrix:
