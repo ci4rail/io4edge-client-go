@@ -79,7 +79,9 @@ func initAvahiServer() error {
 	return nil
 }
 
-// ServiceObserver TODO comment
+// ServiceObserver creates a new avahi server if necessary, browses interfaces for the specified mdns service and calls callback serviceAdded
+// if a service with the specified name appeared respectively calls callback serviceRemoved if a service with the specified name disappears.
+// Runs in a endless loop until an error occurs.
 func ServiceObserver(serviceName string, serviceAdded func(ServiceInfo) error, serviceRemoved func(ServiceInfo) error) error {
 	var svcInf ServiceInfo
 
@@ -208,7 +210,7 @@ func (svcInf *ServiceInfo) GetIPAddressPort() string {
 	return ipAddrPort
 }
 
-// GetInstanceName TODO comment
+// GetInstanceName gets the instance name of the given service info object.
 func (svcInf *ServiceInfo) GetInstanceName() string {
 	return svcInf.service.Name
 }

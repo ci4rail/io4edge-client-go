@@ -75,7 +75,7 @@ func serviceAdded(s client.ServiceInfo) error {
 		// return nil, that all other ttynvt instances are not terminated
 		return nil
 	}
-	instanceInfo.cmd = exec.Command("./ttynvt", "-D", "7", "-d", "-M", strconv.Itoa(major), "-m", strconv.Itoa(instanceInfo.minor), "-n", name, "-S", ipPort)
+	instanceInfo.cmd = exec.Command("/usr/bin/ttynvt", "-D", "7", "-d", "-M", strconv.Itoa(major), "-m", strconv.Itoa(instanceInfo.minor), "-n", name, "-S", ipPort)
 	err = instanceInfo.cmd.Start()
 	if err != nil {
 		log.Errorf("Start ttynvt instance %d (%s) failed: %v\n", instanceInfo.minor, name, err)
