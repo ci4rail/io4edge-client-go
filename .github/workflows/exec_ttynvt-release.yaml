@@ -23,4 +23,4 @@ jobs:
           goversion: "https://go.dev/dl/go1.17.5.linux-amd64.tar.gz"
           project_path: "./cmd/exec_ttynvt"
           binary_name: "exec_ttynvt"
-          extra_files: LICENSE README_CLI.md
+          extra_files: LICENSE README_EXEC_TTYNVT.md
