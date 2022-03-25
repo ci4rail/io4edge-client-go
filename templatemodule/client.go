@@ -65,6 +65,11 @@ func NewClientFromUniversalAddress(addrOrService string, timeout time.Duration) 
 	}, nil
 }
 
+// Close terminates the underlying connection to the functionblock
+func (c *Client) Close() {
+	c.fbClient.Close()
+}
+
 // WithSampleRate may be passed to UploadConfiguration.
 //
 // sampleRate defines the sample rate in Hz (300..4000).
