@@ -73,9 +73,25 @@ func (c *CommandList) StartGeneratorString(internalLoop bool) string {
 	return s
 }
 
+// DumpCommandBytes prints the list of commands (before encoding)
+func (c *CommandList) DumpCommandBytes() {
+	for _, cmd := range c.cmds {
+		fmt.Printf("Command: ")
+		for _, b := range cmd.ram {
+			fmt.Printf("%02x ", b)
+		}
+		fmt.Printf("\n")
+	}
+}
+
 // StopGeneratorString generates a string to stop the MVB pattern generator
 func (c *Client) StopGeneratorString() string {
 	return "0"
+}
+
+// SelectExternalInputString generates a string to switch the MVB receiver to the external signal
+func (c *Client) SelectExternalInputString() string {
+	return "2"
 }
 
 func (c *CommandList) addFrame(isMaster bool, redundantFrameDelayNs int, lineB bool, pauseAfterUs int, data []uint8) error {
