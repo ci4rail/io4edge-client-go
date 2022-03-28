@@ -76,7 +76,7 @@ func serviceAdded(s client.ServiceInfo) error {
 		// return nil, that all other ttynvt instances are not terminated
 		return nil
 	}
-	instanceInfo.cmd = exec.Command(programPath, "-f", "-E", "-M", strconv.Itoa(major), "-m", strconv.Itoa(instanceInfo.minor), "-n", name, "-S", ipPort)
+	instanceInfo.cmd = exec.Command(programPath, "-f", "-E", "-M", strconv.Itoa(major), "-m", strconv.Itoa(instanceInfo.minor), "-n", "tty"+name, "-S", ipPort)
 	err = instanceInfo.cmd.Start()
 	if err != nil {
 		log.Errorf("Start ttynvt instance %d (%s) failed: %v\n", instanceInfo.minor, name, err)
@@ -104,7 +104,7 @@ func serviceRemoved(s client.ServiceInfo) error {
 func main() {
 	var err error
 	if len(os.Args) != 3 {
-		log.Fatalf("Usage: %s <ttynvt-path> <driver-major-number>", os.Args[0])
+		log.Fatalf("Usage: %s <ttynvt-program-path> <driver-major-number>", os.Args[0])
 	}
 	programPath = os.Args[1]
 	_, err = os.Stat(programPath)
