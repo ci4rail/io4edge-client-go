@@ -18,6 +18,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -58,22 +59,25 @@ func readStreamFor(c *mvbsniffer.Client, w *pcap.Writer, duration time.Duration)
 
 		for i, telegram := range telegramCollection {
 			// generate fake master packet
-			m := busshark.Pkt(frameNumber, 50*telegram.Timestamp, 1 /*A*/, 1 /*Master*/, []byte{byte(uint8(telegram.Type)<<4 + uint8(telegram.Address>>12)), byte(telegram.Address & 0xff)})
+			m := busshark.Pkt(frameNumber, 50*telegram.Timestamp,
+				int(telegram.Line)+1, 1 /*Master*/, []byte{byte(uint8(telegram.Type)<<4 + uint8(telegram.Address>>8)), byte(telegram.Address & 0xff)})
 
 			if err := w.AddPacket(telegram.Timestamp+timeDelta, m); err != nil {
 				log.Errorf("pcap add packet faile: %v\n", err)
 			}
 			frameNumber++
 
-			m = busshark.Pkt(frameNumber, 50*telegram.Timestamp, 1 /*A*/, 2 /*Slave*/, telegram.Data)
+			if telegram.State&uint32(fspb.Telegram_kTimedOut) == 0 {
+				m = busshark.Pkt(frameNumber, 50*telegram.Timestamp, int(telegram.Line)+1, 2 /*Slave*/, telegram.Data)
 
-			if err := w.AddPacket(telegram.Timestamp+timeDelta, m); err != nil {
-				log.Errorf("pcap add packet faile: %v\n", err)
+				if err := w.AddPacket(telegram.Timestamp+timeDelta, m); err != nil {
+					log.Errorf("pcap add packet faile: %v\n", err)
+				}
+
+				frameNumber++
 			}
 
-			frameNumber++
-
-			if telegram.State != uint32(fspb.Telegram_kSuccessful) {
+			if telegram.State&uint32(fspb.Telegram_kMissedMVBFrames|fspb.Telegram_kMissedTelegrams) != 0 {
 				fmt.Printf("  #%d: %v\n", i, telegram)
 			}
 		}
@@ -83,12 +87,15 @@ func readStreamFor(c *mvbsniffer.Client, w *pcap.Writer, duration time.Duration)
 func main() {
 	const timeout = 5 * time.Second
 
-	if len(os.Args) != 3 {
-		log.Fatalf("Usage: %s <mdns-service-address OR ip:port> <pcap-file>", os.Args[0])
+	if len(os.Args) != 4 {
+		log.Fatalf("Usage: %s <mdns-service-address OR ip:port> <pcap-file> <recordingtime-seconds>", os.Args[0])
 	}
 	address := os.Args[1]
 	pcapFile := os.Args[2]
-
+	recordingTimeSeconds, err := strconv.Atoi(os.Args[3])
+	if err != nil {
+		log.Fatalf("Failed to convert recording time: %v\n", err)
+	}
 	c, err := mvbsniffer.NewClientFromUniversalAddress(address, timeout)
 	if err != nil {
 		log.Fatalf("Failed to create anain client: %v\n", err)
@@ -112,7 +119,7 @@ func main() {
 			FCodeMask:             0xFFFF,
 			Address:               0x0000,
 			Mask:                  0x0000,
-			IncludeTimedoutFrames: false,
+			IncludeTimedoutFrames: true,
 		}),
 		mvbsniffer.WithFBStreamOption(functionblock.WithBucketSamples(300)),
 		mvbsniffer.WithFBStreamOption(functionblock.WithBufferedSamples(600)),
@@ -123,5 +130,5 @@ func main() {
 
 	fmt.Println("Started stream")
 
-	readStreamFor(c, w, time.Second*10)
+	readStreamFor(c, w, time.Second*time.Duration(recordingTimeSeconds))
 }
