@@ -4,10 +4,12 @@ import (
 	"errors"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/godbus/dbus/v5"
 	"github.com/holoplot/go-avahi"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -24,31 +26,78 @@ type ServiceInfo struct {
 	service avahi.Service
 }
 
-// searchService searches for the service with the specified instance and service name
-func searchService(instanceName string, serviceName string, timeout time.Duration) (avahi.Service, error) {
-	var s avahi.Service
+type channelMapContext struct {
+	channels []chan ServiceInfo
+	mutex    sync.Mutex
+}
 
-	sb, err := server.ServiceBrowserNew(avahi.InterfaceUnspec, avahi.ProtoUnspec, serviceName, "local", 0)
-	if err != nil {
-		return s, err
-	}
+type mDNSInstanceMap map[string]ServiceInfo
 
-	for {
+// +-------------------------+
+// |       channel map       |
+// +=========================+
+// |   key: service name     |
+// +-------------------------+
+// |         value:          |
+// | +---------------------+ |
+// | | channel map context | |
+// | +=====================+ |
+// | | - channels[]        | |
+// | | - mutex             | |
+// | +---------------------+ |
+// +-------------------------+
+// channelMap[key = serviceName] = {channel1, channel2, ...}, mutex
+var channelMap = make(map[string]*channelMapContext)
+
+// +-------------------------+
+// |    mdns service map     |
+// +=========================+
+// |   key: service name     |
+// +-------------------------+
+// |         value:          |
+// | +---------------------+ |
+// | |  mdns instance map  | |
+// | +=====================+ |
+// | | key: instance name  | |
+// | +---------------------+ |
+// | | value: service info | |
+// | +---------------------+ |
+// +-------------------------+
+// mDNSServiceMap[key = serviceName] = instanceMap[key = instanceName]
+var mDNSServiceMap = make(map[string]mDNSInstanceMap)
+
+func addInstanceToMap(s ServiceInfo, context interface{}) {
+	instanceMap := mDNSServiceMap[s.service.Type]
+	instanceMap[s.service.Name] = s
+
+	(*context.(*channelMapContext)).mutex.Lock()
+	for _, channel := range context.(*channelMapContext).channels {
 		select {
-		case s = <-sb.AddChannel:
-			s, err = server.ResolveService(s.Interface, s.Protocol, s.Name,
-				s.Type, s.Domain, avahi.ProtoUnspec, 0)
-			if err != nil {
-				return s, err
-			}
-			if s.Name == instanceName {
-				return s, err
-			}
-		case <-time.After(timeout):
-			err = errors.New("could not find instance or service")
-			return s, err
+		case channel <- s:
+		case <-time.After(time.Second * 3):
 		}
 	}
+	(*context.(*channelMapContext)).mutex.Unlock()
+}
+
+func addInstanceToMapWrapper(s ServiceInfo, context interface{}) error {
+	// start addInstanceToMap as go routine, that other avahi server activities are not delayed
+	go addInstanceToMap(s, context)
+	return nil
+}
+
+func removeInstanceFromMap(s ServiceInfo, context interface{}) {
+	instanceMap := mDNSServiceMap[s.service.Type]
+	_, ok := instanceMap[s.service.Name]
+	if ok {
+		delete(instanceMap, s.service.Name)
+	}
+}
+
+func removeInstanceFromMapWrapper(s ServiceInfo, context interface{}) error {
+	// start removeInstanceFromMap as go routine, that other avahi server activities are not delayed
+	go removeInstanceFromMap(s, context)
+	return nil
 }
 
 // getTxtValueFromKey searches the given txt array for the given key and returns the corresponding value.
@@ -82,7 +131,7 @@ func initAvahiServer() error {
 // ServiceObserver creates a new avahi server if necessary, browses interfaces for the specified mdns service and calls callback serviceAdded
 // if a service with the specified name appeared respectively calls callback serviceRemoved if a service with the specified name disappears.
 // Runs in a endless loop until an error occurs.
-func ServiceObserver(serviceName string, serviceAdded func(ServiceInfo) error, serviceRemoved func(ServiceInfo) error) error {
+func ServiceObserver(serviceName string, context interface{}, serviceAdded func(ServiceInfo, interface{}) error, serviceRemoved func(ServiceInfo, interface{}) error) error {
 	var svcInf ServiceInfo
 
 	if server == nil {
@@ -106,13 +155,13 @@ func ServiceObserver(serviceName string, serviceAdded func(ServiceInfo) error, s
 				return err
 			}
 			svcInf.service = s
-			err = serviceAdded(svcInf)
+			err = serviceAdded(svcInf, context)
 			if err != nil {
 				return err
 			}
 		case s := <-sb.RemoveChannel:
 			svcInf.service = s
-			err := serviceRemoved(svcInf)
+			err := serviceRemoved(svcInf, context)
 			if err != nil {
 				return err
 			}
@@ -120,7 +169,23 @@ func ServiceObserver(serviceName string, serviceAdded func(ServiceInfo) error, s
 	}
 }
 
-// NewServiceInfo creates a new avahi server if necessary, browses interfaces for the specified mdns service and returns a service info object
+func removeChannelFromMap(serviceName string, channel chan ServiceInfo) error {
+	channelMap[serviceName].mutex.Lock()
+	for idx, c := range channelMap[serviceName].channels {
+		if c == channel {
+			channelMap[serviceName].channels = append(channelMap[serviceName].channels[:idx], channelMap[serviceName].channels[idx+1:]...)
+			channelMap[serviceName].mutex.Unlock()
+			return nil
+		}
+	}
+	channelMap[serviceName].mutex.Unlock()
+
+	err := errors.New("error: could not find channel in channelMap")
+	return err
+}
+
+// NewServiceInfo TODO COMMENT
+// creates a new avahi server if necessary, browses interfaces for the specified mdns service and returns a service info object
 // The service address consists of <instance_name>.<service_name>.<protocol>
 // The instanceName should contain the instance name of the service address
 // The serviceName should contain the service name of the service address together with the protocol
@@ -128,6 +193,8 @@ func ServiceObserver(serviceName string, serviceAdded func(ServiceInfo) error, s
 func NewServiceInfo(instanceName string, serviceName string, timeout time.Duration) (*ServiceInfo, error) {
 	var svcInf ServiceInfo
 	var err error
+	var channel chan ServiceInfo
+	startObserver := false
 
 	if server == nil {
 		err = initAvahiServer()
@@ -136,12 +203,52 @@ func NewServiceInfo(instanceName string, serviceName string, timeout time.Durati
 		}
 	}
 
-	svcInf.service, err = searchService(instanceName, serviceName, timeout)
-	if err != nil {
-		return nil, err
+	/* check instance map for service name and instance name */
+	instanceMap, exists := mDNSServiceMap[serviceName]
+	if exists {
+		svcInf, exists = instanceMap[instanceName]
+		if exists {
+			return &svcInf, nil
+		}
+	} else {
+		mDNSServiceMap[serviceName] = make(mDNSInstanceMap)
+		channelMap[serviceName] = new(channelMapContext)
+		startObserver = true
 	}
 
-	return &svcInf, nil
+	/* lock channel map that the callback addInstanceToMap has to wait until the new channel is added to the channel map. */
+	channelMap[serviceName].mutex.Lock()
+
+	/* create channel to get service info object when service observer found service */
+	channel = make(chan ServiceInfo)
+	channelMap[serviceName].channels = append(channelMap[serviceName].channels, channel)
+
+	if startObserver {
+		/* start service observer and pass channel map as context */
+		go ServiceObserver(serviceName, channelMap[serviceName], addInstanceToMapWrapper, removeInstanceFromMapWrapper)
+	}
+
+	channelMap[serviceName].mutex.Unlock()
+
+	for {
+		select {
+		case svcInf = <-channel:
+			if svcInf.GetInstanceName() == instanceName {
+				err = removeChannelFromMap(serviceName, channel)
+				if err != nil {
+					log.Errorf("could not remove channel from map (%d)\n", err)
+				}
+				return &svcInf, nil
+			}
+		case <-time.After(timeout):
+			err = removeChannelFromMap(serviceName, channel)
+			if err != nil {
+				log.Errorf("could not remove channel from map (%d)\n", err)
+			}
+			err = errors.New("error: could not find instance or service (" + instanceName + "." + serviceName + "): timeout")
+			return nil, err
+		}
+	}
 }
 
 // NetAddress gives the caller the ip address and port of the service

@@ -64,7 +64,7 @@ func setMinorFree(minor int) {
 	minorMap[minor-1] = true
 }
 
-func serviceAdded(s client.ServiceInfo) error {
+func serviceAdded(s client.ServiceInfo, context interface{}) error {
 	var err error
 	var instanceInfo ttynvtInstanceInfo
 	name := "tty" + s.GetInstanceName()
@@ -88,7 +88,7 @@ func serviceAdded(s client.ServiceInfo) error {
 	return nil
 }
 
-func serviceRemoved(s client.ServiceInfo) error {
+func serviceRemoved(s client.ServiceInfo, context interface{}) error {
 	name := "tty" + s.GetInstanceName()
 	fmt.Println("Removed service", s.GetInstanceName())
 	err := ttynvtInstanceMap[name].cmd.Process.Kill()
@@ -120,5 +120,5 @@ func main() {
 		log.Fatalf("error: driver-major-number must be a number!")
 	}
 	initMinorMap()
-	client.ServiceObserver("_ttynvt._tcp", serviceAdded, serviceRemoved)
+	client.ServiceObserver("_ttynvt._tcp", nil, serviceAdded, serviceRemoved)
 }
