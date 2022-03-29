@@ -67,8 +67,8 @@ func setMinorFree(minor int) {
 func serviceAdded(s client.ServiceInfo) error {
 	var err error
 	var instanceInfo ttynvtInstanceInfo
-	name := s.GetInstanceName()
-	fmt.Println("Added service ", name)
+	name := "tty" + s.GetInstanceName()
+	fmt.Println("Added service", s.GetInstanceName())
 	ipPort := s.GetIPAddressPort()
 	instanceInfo.minor, err = getFreeMinor()
 	if err != nil {
@@ -76,7 +76,7 @@ func serviceAdded(s client.ServiceInfo) error {
 		// return nil, that all other ttynvt instances are not terminated
 		return nil
 	}
-	instanceInfo.cmd = exec.Command(programPath, "-f", "-E", "-M", strconv.Itoa(major), "-m", strconv.Itoa(instanceInfo.minor), "-n", "tty"+name, "-S", ipPort)
+	instanceInfo.cmd = exec.Command(programPath, "-f", "-E", "-M", strconv.Itoa(major), "-m", strconv.Itoa(instanceInfo.minor), "-n", name, "-S", ipPort)
 	err = instanceInfo.cmd.Start()
 	if err != nil {
 		log.Errorf("Start ttynvt instance %d (%s) failed: %v\n", instanceInfo.minor, name, err)
@@ -89,8 +89,8 @@ func serviceAdded(s client.ServiceInfo) error {
 }
 
 func serviceRemoved(s client.ServiceInfo) error {
-	name := s.GetInstanceName()
-	fmt.Println("Removed service ", name)
+	name := "tty" + s.GetInstanceName()
+	fmt.Println("Removed service", s.GetInstanceName())
 	err := ttynvtInstanceMap[name].cmd.Process.Kill()
 	if err != nil {
 		log.Errorf("Kill ttynvt instance %d (%s) failed: %v\n", ttynvtInstanceMap[name].minor, name, err)
