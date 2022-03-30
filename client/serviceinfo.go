@@ -19,7 +19,12 @@ const (
 	auxschema = "auxschema"
 )
 
-var server *avahi.Server
+type avahiServer interface {
+	ServiceBrowserNew(iface, protocol int32, serviceType string, domain string, flags uint32) (*avahi.ServiceBrowser, error)
+	ResolveService(iface, protocol int32, name, serviceType, domain string, aprotocol int32, flags uint32) (reply avahi.Service, err error)
+}
+
+var server avahiServer
 
 // ServiceInfo stores the avahi service struct of a service to make information about the service available through getter functions
 type ServiceInfo struct {
@@ -101,16 +106,18 @@ func getTxtValueFromKey(key string, txt [][]byte) (string, error) {
 
 // initAvahiServer creates a new avahi server and stores it in the server variable (only one server is needed to search for multiple services)
 func initAvahiServer() error {
-	conn, err := dbus.SystemBus()
-	if err != nil {
-		return err
-	}
 
-	server, err = avahi.ServerNew(conn)
-	if err != nil {
-		return err
-	}
+	if server == nil {
+		conn, err := dbus.SystemBus()
+		if err != nil {
+			return err
+		}
 
+		server, err = avahi.ServerNew(conn)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -120,18 +127,15 @@ func initAvahiServer() error {
 func ServiceObserver(serviceName string, context interface{}, serviceAdded func(ServiceInfo, interface{}) error, serviceRemoved func(ServiceInfo, interface{}) error) error {
 	var svcInf ServiceInfo
 
-	if server == nil {
-		err := initAvahiServer()
-		if err != nil {
-			return err
-		}
+	err := initAvahiServer()
+	if err != nil {
+		return err
 	}
 
 	sb, err := server.ServiceBrowserNew(avahi.InterfaceUnspec, avahi.ProtoUnspec, serviceName, "local", 0)
 	if err != nil {
 		return err
 	}
-
 	for {
 		select {
 		case s := <-sb.AddChannel:
@@ -183,11 +187,9 @@ func GetServiceInfo(instanceName string, serviceName string, timeout time.Durati
 	var channel chan ServiceInfo
 	startObserver := false
 
-	if server == nil {
-		err = initAvahiServer()
-		if err != nil {
-			return nil, err
-		}
+	err = initAvahiServer()
+	if err != nil {
+		return nil, err
 	}
 
 	/* Avoid concurrent access to observerList */
