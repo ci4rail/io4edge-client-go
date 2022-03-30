@@ -86,7 +86,7 @@ func NewClientFromService(serviceAddr string, timeout time.Duration) (*Client, e
 	if err != nil {
 		return nil, err
 	}
-	svcInfo, err := NewServiceInfo(instance, service, timeout)
+	svcInfo, err := GetServiceInfo(instance, service, timeout)
 	if err != nil {
 		return nil, err
 	}

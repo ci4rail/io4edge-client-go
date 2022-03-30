@@ -170,16 +170,14 @@ func removeChannel(serviceName string, channel chan ServiceInfo) error {
 	return err
 }
 
-// NewServiceInfo creates a new avahi server if necessary and starts a new service observer instance if
-// no one is already running for the given mdns service name. The observer instance calls callbacks
-// which are fill
-//TODO COMMENT
-// creates a new avahi server if necessary, browses interfaces for the specified mdns service and returns a service info object
-// The service address consists of <instance_name>.<service_name>.<protocol>
+// GetServiceInfo creates a new avahi server if necessary and starts a new service observer instance if
+// no one is already running for the given mdns service name.
+// If a service with the correct service address (consisting of <instance_name>.<service_name>.<protocol>) is
+// found within the specified timeout, a service info object is returned.
 // The instanceName should contain the instance name of the service address
 // The serviceName should contain the service name of the service address together with the protocol
 // The timeout specifies the time to wait for the service to show up
-func NewServiceInfo(instanceName string, serviceName string, timeout time.Duration) (*ServiceInfo, error) {
+func GetServiceInfo(instanceName string, serviceName string, timeout time.Duration) (*ServiceInfo, error) {
 	var svcInf ServiceInfo
 	var err error
 	var channel chan ServiceInfo
