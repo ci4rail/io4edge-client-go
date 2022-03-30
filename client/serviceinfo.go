@@ -26,77 +26,63 @@ type ServiceInfo struct {
 	service avahi.Service
 }
 
-type channelMapContext struct {
-	channels []chan ServiceInfo
-	mutex    sync.Mutex
+type serviceFromInstance map[string]ServiceInfo
+
+type observerContext struct {
+	foundInstances serviceFromInstance
+	channels       []chan ServiceInfo
 }
 
-type mDNSInstanceMap map[string]ServiceInfo
+// +-----------------------------+
+// |         observers           |
+// +=============================+
+// |   key: service name         |
+// +-----------------------------+
+// |           value:            |
+// | +-------------------------+ |
+// | |    observer context     | |
+// | +=========================+ |
+// | | +---------------------+ | |
+// | | |   found instances   | | |
+// | | +=====================+ | |
+// | | | key: instance name  | | |
+// | | +---------------------+ | |
+// | | | value: service info | | |
+// | | +---------------------+ | |
+// | +-------------------------+ |
+// | |     channels[]          | |
+// | +-------------------------+ |
+// +-----------------------------+
+var observers = make(map[string]*observerContext)
 
-// +-------------------------+
-// |       channel map       |
-// +=========================+
-// |   key: service name     |
-// +-------------------------+
-// |         value:          |
-// | +---------------------+ |
-// | | channel map context | |
-// | +=====================+ |
-// | | - channels[]        | |
-// | | - mutex             | |
-// | +---------------------+ |
-// +-------------------------+
-// channelMap[key = serviceName] = {channel1, channel2, ...}, mutex
-var channelMap = make(map[string]*channelMapContext)
+// mutex to lock access to observers
+var observersMutex sync.Mutex
 
-// +-------------------------+
-// |    mdns service map     |
-// +=========================+
-// |   key: service name     |
-// +-------------------------+
-// |         value:          |
-// | +---------------------+ |
-// | |  mdns instance map  | |
-// | +=====================+ |
-// | | key: instance name  | |
-// | +---------------------+ |
-// | | value: service info | |
-// | +---------------------+ |
-// +-------------------------+
-// mDNSServiceMap[key = serviceName] = instanceMap[key = instanceName]
-var mDNSServiceMap = make(map[string]mDNSInstanceMap)
+func newInstanceFound(s ServiceInfo, context interface{}) error {
+	observersMutex.Lock()
+	observerContext := (context.(*observerContext))
+	observerContext.foundInstances[s.service.Name] = s
 
-func addInstanceToMap(s ServiceInfo, context interface{}) {
-	instanceMap := mDNSServiceMap[s.service.Type]
-	instanceMap[s.service.Name] = s
-
-	(*context.(*channelMapContext)).mutex.Lock()
-	for _, channel := range context.(*channelMapContext).channels {
+	for _, channel := range observerContext.channels {
 		select {
 		case channel <- s:
 		case <-time.After(time.Second * 3):
 		}
 	}
-	(*context.(*channelMapContext)).mutex.Unlock()
-}
+	observersMutex.Unlock()
 
-func addInstanceToMapWrapper(s ServiceInfo, context interface{}) error {
-	// start addInstanceToMap as go routine, that other avahi server activities are not delayed
-	go addInstanceToMap(s, context)
 	return nil
 }
 
-func removeInstanceFromMap(s ServiceInfo, context interface{}) {
-	instanceMap := mDNSServiceMap[s.service.Type]
-	_, ok := instanceMap[s.service.Name]
+func instanceDisappeared(s ServiceInfo, context interface{}) error {
+	observersMutex.Lock()
+	observerContext := (context.(*observerContext))
+	_, ok := observerContext.foundInstances[s.service.Name]
 	if ok {
-		delete(instanceMap, s.service.Name)
+		delete(observerContext.foundInstances, s.service.Name)
 	}
-}
+	observersMutex.Unlock()
 
-func removeInstanceFromMapWrapper(s ServiceInfo, context interface{}) error {
-	// start removeInstanceFromMap as go routine, that other avahi server activities are not delayed
-	go removeInstanceFromMap(s, context)
 	return nil
 }
 
@@ -169,22 +155,25 @@ func ServiceObserver(serviceName string, context interface{}, serviceAdded func(
 	}
 }
 
-func removeChannelFromMap(serviceName string, channel chan ServiceInfo) error {
-	channelMap[serviceName].mutex.Lock()
-	for idx, c := range channelMap[serviceName].channels {
+func removeChannel(serviceName string, channel chan ServiceInfo) error {
+	observersMutex.Lock()
+	for idx, c := range observers[serviceName].channels {
 		if c == channel {
-			channelMap[serviceName].channels = append(channelMap[serviceName].channels[:idx], channelMap[serviceName].channels[idx+1:]...)
-			channelMap[serviceName].mutex.Unlock()
+			observers[serviceName].channels = append(observers[serviceName].channels[:idx], observers[serviceName].channels[idx+1:]...)
+			observersMutex.Unlock()
 			return nil
 		}
 	}
-	channelMap[serviceName].mutex.Unlock()
+	observersMutex.Unlock()
 
 	err := errors.New("error: could not find channel in channelMap")
 	return err
 }
 
-// NewServiceInfo TODO COMMENT
+// NewServiceInfo creates a new avahi server if necessary and starts a new service observer instance if
+// no one is already running for the given mdns service name. The observer instance calls callbacks
+// which are fill
+//TODO COMMENT
 // creates a new avahi server if necessary, browses interfaces for the specified mdns service and returns a service info object
 // The service address consists of <instance_name>.<service_name>.<protocol>
 // The instanceName should contain the instance name of the service address
@@ -203,47 +192,47 @@ func NewServiceInfo(instanceName string, serviceName string, timeout time.Durati
 		}
 	}
 
+	/* Avoid concurrent access to observerList */
+	observersMutex.Lock()
+
 	/* check instance map for service name and instance name */
-	instanceMap, exists := mDNSServiceMap[serviceName]
+	observer, exists := observers[serviceName]
 	if exists {
-		svcInf, exists = instanceMap[instanceName]
+		svcInf, exists = observer.foundInstances[instanceName]
 		if exists {
 			return &svcInf, nil
 		}
 	} else {
-		mDNSServiceMap[serviceName] = make(mDNSInstanceMap)
-		channelMap[serviceName] = new(channelMapContext)
+		observers[serviceName] = new(observerContext)
+		observers[serviceName].foundInstances = make(serviceFromInstance)
 		startObserver = true
 	}
 
-	/* lock channel map that the callback addInstanceToMap has to wait until the new channel is added to the channel map. */
-	channelMap[serviceName].mutex.Lock()
-
 	/* create channel to get service info object when service observer found service */
 	channel = make(chan ServiceInfo)
-	channelMap[serviceName].channels = append(channelMap[serviceName].channels, channel)
+	observers[serviceName].channels = append(observers[serviceName].channels, channel)
 
 	if startObserver {
-		/* start service observer and pass channel map as context */
-		go ServiceObserver(serviceName, channelMap[serviceName], addInstanceToMapWrapper, removeInstanceFromMapWrapper)
+		/* start service observer and pass observer context as context */
+		go ServiceObserver(serviceName, observers[serviceName], newInstanceFound, instanceDisappeared)
 	}
 
-	channelMap[serviceName].mutex.Unlock()
+	observersMutex.Unlock()
 
 	for {
 		select {
 		case svcInf = <-channel:
 			if svcInf.GetInstanceName() == instanceName {
-				err = removeChannelFromMap(serviceName, channel)
+				err = removeChannel(serviceName, channel)
 				if err != nil {
-					log.Errorf("could not remove channel from map (%d)\n", err)
+					log.Errorf("could not remove channel again (%d)\n", err)
 				}
 				return &svcInf, nil
 			}
 		case <-time.After(timeout):
-			err = removeChannelFromMap(serviceName, channel)
+			err = removeChannel(serviceName, channel)
 			if err != nil {
-				log.Errorf("could not remove channel from map (%d)\n", err)
+				log.Errorf("could not remove channel again (%d)\n", err)
 			}
 			err = errors.New("error: could not find instance or service (" + instanceName + "." + serviceName + "): timeout")
 			return nil, err
