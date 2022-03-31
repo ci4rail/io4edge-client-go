@@ -9,7 +9,6 @@ import (
 
 	"github.com/godbus/dbus/v5"
 	"github.com/holoplot/go-avahi"
-	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -19,7 +18,12 @@ const (
 	auxschema = "auxschema"
 )
 
-var server *avahi.Server
+type avahiServer interface {
+	ServiceBrowserNew(iface, protocol int32, serviceType string, domain string, flags uint32) (*avahi.ServiceBrowser, error)
+	ResolveService(iface, protocol int32, name, serviceType, domain string, aprotocol int32, flags uint32) (reply avahi.Service, err error)
+}
+
+var server avahiServer
 
 // ServiceInfo stores the avahi service struct of a service to make information about the service available through getter functions
 type ServiceInfo struct {
@@ -60,28 +64,29 @@ var observersMutex sync.Mutex
 
 func newInstanceFound(s ServiceInfo, context interface{}) error {
 	observersMutex.Lock()
+	defer observersMutex.Unlock()
 	observerContext := (context.(*observerContext))
 	observerContext.foundInstances[s.service.Name] = s
 
 	for _, channel := range observerContext.channels {
 		select {
 		case channel <- s:
-		case <-time.After(time.Second * 3):
+		default:
 		}
 	}
-	observersMutex.Unlock()
 
 	return nil
 }
 
 func instanceDisappeared(s ServiceInfo, context interface{}) error {
 	observersMutex.Lock()
+	defer observersMutex.Unlock()
+
 	observerContext := (context.(*observerContext))
 	_, ok := observerContext.foundInstances[s.service.Name]
 	if ok {
 		delete(observerContext.foundInstances, s.service.Name)
 	}
-	observersMutex.Unlock()
 
 	return nil
 }
@@ -101,16 +106,18 @@ func getTxtValueFromKey(key string, txt [][]byte) (string, error) {
 
 // initAvahiServer creates a new avahi server and stores it in the server variable (only one server is needed to search for multiple services)
 func initAvahiServer() error {
-	conn, err := dbus.SystemBus()
-	if err != nil {
-		return err
-	}
 
-	server, err = avahi.ServerNew(conn)
-	if err != nil {
-		return err
-	}
+	if server == nil {
+		conn, err := dbus.SystemBus()
+		if err != nil {
+			return err
+		}
 
+		server, err = avahi.ServerNew(conn)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -120,18 +127,15 @@ func initAvahiServer() error {
 func ServiceObserver(serviceName string, context interface{}, serviceAdded func(ServiceInfo, interface{}) error, serviceRemoved func(ServiceInfo, interface{}) error) error {
 	var svcInf ServiceInfo
 
-	if server == nil {
-		err := initAvahiServer()
-		if err != nil {
-			return err
-		}
+	err := initAvahiServer()
+	if err != nil {
+		return err
 	}
 
 	sb, err := server.ServiceBrowserNew(avahi.InterfaceUnspec, avahi.ProtoUnspec, serviceName, "local", 0)
 	if err != nil {
 		return err
 	}
-
 	for {
 		select {
 		case s := <-sb.AddChannel:
@@ -157,14 +161,13 @@ func ServiceObserver(serviceName string, context interface{}, serviceAdded func(
 
 func removeChannel(serviceName string, channel chan ServiceInfo) error {
 	observersMutex.Lock()
+	defer observersMutex.Unlock()
 	for idx, c := range observers[serviceName].channels {
 		if c == channel {
 			observers[serviceName].channels = append(observers[serviceName].channels[:idx], observers[serviceName].channels[idx+1:]...)
-			observersMutex.Unlock()
 			return nil
 		}
 	}
-	observersMutex.Unlock()
 
 	err := errors.New("error: could not find channel in channelMap")
 	return err
@@ -183,11 +186,9 @@ func GetServiceInfo(instanceName string, serviceName string, timeout time.Durati
 	var channel chan ServiceInfo
 	startObserver := false
 
-	if server == nil {
-		err = initAvahiServer()
-		if err != nil {
-			return nil, err
-		}
+	err = initAvahiServer()
+	if err != nil {
+		return nil, err
 	}
 
 	/* Avoid concurrent access to observerList */
@@ -209,29 +210,21 @@ func GetServiceInfo(instanceName string, serviceName string, timeout time.Durati
 	/* create channel to get service info object when service observer found service */
 	channel = make(chan ServiceInfo)
 	observers[serviceName].channels = append(observers[serviceName].channels, channel)
+	defer removeChannel(serviceName, channel)
 
 	if startObserver {
 		/* start service observer and pass observer context as context */
 		go ServiceObserver(serviceName, observers[serviceName], newInstanceFound, instanceDisappeared)
 	}
-
 	observersMutex.Unlock()
 
 	for {
 		select {
 		case svcInf = <-channel:
 			if svcInf.GetInstanceName() == instanceName {
-				err = removeChannel(serviceName, channel)
-				if err != nil {
-					log.Errorf("could not remove channel again (%d)\n", err)
-				}
 				return &svcInf, nil
 			}
 		case <-time.After(timeout):
-			err = removeChannel(serviceName, channel)
-			if err != nil {
-				log.Errorf("could not remove channel again (%d)\n", err)
-			}
 			err = errors.New("error: could not find instance or service (" + instanceName + "." + serviceName + "): timeout")
 			return nil, err
 		}
