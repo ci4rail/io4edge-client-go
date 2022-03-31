@@ -9,7 +9,6 @@ import (
 
 	"github.com/godbus/dbus/v5"
 	"github.com/holoplot/go-avahi"
-	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -65,28 +64,29 @@ var observersMutex sync.Mutex
 
 func newInstanceFound(s ServiceInfo, context interface{}) error {
 	observersMutex.Lock()
+	defer observersMutex.Unlock()
 	observerContext := (context.(*observerContext))
 	observerContext.foundInstances[s.service.Name] = s
 
 	for _, channel := range observerContext.channels {
 		select {
 		case channel <- s:
-		case <-time.After(time.Second * 3):
+		default:
 		}
 	}
-	observersMutex.Unlock()
 
 	return nil
 }
 
 func instanceDisappeared(s ServiceInfo, context interface{}) error {
 	observersMutex.Lock()
+	defer observersMutex.Unlock()
+
 	observerContext := (context.(*observerContext))
 	_, ok := observerContext.foundInstances[s.service.Name]
 	if ok {
 		delete(observerContext.foundInstances, s.service.Name)
 	}
-	observersMutex.Unlock()
 
 	return nil
 }
@@ -161,14 +161,13 @@ func ServiceObserver(serviceName string, context interface{}, serviceAdded func(
 
 func removeChannel(serviceName string, channel chan ServiceInfo) error {
 	observersMutex.Lock()
+	defer observersMutex.Unlock()
 	for idx, c := range observers[serviceName].channels {
 		if c == channel {
 			observers[serviceName].channels = append(observers[serviceName].channels[:idx], observers[serviceName].channels[idx+1:]...)
-			observersMutex.Unlock()
 			return nil
 		}
 	}
-	observersMutex.Unlock()
 
 	err := errors.New("error: could not find channel in channelMap")
 	return err
@@ -211,29 +210,21 @@ func GetServiceInfo(instanceName string, serviceName string, timeout time.Durati
 	/* create channel to get service info object when service observer found service */
 	channel = make(chan ServiceInfo)
 	observers[serviceName].channels = append(observers[serviceName].channels, channel)
+	defer removeChannel(serviceName, channel)
 
 	if startObserver {
 		/* start service observer and pass observer context as context */
 		go ServiceObserver(serviceName, observers[serviceName], newInstanceFound, instanceDisappeared)
 	}
-
 	observersMutex.Unlock()
 
 	for {
 		select {
 		case svcInf = <-channel:
 			if svcInf.GetInstanceName() == instanceName {
-				err = removeChannel(serviceName, channel)
-				if err != nil {
-					log.Errorf("could not remove channel again (%d)\n", err)
-				}
 				return &svcInf, nil
 			}
 		case <-time.After(timeout):
-			err = removeChannel(serviceName, channel)
-			if err != nil {
-				log.Errorf("could not remove channel again (%d)\n", err)
-			}
 			err = errors.New("error: could not find instance or service (" + instanceName + "." + serviceName + "): timeout")
 			return nil, err
 		}

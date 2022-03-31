@@ -58,6 +58,11 @@ func scenario1(sb *avahi.ServiceBrowser) {
 		Type:     "_foo._tcp",
 		Name:     "fooB",
 	}
+	sb.AddChannel <- avahi.Service{
+		Protocol: 2,
+		Type:     "_bar._tcp",
+		Name:     "barB",
+	}
 
 	time.Sleep(time.Microsecond * 100)
 
@@ -137,22 +142,25 @@ func TestServiceObserver(t *testing.T) {
 	}
 	r := &callbackRecord{}
 	go ServiceObserver("_foo._tcp", r, addCb, removeCb)
-	time.Sleep(time.Millisecond * 300)
+	time.Sleep(time.Millisecond * 400)
 
-	assert.Equal(t, len(r.records), 4)
+	assert.Equal(t, len(r.records), 5)
 
-	assert.Equal(t, r.records[0].added, true)
-	assert.Equal(t, r.records[0].svcInf.service.Name, "fooA")
-	assert.Equal(t, r.records[0].svcInf.service.Address, "192.168.0.1")
+	assert.Equal(t, true, r.records[0].added)
+	assert.Equal(t, "fooA", r.records[0].svcInf.service.Name)
+	assert.Equal(t, "192.168.0.1", r.records[0].svcInf.service.Address)
 
-	assert.Equal(t, r.records[1].added, true)
-	assert.Equal(t, r.records[1].svcInf.service.Name, "fooB")
-	assert.Equal(t, r.records[1].svcInf.service.Address, "192.168.0.2")
+	assert.Equal(t, true, r.records[1].added)
+	assert.Equal(t, "fooB", r.records[1].svcInf.service.Name)
+	assert.Equal(t, "192.168.0.2", r.records[1].svcInf.service.Address)
 
-	assert.Equal(t, r.records[2].added, false)
-	assert.Equal(t, r.records[2].svcInf.service.Name, "fooB")
-	assert.Equal(t, r.records[3].added, false)
-	assert.Equal(t, r.records[3].svcInf.service.Name, "fooA")
+	assert.Equal(t, true, r.records[2].added)
+	assert.Equal(t, "barB", r.records[2].svcInf.service.Name)
+
+	assert.Equal(t, false, r.records[3].added)
+	assert.Equal(t, "fooB", r.records[3].svcInf.service.Name)
+	assert.Equal(t, false, r.records[4].added)
+	assert.Equal(t, "fooA", r.records[4].svcInf.service.Name)
 }
 
 func TestGetServiceInfo1(t *testing.T) {
@@ -162,17 +170,20 @@ func TestGetServiceInfo1(t *testing.T) {
 	start := time.Now()
 	svcInf, err := GetServiceInfo("fooA", "_foo._tcp", time.Second)
 	assert.Nil(t, err)
-	assert.Equal(t, svcInf.service.Name, "fooA")
-	assert.Equal(t, svcInf.service.Address, "192.168.0.1")
-	assert.Less(t, time.Since(start), time.Millisecond*300)
+	assert.Equal(t, "fooA", svcInf.service.Name)
+	assert.Equal(t, "192.168.0.1", svcInf.service.Address)
+	assert.Less(t, time.Since(start), time.Millisecond*400)
 
+	// search for non-existant service
 	_, err = GetServiceInfo("barA", "_bar._tcp", time.Second)
 	assert.NotNil(t, err)
 
-	svcInf, err = GetServiceInfo("fooB", "_foo._tcp", time.Second)
+	// search for previously added service
+	start = time.Now()
+	svcInf, err = GetServiceInfo("barB", "_bar._tcp", time.Second)
 	assert.Nil(t, err)
-	assert.Equal(t, svcInf.service.Name, "fooB")
-	assert.Equal(t, svcInf.service.Address, "192.168.0.2")
+	assert.Equal(t, "barB", svcInf.service.Name)
+	assert.Equal(t, "192.168.0.99", svcInf.service.Address)
 	assert.Less(t, time.Since(start), time.Millisecond*30)
 
 }
