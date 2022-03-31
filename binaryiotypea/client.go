@@ -70,6 +70,11 @@ func NewClientFromUniversalAddress(addrOrService string, timeout time.Duration) 
 	}, nil
 }
 
+// Close terminates the underlying connection to the functionblock
+func (c *Client) Close() {
+	c.fbClient.Close()
+}
+
 // WithInputFritting may be passed to UploadConfiguration.
 // mask defines on which inputs the fritting pulses shall be enabled (bit0=first IO).
 func WithInputFritting(mask uint8) ConfigOption {

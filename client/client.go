@@ -117,6 +117,11 @@ func NewClientFromUniversalAddress(addrOrService string, service string, timeout
 	return c, err
 }
 
+// Close terminates the underlying connection to the service
+func (c *Client) Close() {
+	c.Ch.Close()
+}
+
 // Command issues a command cmd to a channel, waits for the devices response and returns it in res
 func (c *Client) Command(cmd proto.Message, res proto.Message, timeout time.Duration) error {
 	err := c.Ch.WriteMessage(cmd)
