@@ -7,9 +7,13 @@ import (
 	"github.com/ci4rail/io4edge-client-go/core"
 )
 
+const (
+	coreServiceType = "_io4edge-core._tcp"
+)
+
 // newCliClientFromService creates the io4edge core client from the device address
 func newCliClientFromService(deviceID string) (*core.Client, error) {
-	serviceAddr := deviceID + "._io4edge-core._tcp"
+	serviceAddr := deviceID + "." + coreServiceType
 	c, err := core.NewClientFromService(serviceAddr, time.Duration(timeoutSecs)*time.Second)
 	return c, err
 }
