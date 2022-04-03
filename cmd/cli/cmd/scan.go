@@ -1,5 +1,5 @@
 /*
-Copyright © 2021 Ci4Rail GmbH <engineering@ci4rail.com>
+Copyright © 2022 Ci4Rail GmbH <engineering@ci4rail.com>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -39,17 +39,15 @@ type scanResults struct {
 	devices []client.ServiceInfo
 }
 
-func serviceAdded(s client.ServiceInfo, context interface{}) error {
-	result := context.(*scanResults)
-	result.devices = append(result.devices, s)
+func (r *scanResults) serviceAdded(s client.ServiceInfo) error {
+	r.devices = append(r.devices, s)
 	return nil
 }
 
-func serviceRemoved(s client.ServiceInfo, context interface{}) error {
-	result := context.(*scanResults)
-	for i, t := range result.devices {
+func (r *scanResults) serviceRemoved(s client.ServiceInfo) error {
+	for i, t := range r.devices {
 		if s.GetInstanceName() == t.GetInstanceName() {
-			result.devices = append(result.devices[:i], result.devices[i+1:]...)
+			r.devices = append(r.devices[:i], r.devices[i+1:]...)
 		}
 	}
 	return nil
@@ -60,7 +58,7 @@ func scan(cmd *cobra.Command, args []string) {
 		make([]client.ServiceInfo, 0),
 	}
 	go func() {
-		err := client.ServiceObserver(coreServiceType, result, serviceAdded, serviceRemoved)
+		err := client.ServiceObserver(coreServiceType, result.serviceAdded, result.serviceRemoved)
 		e.ErrChk(err)
 	}()
 	time.Sleep(time.Duration(scanTime) * time.Second)

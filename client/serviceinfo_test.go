@@ -119,20 +119,20 @@ type callbackRecord struct {
 	records []cbRecordEntry
 }
 
-func addCbRecord(context interface{}, added bool, svcInf ServiceInfo) {
-	context.(*callbackRecord).records = append(context.(*callbackRecord).records, cbRecordEntry{
+func (cbr *callbackRecord) addCbRecord(added bool, svcInf ServiceInfo) {
+	cbr.records = append(cbr.records, cbRecordEntry{
 		ts:     time.Now(),
 		added:  added,
 		svcInf: svcInf,
 	})
 }
-func addCb(svcInf ServiceInfo, context interface{}) error {
-	addCbRecord(context, true, svcInf)
+func (cbr *callbackRecord) addCb(svcInf ServiceInfo) error {
+	cbr.addCbRecord(true, svcInf)
 	return nil
 }
 
-func removeCb(svcInf ServiceInfo, context interface{}) error {
-	addCbRecord(context, false, svcInf)
+func (cbr *callbackRecord) removeCb(svcInf ServiceInfo) error {
+	cbr.addCbRecord(false, svcInf)
 	return nil
 }
 
@@ -141,7 +141,7 @@ func TestServiceObserver(t *testing.T) {
 		scenarioPlayer: scenario1,
 	}
 	r := &callbackRecord{}
-	go ServiceObserver("_foo._tcp", r, addCb, removeCb)
+	go ServiceObserver("_foo._tcp", r.addCb, r.removeCb)
 	time.Sleep(time.Millisecond * 400)
 
 	assert.Equal(t, len(r.records), 5)

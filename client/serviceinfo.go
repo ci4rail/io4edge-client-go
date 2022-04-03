@@ -62,13 +62,13 @@ var observers = make(map[string]*observerContext)
 // mutex to lock access to observers
 var observersMutex sync.Mutex
 
-func newInstanceFound(s ServiceInfo, context interface{}) error {
+func (o *observerContext) newInstanceFound(s ServiceInfo) error {
 	observersMutex.Lock()
 	defer observersMutex.Unlock()
-	observerContext := (context.(*observerContext))
-	observerContext.foundInstances[s.service.Name] = s
 
-	for _, channel := range observerContext.channels {
+	o.foundInstances[s.service.Name] = s
+
+	for _, channel := range o.channels {
 		select {
 		case channel <- s:
 		default:
@@ -78,14 +78,13 @@ func newInstanceFound(s ServiceInfo, context interface{}) error {
 	return nil
 }
 
-func instanceDisappeared(s ServiceInfo, context interface{}) error {
+func (o *observerContext) instanceDisappeared(s ServiceInfo) error {
 	observersMutex.Lock()
 	defer observersMutex.Unlock()
 
-	observerContext := (context.(*observerContext))
-	_, ok := observerContext.foundInstances[s.service.Name]
+	_, ok := o.foundInstances[s.service.Name]
 	if ok {
-		delete(observerContext.foundInstances, s.service.Name)
+		delete(o.foundInstances, s.service.Name)
 	}
 
 	return nil
@@ -124,7 +123,7 @@ func initAvahiServer() error {
 // ServiceObserver creates a new avahi server if necessary, browses interfaces for the specified mdns service and calls callback serviceAdded
 // if a service with the specified name appeared respectively calls callback serviceRemoved if a service with the specified name disappears.
 // Runs in a endless loop until an error occurs.
-func ServiceObserver(serviceName string, context interface{}, serviceAdded func(ServiceInfo, interface{}) error, serviceRemoved func(ServiceInfo, interface{}) error) error {
+func ServiceObserver(serviceName string, serviceAdded func(ServiceInfo) error, serviceRemoved func(ServiceInfo) error) error {
 	var svcInf ServiceInfo
 
 	err := initAvahiServer()
@@ -145,13 +144,13 @@ func ServiceObserver(serviceName string, context interface{}, serviceAdded func(
 				return err
 			}
 			svcInf.service = s
-			err = serviceAdded(svcInf, context)
+			err = serviceAdded(svcInf)
 			if err != nil {
 				return err
 			}
 		case s := <-sb.RemoveChannel:
 			svcInf.service = s
-			err := serviceRemoved(svcInf, context)
+			err := serviceRemoved(svcInf)
 			if err != nil {
 				return err
 			}
@@ -214,7 +213,8 @@ func GetServiceInfo(instanceName string, serviceName string, timeout time.Durati
 
 	if startObserver {
 		/* start service observer and pass observer context as context */
-		go ServiceObserver(serviceName, observers[serviceName], newInstanceFound, instanceDisappeared)
+		o := observers[serviceName]
+		go ServiceObserver(serviceName, o.newInstanceFound, o.instanceDisappeared)
 	}
 	observersMutex.Unlock()
 
