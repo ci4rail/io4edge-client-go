@@ -29,6 +29,14 @@ type command struct {
 	ram []uint8
 }
 
+// ErrorInject defines the parameters for generator error injection
+type ErrorInject struct {
+	ErrorInA     bool
+	ErrorInB     bool
+	FullBitError bool  // half otherwise
+	Position     uint8 // Positiion = 2.66us + (n * 5.33us)  [n=0..31]
+}
+
 // NewCommandList starts a new list of commands
 func NewCommandList() *CommandList {
 	return &CommandList{cmds: make([]*command, 0)}
@@ -36,6 +44,16 @@ func NewCommandList() *CommandList {
 
 // AddMasterFrame adds a MVB master frame to the command list
 func (c *CommandList) AddMasterFrame(redundantFrameDelayNs int, lineB bool, pauseAfterUs int, fcode uint8, address uint16) error {
+	return c.addMasterFrame(redundantFrameDelayNs, lineB, pauseAfterUs, fcode, address, ErrorInject{})
+}
+
+// AddMasterFrameWithError adds a MVB master frame with an injected error to the command list
+func (c *CommandList) AddMasterFrameWithError(redundantFrameDelayNs int, lineB bool, pauseAfterUs int, fcode uint8, address uint16, injectedError ErrorInject) error {
+	return c.addMasterFrame(redundantFrameDelayNs, lineB, pauseAfterUs, fcode, address, injectedError)
+}
+
+// AddMasterFrame adds a MVB master frame to the command list
+func (c *CommandList) addMasterFrame(redundantFrameDelayNs int, lineB bool, pauseAfterUs int, fcode uint8, address uint16, injectedError ErrorInject) error {
 	if fcode > 15 {
 		return fmt.Errorf("fcode must be <16")
 	}
@@ -43,12 +61,17 @@ func (c *CommandList) AddMasterFrame(redundantFrameDelayNs int, lineB bool, paus
 		return fmt.Errorf("address must be <4096")
 	}
 
-	return c.addFrame(true, redundantFrameDelayNs, lineB, pauseAfterUs, []uint8{(fcode << 4) + uint8((address >> 8)), uint8((address & 0xff))})
+	return c.addFrame(true, redundantFrameDelayNs, lineB, pauseAfterUs, []uint8{(fcode << 4) + uint8((address >> 8)), uint8((address & 0xff))}, injectedError)
 }
 
 // AddSlaveFrame adds a MVB slave frame to the command list
 func (c *CommandList) AddSlaveFrame(redundantFrameDelayNs int, lineB bool, pauseAfterUs int, data []uint8) error {
-	return c.addFrame(false, redundantFrameDelayNs, lineB, pauseAfterUs, data)
+	return c.addFrame(false, redundantFrameDelayNs, lineB, pauseAfterUs, data, ErrorInject{})
+}
+
+// AddSlaveFrameWithError adds a MVB slave frame with an injected error to the command list
+func (c *CommandList) AddSlaveFrameWithError(redundantFrameDelayNs int, lineB bool, pauseAfterUs int, data []uint8, injectedError ErrorInject) error {
+	return c.addFrame(false, redundantFrameDelayNs, lineB, pauseAfterUs, data, injectedError)
 }
 
 // StartGeneratorString generates from the command list a string that can be sent to the MVB pattern generator to start the pattern
@@ -94,7 +117,7 @@ func (c *Client) SelectExternalInputString() string {
 	return "2"
 }
 
-func (c *CommandList) addFrame(isMaster bool, redundantFrameDelayNs int, lineB bool, pauseAfterUs int, data []uint8) error {
+func (c *CommandList) addFrame(isMaster bool, redundantFrameDelayNs int, lineB bool, pauseAfterUs int, data []uint8, injectedError ErrorInject) error {
 	cmd := &command{ram: make([]uint8, 3)}
 
 	b, err := cmdByte0(isMaster, len(data), redundantFrameDelayNs, lineB)
@@ -102,7 +125,11 @@ func (c *CommandList) addFrame(isMaster bool, redundantFrameDelayNs int, lineB b
 		return err
 	}
 	cmd.ram[0] = b
-	cmd.ram[1] = 0x00
+	b, err = cmdByte1(injectedError)
+	if err != nil {
+		return err
+	}
+	cmd.ram[1] = b
 
 	b, err = cmdByte2(pauseAfterUs)
 	if err != nil {
@@ -145,6 +172,24 @@ func cmdByte0(isMaster bool, frameLen int, redundantFrameDelayNs int, lineB bool
 	default:
 		return 0, fmt.Errorf("illegal redundantFrameDelayNs %d", redundantFrameDelayNs)
 	}
+	return b, nil
+}
+
+func cmdByte1(e ErrorInject) (uint8, error) {
+	b := uint8(0)
+	if e.Position > 31 {
+		return 0, fmt.Errorf("illegal error position %d", e.Position)
+	}
+	if e.ErrorInB {
+		b |= 0x80
+	}
+	if e.ErrorInA {
+		b |= 0x40
+	}
+	if e.FullBitError {
+		b |= 0x20
+	}
+	b |= e.Position
 	return b, nil
 }
 
