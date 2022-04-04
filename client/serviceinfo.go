@@ -20,6 +20,7 @@ const (
 
 type avahiServer interface {
 	ServiceBrowserNew(iface, protocol int32, serviceType string, domain string, flags uint32) (*avahi.ServiceBrowser, error)
+	ServiceTypeBrowserNew(iface, protocol int32, domain string, flags uint32) (*avahi.ServiceTypeBrowser, error)
 	ResolveService(iface, protocol int32, name, serviceType, domain string, aprotocol int32, flags uint32) (reply avahi.Service, err error)
 }
 
@@ -118,44 +119,6 @@ func initAvahiServer() error {
 		}
 	}
 	return nil
-}
-
-// ServiceObserver creates a new avahi server if necessary, browses interfaces for the specified mdns service and calls callback serviceAdded
-// if a service with the specified name appeared respectively calls callback serviceRemoved if a service with the specified name disappears.
-// Runs in a endless loop until an error occurs.
-func ServiceObserver(serviceName string, serviceAdded func(ServiceInfo) error, serviceRemoved func(ServiceInfo) error) error {
-	var svcInf ServiceInfo
-
-	err := initAvahiServer()
-	if err != nil {
-		return err
-	}
-
-	sb, err := server.ServiceBrowserNew(avahi.InterfaceUnspec, avahi.ProtoUnspec, serviceName, "local", 0)
-	if err != nil {
-		return err
-	}
-	for {
-		select {
-		case s := <-sb.AddChannel:
-			s, err = server.ResolveService(s.Interface, s.Protocol, s.Name,
-				s.Type, s.Domain, avahi.ProtoUnspec, 0)
-			if err != nil {
-				return err
-			}
-			svcInf.service = s
-			err = serviceAdded(svcInf)
-			if err != nil {
-				return err
-			}
-		case s := <-sb.RemoveChannel:
-			svcInf.service = s
-			err := serviceRemoved(svcInf)
-			if err != nil {
-				return err
-			}
-		}
-	}
 }
 
 func removeChannel(serviceName string, channel chan ServiceInfo) error {
@@ -300,4 +263,9 @@ func (svcInf *ServiceInfo) GetIPAddressPort() string {
 // GetInstanceName gets the instance name of the given service info object.
 func (svcInf *ServiceInfo) GetInstanceName() string {
 	return svcInf.service.Name
+}
+
+// GetServiceType gets the service type of the given service info object
+func (svcInf *ServiceInfo) GetServiceType() string {
+	return svcInf.service.Type
 }

@@ -19,6 +19,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/ci4rail/io4edge-client-go/client"
@@ -33,64 +34,122 @@ var scanCmd = &cobra.Command{
 	Run:   scan,
 }
 
-var scanTime uint
+var (
+	scanTime            uint
+	enableShowFunctions bool
+)
+
+type device struct {
+	core         *client.ServiceInfo
+	functions    map[string]*client.ServiceInfo
+	hardwareName string
+	serial       string
+}
 
 type scanResults struct {
-	devices []client.ServiceInfo
+	devices map[string]*device // key: ip address as string
+}
+
+func (r *scanResults) numFoundIo4edgeDevices() int {
+	n := 0
+	for _, d := range r.devices {
+		if d.core != nil {
+			n++
+		}
+	}
+	return n
 }
 
 func (r *scanResults) serviceAdded(s client.ServiceInfo) error {
-	r.devices = append(r.devices, s)
+	ip, _, _ := s.NetAddress()
+	d, known := r.devices[ip]
+	if !known {
+		r.devices[ip] = &device{
+			functions: make(map[string]*client.ServiceInfo, 0),
+		}
+		d = r.devices[ip]
+	}
+	if s.GetServiceType() == coreServiceType {
+		d.core = &s
+	} else {
+		_, functionKnown := d.functions[s.GetInstanceName()]
+		if !functionKnown {
+			d.functions[s.GetInstanceName()] = &s
+		}
+	}
+
 	return nil
 }
 
 func (r *scanResults) serviceRemoved(s client.ServiceInfo) error {
-	for i, t := range r.devices {
-		if s.GetInstanceName() == t.GetInstanceName() {
-			r.devices = append(r.devices[:i], r.devices[i+1:]...)
-		}
-	}
+	// ignore removals for now
 	return nil
 }
 
 func scan(cmd *cobra.Command, args []string) {
 	result := &scanResults{
-		make([]client.ServiceInfo, 0),
+		make(map[string]*device, 0),
 	}
 	go func() {
-		err := client.ServiceObserver(coreServiceType, result.serviceAdded, result.serviceRemoved)
+		err := client.ServiceObserver("*", result.serviceAdded, result.serviceRemoved)
 		e.ErrChk(err)
 	}()
 	time.Sleep(time.Duration(scanTime) * time.Second)
 
-	if len(result.devices) == 0 {
+	if result.numFoundIo4edgeDevices() == 0 {
 		fmt.Printf("No io4edge devices found\n")
 	} else {
-		fmt.Printf("Found %d io4edge devices\n", len(result.devices))
-		table := tablewriter.NewWriter(os.Stdout)
-		table.SetHeader([]string{"Device ID", "IP", "Hardware"})
-
-		for _, t := range result.devices {
-			ip, _, _ := t.NetAddress()
-			var rootArticle string
-			c, err := newCliClient("", t.GetIPAddressPort())
-			if err == nil {
-				rootArticle, _, _, _ = c.IdentifyHardware(time.Duration(timeoutSecs) * time.Second)
-			}
-			if rootArticle == "" {
-				rootArticle = "(Unknown)"
-			}
-			table.Append([]string{
-				t.GetInstanceName(),
-				ip,
-				rootArticle,
-			})
+		devicesStr := "device"
+		if result.numFoundIo4edgeDevices() > 1 {
+			devicesStr += "s"
 		}
-		table.Render() // Send output
+		fmt.Printf("Found %d io4edge %s\n", len(result.devices), devicesStr)
+		for _, d := range result.devices {
+
+			if d.core != nil {
+				c, err := newCliClient("", d.core.GetIPAddressPort())
+				if err == nil {
+					d.hardwareName, _, d.serial, _ = c.IdentifyHardware(time.Duration(timeoutSecs) * time.Second)
+				}
+				if d.hardwareName == "" {
+					d.hardwareName = "(Unknown Hardware)"
+				}
+				if d.serial == "" {
+					d.serial = "(Unknown Serial)"
+				}
+			}
+		}
+
+		if enableShowFunctions {
+			for ip, d := range result.devices {
+				table := tablewriter.NewWriter(os.Stdout)
+				table.SetHeader([]string{"Service Type", "Service Name", "Port"})
+
+				if d.core != nil {
+					fmt.Printf("\n%s, %s, %s, %s\n", d.core.GetInstanceName(), ip, d.hardwareName, d.serial)
+				}
+				for _, f := range d.functions {
+					_, port, _ := f.NetAddress()
+					table.Append([]string{f.GetServiceType(), f.GetInstanceName(), strconv.Itoa(port)})
+				}
+				table.Render() // Send output
+			}
+		} else {
+			table := tablewriter.NewWriter(os.Stdout)
+			table.SetHeader([]string{"Device ID", "IP", "Hardware", "Serial"})
+			for ip, d := range result.devices {
+
+				if d.core != nil {
+					table.Append([]string{d.core.GetInstanceName(), ip, d.hardwareName, d.serial})
+				}
+			}
+			table.Render() // Send output
+		}
 	}
 }
 
 func init() {
 	rootCmd.AddCommand(scanCmd)
 	scanCmd.PersistentFlags().UintVarP(&scanTime, "scantime", "", 2, "scan time in seconds")
+	scanCmd.PersistentFlags().BoolVarP(&enableShowFunctions, "functions", "f", false, "show device sub functions")
 }
