@@ -21,7 +21,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ci4rail/io4edge-client-go/internal/client"
 	e "github.com/ci4rail/io4edge-client-go/internal/errors"
 
 	"github.com/spf13/cobra"
@@ -44,7 +43,7 @@ func programHardwareIdentification(cmd *cobra.Command, args []string) {
 	e.ErrChk(err)
 	serial := args[2]
 
-	c, err := client.NewCliClient(deviceID, ipAddrPort)
+	c, err := newCliClient(deviceID, ipAddrPort)
 	e.ErrChk(err)
 
 	err = c.ProgramHardwareIdentification(name, uint32(major), serial, time.Duration(timeoutSecs)*time.Second)
