@@ -103,7 +103,7 @@ func scan(cmd *cobra.Command, args []string) {
 		if result.numFoundIo4edgeDevices() > 1 {
 			devicesStr += "s"
 		}
-		fmt.Printf("Found %d io4edge %s\n", len(result.devices), devicesStr)
+		fmt.Printf("Found %d io4edge %s\n", result.numFoundIo4edgeDevices(), devicesStr)
 		for _, d := range result.devices {
 
 			if d.core != nil {
@@ -122,17 +122,17 @@ func scan(cmd *cobra.Command, args []string) {
 
 		if enableShowFunctions {
 			for ip, d := range result.devices {
-				table := tablewriter.NewWriter(os.Stdout)
-				table.SetHeader([]string{"Service Type", "Service Name", "Port"})
 
 				if d.core != nil {
+					table := tablewriter.NewWriter(os.Stdout)
+					table.SetHeader([]string{"Service Type", "Service Name", "Port"})
 					fmt.Printf("\n%s, %s, %s, %s\n", d.core.GetInstanceName(), ip, d.hardwareName, d.serial)
+					for _, f := range d.functions {
+						_, port, _ := f.NetAddress()
+						table.Append([]string{f.GetServiceType(), f.GetInstanceName(), strconv.Itoa(port)})
+					}
+					table.Render() // Send output
 				}
-				for _, f := range d.functions {
-					_, port, _ := f.NetAddress()
-					table.Append([]string{f.GetServiceType(), f.GetInstanceName(), strconv.Itoa(port)})
-				}
-				table.Render() // Send output
 			}
 		} else {
 			table := tablewriter.NewWriter(os.Stdout)
