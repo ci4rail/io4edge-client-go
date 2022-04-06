@@ -19,7 +19,6 @@ package cmd
 import (
 	"time"
 
-	"github.com/ci4rail/io4edge-client-go/internal/client"
 	e "github.com/ci4rail/io4edge-client-go/internal/errors"
 	"github.com/spf13/cobra"
 )
@@ -31,7 +30,7 @@ var restartCmd = &cobra.Command{
 }
 
 func restart(cmd *cobra.Command, args []string) {
-	c, err := client.NewCliClient(deviceID, ipAddrPort)
+	c, err := newCliClient(deviceID, ipAddrPort)
 	e.ErrChk(err)
 
 	_, err = c.Restart(time.Duration(timeoutSecs) * time.Second)

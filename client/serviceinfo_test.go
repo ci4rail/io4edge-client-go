@@ -42,39 +42,56 @@ func TestAuxPort(t *testing.T) {
 }
 
 type SimServer struct {
-	scenarioPlayer func(*avahi.ServiceBrowser)
+	stbPlayer func(*avahi.ServiceTypeBrowser)
+	sbPlayer  map[string]func(*avahi.ServiceBrowser) // key: service type
 }
 
-func scenario1(sb *avahi.ServiceBrowser) {
-	time.Sleep(time.Microsecond * 100)
+func stbScenario1(stb *avahi.ServiceTypeBrowser) {
+	time.Sleep(time.Millisecond * 90)
+	stb.AddChannel <- avahi.ServiceType{
+		Protocol: 0,
+		Type:     "_foo._tcp",
+	}
+	time.Sleep(time.Millisecond * 50)
+	stb.AddChannel <- avahi.ServiceType{
+		Protocol: 0,
+		Type:     "_bar._tcp",
+	}
+}
+
+func sbFooScenario1(sb *avahi.ServiceBrowser) {
+	time.Sleep(time.Millisecond * 100)
 	sb.AddChannel <- avahi.Service{
 		Protocol: 0,
 		Type:     "_foo._tcp",
 		Name:     "fooA",
 	}
-	time.Sleep(time.Microsecond * 50)
+	time.Sleep(time.Millisecond * 50)
 	sb.AddChannel <- avahi.Service{
 		Protocol: 1,
 		Type:     "_foo._tcp",
 		Name:     "fooB",
 	}
+	time.Sleep(time.Millisecond * 100)
+
+	sb.RemoveChannel <- avahi.Service{
+		Protocol: 1,
+		Type:     "_foo._tcp",
+		Name:     "fooB",
+	}
+	sb.RemoveChannel <- avahi.Service{
+		Protocol: 0,
+		Type:     "_foo._tcp",
+		Name:     "fooA",
+	}
+}
+
+func sbBarScenario1(sb *avahi.ServiceBrowser) {
+	time.Sleep(time.Millisecond * 160)
 	sb.AddChannel <- avahi.Service{
-		Protocol: 2,
+		Protocol: 3,
 		Type:     "_bar._tcp",
 		Name:     "barB",
-	}
-
-	time.Sleep(time.Microsecond * 100)
-
-	sb.RemoveChannel <- avahi.Service{
-		Protocol: 1,
-		Type:     "_foo._tcp",
-		Name:     "fooB",
-	}
-	sb.RemoveChannel <- avahi.Service{
-		Protocol: 0,
-		Type:     "_foo._tcp",
-		Name:     "fooA",
 	}
 }
 
@@ -83,8 +100,17 @@ func (s *SimServer) ServiceBrowserNew(iface, protocol int32, serviceType string,
 	sb := new(avahi.ServiceBrowser)
 	sb.AddChannel = make(chan avahi.Service)
 	sb.RemoveChannel = make(chan avahi.Service)
-	go s.scenarioPlayer(sb)
+	go s.sbPlayer[serviceType](sb)
 	return sb, nil
+}
+
+func (s *SimServer) ServiceTypeBrowserNew(iface, protocol int32, domain string, flags uint32) (*avahi.ServiceTypeBrowser, error) {
+	fmt.Printf("ServiceTypeBrowserNew\n")
+	stb := new(avahi.ServiceTypeBrowser)
+	stb.AddChannel = make(chan avahi.ServiceType)
+	stb.RemoveChannel = make(chan avahi.ServiceType)
+	go s.stbPlayer(stb)
+	return stb, nil
 }
 
 func (s *SimServer) ResolveService(iface, protocol int32, name, serviceType, domain string, aprotocol int32, flags uint32) (reply avahi.Service, err error) {
@@ -119,32 +145,36 @@ type callbackRecord struct {
 	records []cbRecordEntry
 }
 
-func addCbRecord(context interface{}, added bool, svcInf ServiceInfo) {
-	context.(*callbackRecord).records = append(context.(*callbackRecord).records, cbRecordEntry{
+func (cbr *callbackRecord) addCbRecord(added bool, svcInf ServiceInfo) {
+	cbr.records = append(cbr.records, cbRecordEntry{
 		ts:     time.Now(),
 		added:  added,
 		svcInf: svcInf,
 	})
 }
-func addCb(svcInf ServiceInfo, context interface{}) error {
-	addCbRecord(context, true, svcInf)
+func (cbr *callbackRecord) addCb(svcInf ServiceInfo) error {
+	cbr.addCbRecord(true, svcInf)
 	return nil
 }
 
-func removeCb(svcInf ServiceInfo, context interface{}) error {
-	addCbRecord(context, false, svcInf)
+func (cbr *callbackRecord) removeCb(svcInf ServiceInfo) error {
+	cbr.addCbRecord(false, svcInf)
 	return nil
 }
 
 func TestServiceObserver(t *testing.T) {
 	server = &SimServer{
-		scenarioPlayer: scenario1,
+		sbPlayer: map[string]func(*avahi.ServiceBrowser){
+			"_foo._tcp": sbFooScenario1,
+			"_bar._tcp": sbBarScenario1,
+		},
+		stbPlayer: stbScenario1,
 	}
 	r := &callbackRecord{}
-	go ServiceObserver("_foo._tcp", r, addCb, removeCb)
+	go ServiceObserver("*._tcp", r.addCb, r.removeCb)
 	time.Sleep(time.Millisecond * 400)
 
-	assert.Equal(t, len(r.records), 5)
+	assert.Equal(t, 5, len(r.records))
 
 	assert.Equal(t, true, r.records[0].added)
 	assert.Equal(t, "fooA", r.records[0].svcInf.service.Name)
@@ -165,7 +195,11 @@ func TestServiceObserver(t *testing.T) {
 
 func TestGetServiceInfo1(t *testing.T) {
 	server = &SimServer{
-		scenarioPlayer: scenario1,
+		sbPlayer: map[string]func(*avahi.ServiceBrowser){
+			"_foo._tcp": sbFooScenario1,
+			"_bar._tcp": sbBarScenario1,
+		},
+		stbPlayer: stbScenario1,
 	}
 	start := time.Now()
 	svcInf, err := GetServiceInfo("fooA", "_foo._tcp", time.Second)

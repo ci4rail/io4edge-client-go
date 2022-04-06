@@ -20,6 +20,7 @@ const (
 
 type avahiServer interface {
 	ServiceBrowserNew(iface, protocol int32, serviceType string, domain string, flags uint32) (*avahi.ServiceBrowser, error)
+	ServiceTypeBrowserNew(iface, protocol int32, domain string, flags uint32) (*avahi.ServiceTypeBrowser, error)
 	ResolveService(iface, protocol int32, name, serviceType, domain string, aprotocol int32, flags uint32) (reply avahi.Service, err error)
 }
 
@@ -62,13 +63,13 @@ var observers = make(map[string]*observerContext)
 // mutex to lock access to observers
 var observersMutex sync.Mutex
 
-func newInstanceFound(s ServiceInfo, context interface{}) error {
+func (o *observerContext) newInstanceFound(s ServiceInfo) error {
 	observersMutex.Lock()
 	defer observersMutex.Unlock()
-	observerContext := (context.(*observerContext))
-	observerContext.foundInstances[s.service.Name] = s
 
-	for _, channel := range observerContext.channels {
+	o.foundInstances[s.service.Name] = s
+
+	for _, channel := range o.channels {
 		select {
 		case channel <- s:
 		default:
@@ -78,14 +79,13 @@ func newInstanceFound(s ServiceInfo, context interface{}) error {
 	return nil
 }
 
-func instanceDisappeared(s ServiceInfo, context interface{}) error {
+func (o *observerContext) instanceDisappeared(s ServiceInfo) error {
 	observersMutex.Lock()
 	defer observersMutex.Unlock()
 
-	observerContext := (context.(*observerContext))
-	_, ok := observerContext.foundInstances[s.service.Name]
+	_, ok := o.foundInstances[s.service.Name]
 	if ok {
-		delete(observerContext.foundInstances, s.service.Name)
+		delete(o.foundInstances, s.service.Name)
 	}
 
 	return nil
@@ -119,44 +119,6 @@ func initAvahiServer() error {
 		}
 	}
 	return nil
-}
-
-// ServiceObserver creates a new avahi server if necessary, browses interfaces for the specified mdns service and calls callback serviceAdded
-// if a service with the specified name appeared respectively calls callback serviceRemoved if a service with the specified name disappears.
-// Runs in a endless loop until an error occurs.
-func ServiceObserver(serviceName string, context interface{}, serviceAdded func(ServiceInfo, interface{}) error, serviceRemoved func(ServiceInfo, interface{}) error) error {
-	var svcInf ServiceInfo
-
-	err := initAvahiServer()
-	if err != nil {
-		return err
-	}
-
-	sb, err := server.ServiceBrowserNew(avahi.InterfaceUnspec, avahi.ProtoUnspec, serviceName, "local", 0)
-	if err != nil {
-		return err
-	}
-	for {
-		select {
-		case s := <-sb.AddChannel:
-			s, err = server.ResolveService(s.Interface, s.Protocol, s.Name,
-				s.Type, s.Domain, avahi.ProtoUnspec, 0)
-			if err != nil {
-				return err
-			}
-			svcInf.service = s
-			err = serviceAdded(svcInf, context)
-			if err != nil {
-				return err
-			}
-		case s := <-sb.RemoveChannel:
-			svcInf.service = s
-			err := serviceRemoved(svcInf, context)
-			if err != nil {
-				return err
-			}
-		}
-	}
 }
 
 func removeChannel(serviceName string, channel chan ServiceInfo) error {
@@ -214,7 +176,8 @@ func GetServiceInfo(instanceName string, serviceName string, timeout time.Durati
 
 	if startObserver {
 		/* start service observer and pass observer context as context */
-		go ServiceObserver(serviceName, observers[serviceName], newInstanceFound, instanceDisappeared)
+		o := observers[serviceName]
+		go ServiceObserver(serviceName, o.newInstanceFound, o.instanceDisappeared)
 	}
 	observersMutex.Unlock()
 
@@ -300,4 +263,9 @@ func (svcInf *ServiceInfo) GetIPAddressPort() string {
 // GetInstanceName gets the instance name of the given service info object.
 func (svcInf *ServiceInfo) GetInstanceName() string {
 	return svcInf.service.Name
+}
+
+// GetServiceType gets the service type of the given service info object
+func (svcInf *ServiceInfo) GetServiceType() string {
+	return svcInf.service.Type
 }

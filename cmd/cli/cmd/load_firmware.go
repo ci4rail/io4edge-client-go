@@ -21,7 +21,6 @@ import (
 	"time"
 
 	"github.com/ci4rail/io4edge-client-go/core"
-	"github.com/ci4rail/io4edge-client-go/internal/client"
 	e "github.com/ci4rail/io4edge-client-go/internal/errors"
 
 	"github.com/spf13/cobra"
@@ -48,7 +47,7 @@ func progressCb(bytes uint) {
 
 func loadFirmware(cmd *cobra.Command, args []string) {
 	file := args[0]
-	c, err := client.NewCliClient(deviceID, ipAddrPort)
+	c, err := newCliClient(deviceID, ipAddrPort)
 	e.ErrChk(err)
 
 	restartingNow, err := c.LoadFirmware(file, chunkSize, time.Duration(timeoutSecs)*time.Second, progressCb)
@@ -71,7 +70,7 @@ io4edge-client-go load-raw-firmware <firmware-file>`,
 
 func loadRawFirmware(cmd *cobra.Command, args []string) {
 	file := args[0]
-	c, err := client.NewCliClient(deviceID, ipAddrPort)
+	c, err := newCliClient(deviceID, ipAddrPort)
 	e.ErrChk(err)
 
 	restartingNow, err := c.LoadFirmwareBinaryFromFile(file, chunkSize, time.Duration(timeoutSecs)*time.Second, progressCb)
@@ -88,7 +87,7 @@ func readbackFirmwareID(c *core.Client, restartingNow bool) {
 		time.Sleep(3 * time.Second)
 		fmt.Println("Reconnect to restarted device...")
 		var err error
-		c, err = client.NewCliClient(deviceID, ipAddrPort)
+		c, err = newCliClient(deviceID, ipAddrPort)
 		e.ErrChk(err)
 	}
 	fmt.Println("Reading back firmware id")

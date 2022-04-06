@@ -21,7 +21,6 @@ import (
 	"time"
 
 	"github.com/ci4rail/io4edge-client-go/core"
-	"github.com/ci4rail/io4edge-client-go/internal/client"
 	e "github.com/ci4rail/io4edge-client-go/internal/errors"
 	"github.com/spf13/cobra"
 )
@@ -34,7 +33,7 @@ var identifyHardwareCmd = &cobra.Command{
 }
 
 func identifyHardware(cmd *cobra.Command, args []string) {
-	c, err := client.NewCliClient(deviceID, ipAddrPort)
+	c, err := newCliClient(deviceID, ipAddrPort)
 	e.ErrChk(err)
 	identifyHardwareFromClient(c)
 }
