@@ -11,8 +11,16 @@ jobs:
         # build and publish in parallel
         goos: [linux]
         goarch: ["386", amd64, arm, arm64]
-        example_path: ["analogInTypeA/stream", "analogInTypeA/streamToCsv"]
-
+        example_path:
+          - analogInTypeA/stream
+          - analogInTypeA/streamToCsv
+          - binaryIoTypeA/blinky
+          - binaryIoTypeA/output_watchdog
+          - binaryIoTypeA/overcurrent_recover
+          - binaryIoTypeA/stream
+          - binaryIoTypeA/stream_verify
+          - mvbSniffer/pcap
+          - mvbSniffer/streamDump
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
