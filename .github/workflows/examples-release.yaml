@@ -19,7 +19,7 @@ jobs:
       - name: Generate binary name
         id: gen_binary_name
         run: |
-          name=$(echo ${example_path} | tr / _)
+          name=$(echo ${{ matrix.example_path }} | tr / _)
           echo "::set-output name=binary_name::${name}"
       - name: Build example
         uses: wangyoucao577/go-release-action@v1.22
