@@ -1,0 +1,34 @@
+on:
+  release:
+    types: [created]
+
+jobs:
+  releases-matrix:
+    name: Release examples Go Binaries
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # build and publish in parallel
+        goos: [linux]
+        goarch: ["386", amd64, arm, arm64]
+        example_path: ["analogInTypeA/stream", "analogInTypeA/streamToCsv"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Generate binary name
+        id: gen_binary_name
+        run: |
+          name=$(echo ${example_path} | tr / _)
+          echo "::set-output name=binary_name::${name}"
+      - name: Build example
+        uses: wangyoucao577/go-release-action@v1.22
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          ldflags: -X github.com/ci4rail/io4edge-client-go/internal/version.Version=${{ github.event.release.tag_name }}
+          build_flags: -tags netgo,osusergo,static_build
+          goos: ${{ matrix.goos }}
+          goarch: ${{ matrix.goarch }}
+          goversion: "https://go.dev/dl/go1.17.5.linux-amd64.tar.gz"
+          project_path: "./examples/${{ matrix.example_path }}"
+          binary_name: ${{ steps.gen_binary_name.outputs.binary_name }}
