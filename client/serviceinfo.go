@@ -161,6 +161,7 @@ func GetServiceInfo(instanceName string, serviceName string, timeout time.Durati
 	if exists {
 		svcInf, exists = observer.foundInstances[instanceName]
 		if exists {
+			observersMutex.Unlock()
 			return &svcInf, nil
 		}
 	} else {

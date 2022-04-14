@@ -220,4 +220,9 @@ func TestGetServiceInfo1(t *testing.T) {
 	assert.Equal(t, "192.168.0.99", svcInf.service.Address)
 	assert.Less(t, time.Since(start), time.Millisecond*30)
 
+	// check we can query existing service a second time
+	svcInf, err = GetServiceInfo("barB", "_bar._tcp", time.Second)
+	assert.Nil(t, err)
+	assert.Nil(t, err)
+	assert.Equal(t, "barB", svcInf.service.Name)
 }
