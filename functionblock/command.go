@@ -78,7 +78,7 @@ func wakeupCommand(c *Client, res *fbv1.Response) {
 		if fmt.Sprintf("%d", context) == res.Context.Value {
 			select {
 			case c.responseChan <- res:
-				log.Debug("wakeup command for context", context)
+				log.Trace("wakeup command for context", context)
 			case <-time.After(1 * time.Second):
 				log.Error("cannot wakeup command")
 			}
@@ -93,12 +93,12 @@ func wakeupCommand(c *Client, res *fbv1.Response) {
 
 // readResponses read responses in background
 func (c *Client) readResponses() {
-	log.Debug("about to start go ReadResponses()")
+	log.Trace("about to start go ReadResponses()")
 	go func(c *Client) {
 		//defer c.recover()
-		log.Debug("ReadResponses running")
+		log.Trace("ReadResponses running")
 		for {
-			log.Debug("ReadResponses loop")
+			log.Trace("ReadResponses loop")
 			res := &fbv1.Response{}
 			err := c.funcClient.ReadMessage(res, 0)
 			if err != nil {
@@ -112,6 +112,6 @@ func (c *Client) readResponses() {
 				go wakeupCommand(c, res)
 			}
 		}
-		log.Error("ReadResponses exit")
+		log.Trace("ReadResponses exit")
 	}(c)
 }
