@@ -76,8 +76,8 @@ func streamToCsv(c *anain.Client, fileName string, duration time.Duration) {
 func main() {
 	const timeout = 5 * time.Second
 
-	if len(os.Args) != 4 {
-		log.Fatalf("Usage: %s <mdns-service-address OR ip:port> <csv-file> <sample-rate>", os.Args[0])
+	if len(os.Args) != 5 {
+		log.Fatalf("Usage: %s <mdns-service-address OR ip:port> <csv-file> <sample-rate> <runtime>", os.Args[0])
 	}
 	address := os.Args[1]
 
@@ -90,7 +90,10 @@ func main() {
 	if err != nil {
 		log.Fatalf("Can't convert sample rate: %v\n", err)
 	}
-
+	runtime, err := strconv.Atoi(os.Args[4])
+	if err != nil {
+		log.Fatalf("Can't convert runtime: %v\n", err)
+	}
 	c, err = anain.NewClientFromUniversalAddress(address, timeout)
 	if err != nil {
 		log.Fatalf("Failed to create anain client: %v\n", err)
@@ -112,5 +115,5 @@ func main() {
 
 	fmt.Println("Started stream")
 
-	streamToCsv(c, fileName, time.Second*10)
+	streamToCsv(c, fileName, time.Second*time.Duration(runtime))
 }
