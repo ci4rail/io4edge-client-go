@@ -26,7 +26,7 @@ func runServiceBrowser(domain string, serviceType string, addServiceChan chan Se
 				svcInf.service = s
 				addServiceChan <- svcInf
 			} else {
-				log.Errorf("servicescan: can't resolve service %s: %v", s.Name, err)
+				log.Debugf("servicescan: can't resolve service %s: %v", serviceType, err)
 			}
 		case s := <-sb.RemoveChannel:
 			log.Debugf("browser got rem service %s", s.Name)
