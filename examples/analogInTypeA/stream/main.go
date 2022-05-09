@@ -51,7 +51,7 @@ func readStreamFor(c *anain.Client, duration time.Duration) {
 }
 
 func main() {
-	const timeout = 5 * time.Second
+	const timeout = 0 // use default timeout
 
 	if len(os.Args) != 3 {
 		log.Fatalf("Usage: %s <mdns-service-address> <sample-rate>  OR  %s <ip:port> <sample-rate>", os.Args[0], os.Args[0])

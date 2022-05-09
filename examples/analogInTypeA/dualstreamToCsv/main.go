@@ -64,7 +64,7 @@ func readStream(c *anain.Client, channel int, quitChan chan bool, sampleChan cha
 }
 
 func main() {
-	const timeout = 5 * time.Second
+	const timeout = 0 // use default timeout
 
 	if len(os.Args) != 6 {
 		log.Fatalf("Usage: %s <channel1-address> <channel2-address> <csv-file> <sample-rate> <runtime>", os.Args[0])

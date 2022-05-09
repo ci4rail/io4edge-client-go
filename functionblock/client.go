@@ -57,7 +57,7 @@ func newClient(c *client.Client) *Client {
 // .e.g. if addrOrService is "iou01-sn01-binio" and service is "_io4edge_binaryIoTypeA._tcp", the mdns instance
 // name "iou01-sn01-binio._io4edge_binaryIoTypeA._tcp" is used.
 //
-// The timeout specifies the maximal time waiting for a service to show up. Not used for "host:port"
+// The timeout specifies the maximal time waiting for a service to show up. If 0, use default timeout. Not used for "host:port"
 func NewClientFromUniversalAddress(addrOrService string, service string, timeout time.Duration) (*Client, error) {
 	io4eClient, err := client.NewClientFromUniversalAddress(addrOrService, service, timeout)
 

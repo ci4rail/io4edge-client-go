@@ -25,7 +25,7 @@ import (
 )
 
 func main() {
-	const timeout = 5 * time.Second
+	const timeout = 0 // use default timeout
 
 	if len(os.Args) != 2 {
 		log.Fatalf("Usage: %s <mdns-service-address OR ip:port>", os.Args[0])

@@ -85,7 +85,7 @@ func readStreamFor(c *mvbsniffer.Client, w *pcap.Writer, duration time.Duration)
 }
 
 func main() {
-	const timeout = 5 * time.Second
+	const timeout = 0 // use default timeout
 
 	if len(os.Args) != 4 {
 		log.Fatalf("Usage: %s <mdns-service-address OR ip:port> <pcap-file> <recordingtime-seconds>", os.Args[0])

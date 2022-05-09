@@ -74,7 +74,7 @@ func streamToCsv(c *anain.Client, fileName string, duration time.Duration) {
 }
 
 func main() {
-	const timeout = 5 * time.Second
+	const timeout = 0 // use default timeout
 
 	if len(os.Args) != 5 {
 		log.Fatalf("Usage: %s <mdns-service-address OR ip:port> <csv-file> <sample-rate> <runtime>", os.Args[0])
