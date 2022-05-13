@@ -57,7 +57,7 @@ type StreamFilter struct {
 // NewClientFromUniversalAddress creates a new mvbSniffer client from addrOrService.
 // If addrOrService is of the form "host:port", it creates the client from that host/port,
 // otherwise it assumes addrOrService is the instance name of a mdns service (without _io4edge_mvbSniffer._tcp).
-// The timeout specifies the maximal time waiting for a service to show up. Not used for "host:port"
+// The timeout specifies the maximal time waiting for a service to show up. If 0, use default timeout. Not used for "host:port"
 func NewClientFromUniversalAddress(addrOrService string, timeout time.Duration) (*Client, error) {
 	io4eClient, err := functionblock.NewClientFromUniversalAddress(addrOrService, "_io4edge_mvbSniffer._tcp", timeout)
 

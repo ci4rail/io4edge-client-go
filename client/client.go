@@ -29,6 +29,8 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+const defaultServiceSearchTimeout = 8 * time.Second
+
 // If is a interface for the Client
 type If interface {
 	Command(cmd proto.Message, res proto.Message, timeout time.Duration) error
@@ -80,11 +82,14 @@ func newClientFromSocketAddress(address string, funcInfo FunctionInfo) (*Client,
 }
 
 // NewClientFromService creates a new function client from a socket with a address, which was acquired from the specified service.
-// The timeout specifies the maximal time waiting for a service to show up.
+// The timeout specifies the maximal time waiting for a service to show up. If 0, use default timeout
 func NewClientFromService(serviceAddr string, timeout time.Duration) (*Client, error) {
 	instance, service, err := ParseInstanceAndService(serviceAddr)
 	if err != nil {
 		return nil, err
+	}
+	if timeout == 0 {
+		timeout = defaultServiceSearchTimeout
 	}
 	svcInfo, err := GetServiceInfo(instance, service, timeout)
 	if err != nil {

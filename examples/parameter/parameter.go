@@ -19,13 +19,12 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"time"
 
 	"github.com/ci4rail/io4edge-client-go/core"
 )
 
 func main() {
-	const timeout = 5 * time.Second
+	const timeout = 0 // use default timeout
 
 	if len(os.Args) < 4 {
 		log.Fatalf("Usage: parameter svc <mdns-service-address> <param_name> [<param_value>]  OR  parameter ip <ip:port> <param_name> [<param_value>]")

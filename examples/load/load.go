@@ -49,7 +49,7 @@ func createClient(addressType string, address string, timeout time.Duration) *co
 //   load ip 192.168.24.233:9999 fw-sio01-default-0.1.2.fwpkg
 
 func main() {
-	const timeout = 5 * time.Second
+	const timeout = 0 // use default timeout
 	const chunkSize = 1024
 
 	if len(os.Args) != 4 {

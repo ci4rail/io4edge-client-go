@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	timeout = 5 * time.Second
+	timeout = 0 // use default timeout
 )
 
 func client(clientNum int, duration time.Duration, address string, wg *sync.WaitGroup) {
