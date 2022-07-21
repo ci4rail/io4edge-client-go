@@ -14,18 +14,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package templatemodule provides the API for the io4edeg template functionblock
-package templatemodule
+// Package templateinterface provides the API for the io4edeg template functionblock
+package templateinterface
 
 import (
 	"errors"
 	"time"
 
 	"github.com/ci4rail/io4edge-client-go/functionblock"
-	fspb "github.com/ci4rail/io4edge_api/templateModule/go/templateModule/v1alpha1"
+	fspb "github.com/ci4rail/io4edge_api/templateInterface/go/templateInterface/v1alpha1"
 )
 
-// Client represents a client for the templateModule
+// Client represents a client for the templateInterface
 type Client struct {
 	fbClient *functionblock.Client
 }
@@ -33,13 +33,13 @@ type Client struct {
 // ConfigOption is a type to pass options to UploadConfiguration()
 type ConfigOption func(*fspb.ConfigurationSet)
 
-// Configuration describes the current configuration of the templateModule function.
+// Configuration describes the current configuration of the templateInterface function.
 // Returned by DownloadConfiguration()
 type Configuration struct {
 	SampleRate uint32
 }
 
-// Description represents the describe response of the templateModule
+// Description represents the describe response of the templateInterface
 type Description struct {
 	Ident string
 }
@@ -50,12 +50,12 @@ type StreamData struct {
 	FSData *fspb.StreamData
 }
 
-// NewClientFromUniversalAddress creates a new templateModule client from addrOrService.
+// NewClientFromUniversalAddress creates a new templateInterface client from addrOrService.
 // If addrOrService is of the form "host:port", it creates the client from that host/port,
-// otherwise it assumes addrOrService is the instance name of a mdns service (without _io4edge_templateModule._tcp).
+// otherwise it assumes addrOrService is the instance name of a mdns service (without _io4edge_templateInterface._tcp).
 // The timeout specifies the maximal time waiting for a service to show up. If 0, use default timeout. Not used for "host:port"
 func NewClientFromUniversalAddress(addrOrService string, timeout time.Duration) (*Client, error) {
-	io4eClient, err := functionblock.NewClientFromUniversalAddress(addrOrService, "_io4edge_templateModule._tcp", timeout)
+	io4eClient, err := functionblock.NewClientFromUniversalAddress(addrOrService, "_io4edge_templateInterface._tcp", timeout)
 
 	if err != nil {
 		return nil, err

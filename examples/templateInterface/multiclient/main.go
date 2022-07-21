@@ -9,7 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/ci4rail/io4edge-client-go/functionblock"
-	"github.com/ci4rail/io4edge-client-go/templatemodule"
+	"github.com/ci4rail/io4edge-client-go/templateinterface"
 )
 
 const (
@@ -20,22 +20,22 @@ func client(clientNum int, duration time.Duration, address string, wg *sync.Wait
 	numSamples := 0
 
 	log.Printf("Client %d starting", clientNum)
-	c, err := templatemodule.NewClientFromUniversalAddress(address, timeout)
+	c, err := templateinterface.NewClientFromUniversalAddress(address, timeout)
 	if err != nil {
-		log.Fatalf("%d: Failed to create templateModule client: %v\n", clientNum, err)
+		log.Fatalf("%d: Failed to create templateinterface client: %v\n", clientNum, err)
 	}
 	log.Printf("Client %d connected", clientNum)
 
-	err = c.UploadConfiguration(templatemodule.WithSampleRate(100))
+	err = c.UploadConfiguration(templateinterface.WithSampleRate(100))
 	if err != nil {
 		log.Errorf("%d: ConfigurationSet failed: %v\n", clientNum, err)
 	}
 
 	err = c.StartStream(
-		templatemodule.WithModulo(1),
-		templatemodule.WithFBStreamOption(functionblock.WithBucketSamples(30)),
-		templatemodule.WithFBStreamOption(functionblock.WithBufferedSamples(50)),
-		templatemodule.WithFBStreamOption(functionblock.WithKeepaliveInterval(2000)),
+		templateinterface.WithModulo(1),
+		templateinterface.WithFBStreamOption(functionblock.WithBucketSamples(30)),
+		templateinterface.WithFBStreamOption(functionblock.WithBufferedSamples(50)),
+		templateinterface.WithFBStreamOption(functionblock.WithKeepaliveInterval(2000)),
 	)
 	if err != nil {
 		log.Errorf("%d: StartStream failed: %v\n", clientNum, err)

@@ -8,7 +8,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/ci4rail/io4edge-client-go/functionblock"
-	"github.com/ci4rail/io4edge-client-go/templatemodule"
+	"github.com/ci4rail/io4edge-client-go/templateinterface"
 )
 
 func main() {
@@ -18,24 +18,24 @@ func main() {
 		log.Fatalf("Usage: %s <mdns-service-address>  OR  %s <ip:port>", os.Args[0], os.Args[0])
 	}
 	address := os.Args[1]
-	log.SetLevel(log.DebugLevel)
+	//log.SetLevel(log.DebugLevel)
 
 	// Create a client object to work with the io4edge device at <address>
-	var c *templatemodule.Client
+	var c *templateinterface.Client
 	var err error
 
-	c, err = templatemodule.NewClientFromUniversalAddress(address, timeout)
+	c, err = templateinterface.NewClientFromUniversalAddress(address, timeout)
 	if err != nil {
-		log.Fatalf("Failed to create templateModule client: %v\n", err)
+		log.Fatalf("Failed to create templateinterface client: %v\n", err)
 	}
 
-	err = c.UploadConfiguration(templatemodule.WithSampleRate(40))
+	err = c.UploadConfiguration(templateinterface.WithSampleRate(40))
 	if err != nil {
 		log.Errorf("ConfigurationSet failed: %v\n", err)
 	}
 
 	// provoke error
-	err = c.UploadConfiguration(templatemodule.WithSampleRate(100000))
+	err = c.UploadConfiguration(templateinterface.WithSampleRate(100000))
 	if err != nil {
 		log.Errorf("ConfigurationSet failed: %v\n", err)
 	}
@@ -64,10 +64,10 @@ func main() {
 	fmt.Printf("counter: %d\n", cnt)
 
 	err = c.StartStream(
-		templatemodule.WithModulo(4),
-		templatemodule.WithFBStreamOption(functionblock.WithBucketSamples(40)),
-		templatemodule.WithFBStreamOption(functionblock.WithBufferedSamples(1000)),
-		templatemodule.WithFBStreamOption(functionblock.WithKeepaliveInterval(2000)),
+		templateinterface.WithModulo(4),
+		templateinterface.WithFBStreamOption(functionblock.WithBucketSamples(40)),
+		templateinterface.WithFBStreamOption(functionblock.WithBufferedSamples(1000)),
+		templateinterface.WithFBStreamOption(functionblock.WithKeepaliveInterval(2000)),
 	)
 	if err != nil {
 		log.Errorf("StartStream failed: %v\n", err)
