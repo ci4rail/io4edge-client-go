@@ -1,5 +1,5 @@
 /*
-Copyright © 2021 Ci4Rail GmbH <engineering@ci4rail.com>
+Copyright © 2022 Ci4Rail GmbH <engineering@ci4rail.com>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package main
 
 import (
 	"errors"
+	"flag"
 	"fmt"
 	"os"
 	"os/exec"
@@ -31,11 +32,12 @@ import (
 const maxMinorNumbers = 256
 
 type ttynvtInstanceInfo struct {
-	cmd   *exec.Cmd
-	minor int
+	cmd    *exec.Cmd
+	minor  int
+	ipPort string
 }
 
-var ttynvtInstanceMap = make(map[string]ttynvtInstanceInfo)
+var ttynvtInstanceMap = make(map[string]*ttynvtInstanceInfo)
 var programPath string
 var major int
 var minorMap [maxMinorNumbers]bool
@@ -64,49 +66,117 @@ func setMinorFree(minor int) {
 	minorMap[minor-1] = true
 }
 
+func ttyName(instanceName string) string {
+	return "tty" + instanceName
+}
+
+func killCmd(name string, cmd *exec.Cmd) error {
+	if cmd.Process != nil {
+		err := cmd.Process.Kill()
+		if err != nil {
+			log.Warnf("Kill ttynvt instance for %s failed: %v\n", name, err)
+			return err
+		}
+		cmd.Wait()
+		return nil
+	}
+	log.Warnf("ttynvt instance for %s not running", name)
+	return nil
+}
+
+func delInfo(name string) {
+	if info, ok := ttynvtInstanceMap[name]; ok {
+		if info.minor != 0 {
+			setMinorFree(info.minor)
+		}
+		delete(ttynvtInstanceMap, name)
+	}
+}
+
 func serviceAdded(s client.ServiceInfo) error {
-	var err error
-	var instanceInfo ttynvtInstanceInfo
-	name := "tty" + s.GetInstanceName()
+	var info *ttynvtInstanceInfo
+
 	fmt.Println("Added service", s.GetInstanceName())
+
+	name := ttyName(s.GetInstanceName())
 	ipPort := s.GetIPAddressPort()
-	instanceInfo.minor, err = getFreeMinor()
+
+	info, ok := ttynvtInstanceMap[name]
+	if ok {
+		// instance already exists, check if ip or port changed
+		if info.ipPort == ipPort {
+			log.Infof("no change in ip/port for instance %s", name)
+			return nil
+		}
+		// ip or port changed, kill old instance and start new one
+		log.Infof("ip/port changed for instance %s, %s->%s killing old instance", name, info.ipPort, ipPort)
+		killCmd(name, info.cmd)
+		info.cmd = nil
+
+	} else {
+		// instance does not exist. start new instance
+		info = &ttynvtInstanceInfo{}
+		info.ipPort = ipPort
+		minor, err := getFreeMinor()
+
+		if err != nil {
+			log.Errorf("No free minor numbers for %s: %v\n", name, err)
+			return nil
+		}
+		info.minor = minor
+		setMinorOccupied(info.minor)
+		log.Infof("start process for instance %d (%s)", minor, name)
+		ttynvtInstanceMap[name] = info
+	}
+	info.cmd = exec.Command(programPath, "-f", "-E", "-M", strconv.Itoa(major), "-m", strconv.Itoa(info.minor), "-n", name, "-S", ipPort)
+	err := info.cmd.Start()
 	if err != nil {
-		log.Errorf("Start ttynvt instance (%s) failed: %v\n", name, err)
-		// return nil, that all other ttynvt instances are not terminated
+		log.Errorf("Start ttynvt instance %d (%s) failed: %v\n", info.minor, name, err)
+		delInfo(name)
 		return nil
 	}
-	instanceInfo.cmd = exec.Command(programPath, "-f", "-E", "-M", strconv.Itoa(major), "-m", strconv.Itoa(instanceInfo.minor), "-n", name, "-S", ipPort)
-	err = instanceInfo.cmd.Start()
-	if err != nil {
-		log.Errorf("Start ttynvt instance %d (%s) failed: %v\n", instanceInfo.minor, name, err)
-		// return nil, that all other ttynvt instances are not terminated
-		return nil
-	}
-	setMinorOccupied(instanceInfo.minor)
-	ttynvtInstanceMap[name] = instanceInfo
+
 	return nil
 }
 
 func serviceRemoved(s client.ServiceInfo) error {
-	name := "tty" + s.GetInstanceName()
+	name := ttyName(s.GetInstanceName())
 	fmt.Println("Removed service", s.GetInstanceName())
-	err := ttynvtInstanceMap[name].cmd.Process.Kill()
-	if err != nil {
-		log.Errorf("Kill ttynvt instance %d (%s) failed: %v\n", ttynvtInstanceMap[name].minor, name, err)
-		// return nil, that all other ttynvt instances are not terminated (maybe current instance wasn't ever started)
-		return nil
+
+	info, ok := ttynvtInstanceMap[name]
+	if ok {
+		log.Infof("Killing ttynvt instance for %s", name)
+		killCmd(name, info.cmd)
+		delInfo(name)
+	} else {
+		log.Warnf("ttynvt instance for %s not in map", name)
 	}
-	setMinorFree(ttynvtInstanceMap[name].minor)
 	return nil
 }
 
 func main() {
 	var err error
-	if len(os.Args) != 3 {
-		log.Fatalf("Usage: %s <ttynvt-program-path> <driver-major-number>", os.Args[0])
+
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "Usage: %s [OPTIONS] <ttynvt-program-path> <driver-major-number>\n", os.Args[0])
+		os.Exit(1)
 	}
-	programPath = os.Args[1]
+
+	logLevel := flag.String("loglevel", "info", "loglevel (debug, info, warn, error)")
+	// parse command line arguments
+	flag.Parse()
+	if flag.NArg() != 2 {
+		flag.Usage()
+	}
+
+	level, err := log.ParseLevel(*logLevel)
+
+	if err != nil {
+		log.Fatalf("Invalid log level: %v", err)
+	}
+	log.SetLevel(level)
+
+	programPath = flag.Arg(0)
 	_, err = os.Stat(programPath)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -115,7 +185,7 @@ func main() {
 			log.Fatalf("error: %v", err)
 		}
 	}
-	major, err = strconv.Atoi(os.Args[2])
+	major, err = strconv.Atoi(flag.Arg(1))
 	if err != nil {
 		log.Fatalf("error: driver-major-number must be a number!")
 	}
