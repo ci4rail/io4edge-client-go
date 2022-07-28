@@ -37,10 +37,12 @@ type ttynvtInstanceInfo struct {
 	ipPort string
 }
 
-var ttynvtInstanceMap = make(map[string]*ttynvtInstanceInfo)
-var programPath string
-var major int
-var minorMap [maxMinorNumbers]bool
+var (
+	ttynvtInstanceMap = make(map[string]*ttynvtInstanceInfo)
+	programPath       string
+	major             int
+	minorMap          [maxMinorNumbers]bool
+)
 
 func initMinorMap() {
 	for i := range minorMap {
@@ -159,6 +161,7 @@ func main() {
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: %s [OPTIONS] <ttynvt-program-path> <driver-major-number>\n", os.Args[0])
+		flag.PrintDefaults()
 		os.Exit(1)
 	}
 
