@@ -7,7 +7,7 @@ require (
 	github.com/ci4rail/io4edge_api v0.6.0
 	github.com/gobwas/glob v0.2.3
 	github.com/godbus/dbus/v5 v5.0.5
-	github.com/holoplot/go-avahi v1.0.0
+	github.com/holoplot/go-avahi v1.0.1
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.2.1
