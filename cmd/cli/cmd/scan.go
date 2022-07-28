@@ -150,6 +150,6 @@ func scan(cmd *cobra.Command, args []string) {
 
 func init() {
 	rootCmd.AddCommand(scanCmd)
-	scanCmd.PersistentFlags().UintVarP(&scanTime, "scantime", "", 8, "scan time in seconds")
+	scanCmd.PersistentFlags().UintVarP(&scanTime, "scantime", "", 2, "scan time in seconds")
 	scanCmd.PersistentFlags().BoolVarP(&enableShowFunctions, "functions", "f", false, "show device sub functions")
 }
