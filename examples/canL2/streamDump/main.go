@@ -35,9 +35,6 @@ func main() {
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
-	bitratePtr := flag.Uint("bitrate", 500000, "CAN Bitrate")
-	samplePointPtr := flag.Float64("samplepoint", 0.8, "CAN Sample Point (0.0-1.0)")
-	listenOnlyPtr := flag.Bool("listenonly", false, "Listen only mode")
 	acceptanceCodePtr := flag.Uint("acceptancecode", 0x00000000, "CAN Filter Acceptance Code")
 	acceptanceMaskPtr := flag.Uint("acceptancemask", 0x00000000, "CAN Filter Acceptance Mask")
 	flag.Parse()
@@ -52,16 +49,6 @@ func main() {
 	c, err := canl2.NewClientFromUniversalAddress(address, timeout)
 	if err != nil {
 		log.Fatalf("Failed to create canl2 client: %v\n", err)
-	}
-
-	// configure CAN
-	err = c.UploadConfiguration(
-		canl2.WithBitRate(uint32(*bitratePtr)),
-		canl2.WithSamplePoint(float32(*samplePointPtr)),
-		canl2.WithListenOnly(*listenOnlyPtr),
-	)
-	if err != nil {
-		log.Fatalf("Failed to configure canl2: %v\n", err)
 	}
 
 	// start stream
