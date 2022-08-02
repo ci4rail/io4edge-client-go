@@ -135,7 +135,8 @@ func (c *Client) DownloadConfiguration() (*Configuration, error) {
 }
 
 // SendFrames sends a slice of frames to the CAN bus
-// TODO: How many frames are possible to send at once?
+// if the queue on the device is not large enough to contain all frames,
+// send nothing and return temporarily unavailable error
 func (c *Client) SendFrames(frames []*fspb.Frame) error {
 	fsCmd := &fspb.FunctionControlSet{
 		Frame: frames,
