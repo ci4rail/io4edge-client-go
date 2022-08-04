@@ -35,6 +35,7 @@ func main() {
 	}
 	bitratePtr := flag.Uint("bitrate", 500000, "CAN Bitrate")
 	samplePointPtr := flag.Float64("samplepoint", 0.8, "CAN Sample Point (0.0-1.0)")
+	sjwPtr := flag.Uint("sjw", 1, "CAN Synchronization Jump Width")
 	listenOnlyPtr := flag.Bool("listenonly", false, "Listen only mode")
 	flag.Parse()
 
@@ -54,6 +55,7 @@ func main() {
 	err = c.UploadConfiguration(
 		canl2.WithBitRate(uint32(*bitratePtr)),
 		canl2.WithSamplePoint(float32(*samplePointPtr)),
+		canl2.WithSJW(uint8(*sjwPtr)),
 		canl2.WithListenOnly(*listenOnlyPtr),
 	)
 	if err != nil {

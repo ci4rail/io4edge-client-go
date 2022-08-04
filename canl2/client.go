@@ -38,6 +38,7 @@ type ConfigOption func(*fspb.ConfigurationSet)
 type Configuration struct {
 	BitRate     uint32
 	SamplePoint float32
+	SJW         uint8
 	ListenOnly  bool
 }
 
@@ -78,10 +79,19 @@ func WithBitRate(bitRate uint32) ConfigOption {
 
 // WithSamplePoint may be passed to UploadConfiguration.
 //
-// sample point in percentage/100 - basis to calculate tseg1 and tseg2
+// Sample Point from 0.0-1.0 - basis to calculate tseg1 and tseg2
 func WithSamplePoint(samplePoint float32) ConfigOption {
 	return func(c *fspb.ConfigurationSet) {
-		c.SamplePoint = samplePoint
+		c.SamplePoint = int32(samplePoint * 1000)
+	}
+}
+
+// WithSJW may be passed to UploadConfiguration.
+//
+// Synchronization Jump Width
+func WithSJW(sjw uint8) ConfigOption {
+	return func(c *fspb.ConfigurationSet) {
+		c.Sjw = int32(sjw)
 	}
 }
 
@@ -98,12 +108,14 @@ func WithListenOnly(listenOnly bool) ConfigOption {
 // Arguments may be one or more of the following functions:
 //  - WithBitRate
 //  - WithSamplePoint
+//  - WithSJW
 //  - WithListenOnly
-// Options that are not specified take default value (Bitrate 500000, SamplePoint 0.8, ListenOnly false)
+// Options that are not specified take default value (Bitrate 500000, SamplePoint 0.8, SJW 1, ListenOnly false)
 func (c *Client) UploadConfiguration(opts ...ConfigOption) error {
 	fsCmd := &fspb.ConfigurationSet{
 		Baud:        500000,
-		SamplePoint: 0.8,
+		SamplePoint: 800,
+		Sjw:         1,
 		ListenOnly:  false,
 	}
 
@@ -128,7 +140,8 @@ func (c *Client) DownloadConfiguration() (*Configuration, error) {
 	}
 	cfg := &Configuration{
 		BitRate:     res.Baud,
-		SamplePoint: res.SamplePoint,
+		SamplePoint: float32(res.SamplePoint / 1000),
+		SJW:         uint8(res.Sjw),
 		ListenOnly:  res.ListenOnly,
 	}
 	return cfg, err
