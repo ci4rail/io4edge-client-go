@@ -19,6 +19,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"time"
 
 	"log"
 
@@ -34,7 +35,10 @@ func main() {
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
-
+	buckets := flag.Int("buckets", 10, "number of buckets to send")
+	messages := flag.Int("messages", 5, "number of messages per bucket")
+	extended := flag.Bool("ext", false, "use extended frames")
+	rtr := flag.Bool("rtr", false, "use rtr frames")
 	flag.Parse()
 
 	if flag.NArg() != 1 {
@@ -49,20 +53,28 @@ func main() {
 		log.Fatalf("Failed to create canl2 client: %v\n", err)
 	}
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < *buckets; i++ {
 		frames := []*fspb.Frame{}
 
-		for j := 0; j < 5; j++ {
+		for j := 0; j < *messages; j++ {
 			f := &fspb.Frame{
 				MessageId:           uint32(i),
-				Data:                []byte{byte(j)},
-				ExtendedFrameFormat: false,
-				RemoteFrame:         false,
+				Data:                []byte{},
+				ExtendedFrameFormat: *extended,
+				RemoteFrame:         *rtr,
 			}
+			for k := 0; k < 8; k++ {
+				f.Data = append(f.Data, byte(j))
+			}
+
 			frames = append(frames, f)
 		}
 		fmt.Printf("Send frames: %v\n", frames)
+		start := time.Now()
 		err = c.SendFrames(frames)
+		elapsed := time.Since(start)
+		fmt.Printf("Send took %s\n", elapsed)
+
 		if err != nil {
 			log.Printf("Send failed: %v\n", err)
 		}
