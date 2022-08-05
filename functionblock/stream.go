@@ -128,7 +128,7 @@ func (c *Client) ReadStream(timeout time.Duration) (*StreamData, error) {
 
 	case <-time.After(timeout):
 		// TODO: Specific error code!
-		log.Warn("ReadStreamData timeout")
+		//log.Warn("ReadStreamData timeout")
 		return nil, errors.New("timeout waiting for stream data")
 	}
 }

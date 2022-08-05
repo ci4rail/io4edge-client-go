@@ -25,6 +25,7 @@ import (
 
 	"github.com/ci4rail/io4edge-client-go/canl2"
 	"github.com/ci4rail/io4edge-client-go/functionblock"
+	fspb "github.com/ci4rail/io4edge_api/canL2/go/canL2/v1alpha1"
 )
 
 func main() {
@@ -37,6 +38,7 @@ func main() {
 	}
 	acceptanceCodePtr := flag.Uint("acceptancecode", 0x00000000, "CAN Filter Acceptance Code")
 	acceptanceMaskPtr := flag.Uint("acceptancemask", 0x00000000, "CAN Filter Acceptance Mask")
+	runtimePtr := flag.Uint("runtime", 10, "Seconds to receive data")
 	flag.Parse()
 
 	if flag.NArg() != 1 {
@@ -63,7 +65,7 @@ func main() {
 
 	fmt.Println("Started stream")
 
-	readStreamFor(c, time.Second*10)
+	readStreamFor(c, time.Duration(*runtimePtr)*time.Second)
 }
 
 func readStreamFor(c *canl2.Client, duration time.Duration) {
@@ -71,7 +73,7 @@ func readStreamFor(c *canl2.Client, duration time.Duration) {
 
 	for {
 		// read next bucket from stream
-		sd, err := c.ReadStream(time.Second * 1)
+		sd, err := c.ReadStream(time.Second * 5)
 
 		if err != nil {
 			log.Printf("ReadStreamData failed: %v\n", err)
@@ -83,6 +85,13 @@ func readStreamFor(c *canl2.Client, duration time.Duration) {
 				fmt.Printf("%d: %s\n", s.Timestamp, s.String())
 			}
 		}
+		state, err := c.GetCtrlState()
+		if err != nil {
+			log.Printf("GetCtrlState failed: %v\n", err)
+		}
+
+		fmt.Printf("Controller State=%s\n", fspb.ControllerState_name[int32(state)])
+
 		if time.Since(start) > duration {
 			return
 		}

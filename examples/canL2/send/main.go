@@ -39,6 +39,7 @@ func main() {
 	messages := flag.Int("messages", 5, "number of messages per bucket")
 	extended := flag.Bool("ext", false, "use extended frames")
 	rtr := flag.Bool("rtr", false, "use rtr frames")
+	gap := flag.Int("gap", 0, "gap between buckets (ms)")
 	flag.Parse()
 
 	if flag.NArg() != 1 {
@@ -58,12 +59,13 @@ func main() {
 
 		for j := 0; j < *messages; j++ {
 			f := &fspb.Frame{
-				MessageId:           uint32(i),
+				MessageId:           uint32(0x100 + (i & 0xFF)),
 				Data:                []byte{},
 				ExtendedFrameFormat: *extended,
 				RemoteFrame:         *rtr,
 			}
-			for k := 0; k < 8; k++ {
+			len := j % 8
+			for k := 0; k < len; k++ {
 				f.Data = append(f.Data, byte(j))
 			}
 
@@ -77,6 +79,9 @@ func main() {
 
 		if err != nil {
 			log.Printf("Send failed: %v\n", err)
+		}
+		if *gap != 0 {
+			time.Sleep(time.Millisecond * time.Duration(*gap))
 		}
 	}
 }
