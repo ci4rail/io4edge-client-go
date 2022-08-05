@@ -30,6 +30,7 @@ var setPersistentParameterCmd = &cobra.Command{
 	Short:   "Set a persistent parameter.",
 	Long: `Program a parameter into the non volatile storage (nvs) of the device.
 While the name is the key to the value. It is only possible to set parameters for which the device already provides a place in the nvs.
+Passing an empty value deletes the parameter.
 Example:
 io4edge-cli -s S101-IOU04-USB-EXT-1 set-parameter wifi-ssid Ci4Rail-Guest`,
 	Run:  setPersistentParameter,
@@ -46,10 +47,14 @@ func setPersistentParameter(cmd *cobra.Command, args []string) {
 	err = c.SetPersistentParameter(name, value, time.Duration(timeoutSecs)*time.Second)
 	e.ErrChk(err)
 
-	value, err = c.GetPersistentParameter(name, time.Duration(timeoutSecs)*time.Second)
-	e.ErrChk(err)
+	if value != "" {
+		value, err = c.GetPersistentParameter(name, time.Duration(timeoutSecs)*time.Second)
+		e.ErrChk(err)
+		fmt.Printf("Parameter %s was set to %s\n", name, value)
+	} else {
+		fmt.Printf("Parameter %s deleted\n", name)
+	}
 
-	fmt.Printf("Parameter %s was set to %s\n", name, value)
 }
 
 func init() {
