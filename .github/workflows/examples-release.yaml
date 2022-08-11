@@ -22,6 +22,9 @@ jobs:
           - binaryIoTypeA/stream_verify
           - mvbSniffer/pcap
           - mvbSniffer/streamDump
+          - canL2/streamDump
+          - canL2/send
+          - canL2/config
     steps:
       - name: Checkout code
         uses: actions/checkout@v2

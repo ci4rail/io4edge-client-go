@@ -71,11 +71,11 @@ func main() {
 
 			frames = append(frames, f)
 		}
-		fmt.Printf("Send frames: %v\n", frames)
+
 		start := time.Now()
 		err = c.SendFrames(frames)
 		elapsed := time.Since(start)
-		fmt.Printf("Send took %s\n", elapsed)
+		fmt.Printf("Send of %d frames took %s\n", len(frames), elapsed)
 
 		if err != nil {
 			log.Printf("Send failed: %v\n", err)
