@@ -60,7 +60,7 @@ func main() {
 		canl2.WithFBStreamOption(functionblock.WithBufferedSamples(200)),
 	)
 	if err != nil {
-		log.Printf("StartStream failed: %v\n", err)
+		log.Fatalf("StartStream failed: %v\n", err)
 	}
 
 	fmt.Println("Started stream")
@@ -79,21 +79,42 @@ func readStreamFor(c *canl2.Client, duration time.Duration) {
 			log.Printf("ReadStreamData failed: %v\n", err)
 		} else {
 			samples := sd.FSData.Samples
-			fmt.Printf("got stream data seq=%d ts=%d\n", sd.Sequence, sd.DeliveryTimestamp)
+			fmt.Printf("got stream data with %d samples\n", len(samples))
 
 			for _, s := range samples {
-				fmt.Printf("%d: %s\n", s.Timestamp, s.String())
+				fmt.Printf("  %s\n", dumpSample(s))
 			}
 		}
-		state, err := c.GetCtrlState()
-		if err != nil {
-			log.Printf("GetCtrlState failed: %v\n", err)
-		}
-
-		fmt.Printf("Controller State=%s\n", fspb.ControllerState_name[int32(state)])
 
 		if time.Since(start) > duration {
 			return
 		}
 	}
+}
+
+func dumpSample(sample *fspb.Sample) string {
+	var s string
+
+	s = fmt.Sprintf("@%010d us: ", sample.Timestamp)
+	if sample.IsDataFrame {
+		f := sample.Frame
+		s += "ID:"
+		if f.ExtendedFrameFormat {
+			s += fmt.Sprintf("%08x", f.MessageId)
+		} else {
+			s += fmt.Sprintf("%03x", f.MessageId)
+		}
+		if f.RemoteFrame {
+			s += " R"
+		}
+		s += " DATA:"
+		for _, b := range f.Data {
+			s += fmt.Sprintf("%02x ", b)
+		}
+		s += " "
+	}
+	s += "ERROR:" + sample.Error.String()
+	s += " STATE:" + sample.ControllerState.String()
+
+	return s
 }
