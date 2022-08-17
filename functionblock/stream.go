@@ -34,6 +34,7 @@ type StreamConfiguration struct {
 	BucketSamples     uint32
 	KeepaliveInterval uint32
 	BufferedSamples   uint32
+	LowLatencyMode    bool
 }
 
 // StreamDataMeta contains meta information about a Stream Data message
@@ -76,12 +77,23 @@ func WithKeepaliveInterval(timeMS uint32) StreamConfigOption {
 	}
 }
 
+// WithLowLatencyMode may be passed to StartStream.
+//
+// if true, the stream is started in low latency mode.
+// In low latency mode, samples are sent as soon as possible, if currently no more buffered samples are ready.
+func WithLowLatencyMode(lowLatencyMode bool) StreamConfigOption {
+	return func(c *StreamConfiguration) {
+		c.LowLatencyMode = lowLatencyMode
+	}
+}
+
 // StartStream starts the stream with configuration config, passing the function specific configuration from fscmd
 func (c *Client) StartStream(opts []StreamConfigOption, fsCmd proto.Message) error {
 	config := &StreamConfiguration{
 		BucketSamples:     25,
 		KeepaliveInterval: 1000,
 		BufferedSamples:   50,
+		LowLatencyMode:    false,
 	}
 	for _, opt := range opts {
 		opt(config)
@@ -148,6 +160,7 @@ func streamControlStartMessage(config *StreamConfiguration, fsCmd proto.Message)
 						BucketSamples:                      config.BucketSamples,
 						KeepaliveInterval:                  config.KeepaliveInterval,
 						BufferedSamples:                    config.BufferedSamples,
+						LowLatencyMode:                     config.LowLatencyMode,
 						FunctionSpecificStreamControlStart: anyCmd,
 					},
 				},

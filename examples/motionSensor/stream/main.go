@@ -43,6 +43,7 @@ func main() {
 	bandWithRatio := flag.Uint("bwr", 2, "Bandwith ratio")
 	fileName := flag.String("file", "out.csv", "Output file name")
 	dumpToConsole := flag.Bool("console", false, "Dump data to console")
+	lowLatency := flag.Bool("lowlatency", false, "Use stream low latency mode")
 
 	flag.Parse()
 
@@ -71,6 +72,7 @@ func main() {
 	err = c.StartStream(
 		functionblock.WithBucketSamples(10),
 		functionblock.WithBufferedSamples(200),
+		functionblock.WithLowLatencyMode(*lowLatency),
 	)
 	if err != nil {
 		log.Fatalf("StartStream failed: %v\n", err)

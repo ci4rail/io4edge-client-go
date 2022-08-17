@@ -39,6 +39,8 @@ func main() {
 	acceptanceCodePtr := flag.Uint("acceptancecode", 0x00000000, "CAN Filter Acceptance Code")
 	acceptanceMaskPtr := flag.Uint("acceptancemask", 0x00000000, "CAN Filter Acceptance Mask")
 	runtimePtr := flag.Uint("runtime", 10, "Seconds to receive data")
+	lowLatency := flag.Bool("lowlatency", false, "Use stream low latency mode")
+
 	flag.Parse()
 
 	if flag.NArg() != 1 {
@@ -58,6 +60,7 @@ func main() {
 		canl2.WithFilter(uint32(*acceptanceCodePtr), uint32(*acceptanceMaskPtr)),
 		canl2.WithFBStreamOption(functionblock.WithBucketSamples(100)),
 		canl2.WithFBStreamOption(functionblock.WithBufferedSamples(200)),
+		canl2.WithFBStreamOption(functionblock.WithLowLatencyMode(*lowLatency)),
 	)
 	if err != nil {
 		log.Fatalf("StartStream failed: %v\n", err)
