@@ -25,6 +25,7 @@ jobs:
           - canL2/streamDump
           - canL2/send
           - canL2/config
+          - motionSensor/stream
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
