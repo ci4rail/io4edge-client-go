@@ -9,6 +9,7 @@ import (
 
 	"github.com/godbus/dbus/v5"
 	"github.com/holoplot/go-avahi"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -66,14 +67,11 @@ var observersMutex sync.Mutex
 func (o *observerContext) newInstanceFound(s ServiceInfo) error {
 	observersMutex.Lock()
 	defer observersMutex.Unlock()
-
+	log.Debugf("new instance found: %v", s)
 	o.foundInstances[s.service.Name] = s
 
 	for _, channel := range o.channels {
-		select {
-		case channel <- s:
-		default:
-		}
+		channel <- s
 	}
 
 	return nil
@@ -83,6 +81,7 @@ func (o *observerContext) instanceDisappeared(s ServiceInfo) error {
 	observersMutex.Lock()
 	defer observersMutex.Unlock()
 
+	log.Debugf("instance disappeared: %v", s)
 	_, ok := o.foundInstances[s.service.Name]
 	if ok {
 		delete(o.foundInstances, s.service.Name)
@@ -159,8 +158,10 @@ func GetServiceInfo(instanceName string, serviceName string, timeout time.Durati
 	/* check instance map for service name and instance name */
 	observer, exists := observers[serviceName]
 	if exists {
+		log.Debugf("GetServiceInfo oberserver for %s exists", serviceName)
 		svcInf, exists = observer.foundInstances[instanceName]
 		if exists {
+			log.Debugf("Instance already known %s exists", instanceName)
 			observersMutex.Unlock()
 			return &svcInf, nil
 		}
@@ -170,12 +171,14 @@ func GetServiceInfo(instanceName string, serviceName string, timeout time.Durati
 		startObserver = true
 	}
 
-	/* create channel to get service info object when service observer found service */
-	channel = make(chan ServiceInfo)
+	// create channel to get service info object when service observer found service
+	// channel is buffered to prevent blocking
+	channel = make(chan ServiceInfo, 256)
 	observers[serviceName].channels = append(observers[serviceName].channels, channel)
 	defer removeChannel(serviceName, channel)
 
 	if startObserver {
+		log.Debugf("GetServiceInfo start observer for %s", serviceName)
 		/* start service observer and pass observer context as context */
 		o := observers[serviceName]
 		go ServiceObserver(serviceName, o.newInstanceFound, o.instanceDisappeared)
@@ -185,6 +188,7 @@ func GetServiceInfo(instanceName string, serviceName string, timeout time.Durati
 	for {
 		select {
 		case svcInf = <-channel:
+			log.Debugf("GetServiceInfo service found: %v", svcInf)
 			if svcInf.GetInstanceName() == instanceName {
 				return &svcInf, nil
 			}
