@@ -51,10 +51,8 @@ github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e/go.mod h1:nSuG5e5P
 github.com/chzyer/test v0.0.0-20180213035817-a1ea475d72b1/go.mod h1:Q3SI9o4m/ZMnBNeIyt5eFwwo7qiLfzFZmjNmxjkiQlU=
 github.com/ci4rail/firmware-packaging-go v1.0.0 h1:AnBRanpKnO6WgGuBC5kk4Ptq5yYuKzCar+k/7ogAeiw=
 github.com/ci4rail/firmware-packaging-go v1.0.0/go.mod h1:SuaeirmoxRxyIcfU9op5OyAEvmHym43bFIE60U+8nvw=
-github.com/ci4rail/io4edge_api v0.9.1-0.20220816094658-10642aecdff0 h1:VU2fv6vH8jfBTSpsZ38JnS0pDJJYVVQvNOQ4M2BlXEc=
-github.com/ci4rail/io4edge_api v0.9.1-0.20220816094658-10642aecdff0/go.mod h1:afUfAFndnAN0W0L5KZfdaQRNsYbwkwVWBPvBd0lWPhI=
-github.com/ci4rail/io4edge_api v0.10.0 h1:Vd5mlV31IQElRKveJuNI6aTa4k2SjtILILnjT9qwSaU=
-github.com/ci4rail/io4edge_api v0.10.0/go.mod h1:afUfAFndnAN0W0L5KZfdaQRNsYbwkwVWBPvBd0lWPhI=
+github.com/ci4rail/io4edge_api v0.11.0 h1:0Y693M8lhuaebnE0dQbFr044tjFOIrFPMjzI7knQh0o=
+github.com/ci4rail/io4edge_api v0.11.0/go.mod h1:afUfAFndnAN0W0L5KZfdaQRNsYbwkwVWBPvBd0lWPhI=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/cncf/udpa/go v0.0.0-20191209042840-269d4d468f6f/go.mod h1:M8M6+tZqaGXZJjfX53e64911xZQV5JYwmTeXPW+k8Sc=
 github.com/cncf/udpa/go v0.0.0-20200629203442-efcf912fb354/go.mod h1:WmhPx2Nbnhtbo57+VJT5O0JRkEi1Wbu0z5j0R8u5Hbk=
