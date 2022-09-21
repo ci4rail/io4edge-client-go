@@ -45,7 +45,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to get inputs: %v\n", err)
 	}
-	log.Printf("Inputs: 0x%x", values)
+	log.Printf("Inputs: %x", values)
 
 	var value bool
 	value, err = c.Input(0)
