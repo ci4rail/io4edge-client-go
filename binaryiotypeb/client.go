@@ -14,8 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package binaryiotypea provides the API for the io4edge binaryIoTypeA functionblock
-package binaryiotypea
+// Package binaryiotypeb provides the API for the io4edge binaryIoTypeB functionblock
+package binaryiotypeb
 
 import (
 	"time"
@@ -24,22 +24,22 @@ import (
 	fspb "github.com/ci4rail/io4edge_api/binaryIoTypeB/go/binaryIoTypeB/v1alpha1"
 )
 
-// Client represents a client for the binaryIoTypeA Module
+// Client represents a client for the binaryIoTypeB Module
 type Client struct {
 	fbClient *functionblock.Client
 }
 
-// Description represents the describe response of the binaryIoTypeA function
+// Description represents the describe response of the binaryIoTypeB function
 type Description struct {
 	NumberOfChannels int
 }
 
-// NewClientFromUniversalAddress creates a new binaryIoTypeA client from addrOrService.
+// NewClientFromUniversalAddress creates a new binaryIoTypeB client from addrOrService.
 // If addrOrService is of the form "host:port", it creates the client from that host/port,
-// otherwise it assumes addrOrService is the instance name of a mdns service (without _io4edge_binaryIoTypeA._tcp).
+// otherwise it assumes addrOrService is the instance name of a mdns service (without _io4edge_binaryIoTypeB._tcp).
 // The timeout specifies the maximal time waiting for a service to show up. If 0, use default timeout. Not used for "host:port"
 func NewClientFromUniversalAddress(addrOrService string, timeout time.Duration) (*Client, error) {
-	io4eClient, err := functionblock.NewClientFromUniversalAddress(addrOrService, "_io4edge_binaryIoTypeA._tcp", timeout)
+	io4eClient, err := functionblock.NewClientFromUniversalAddress(addrOrService, "_io4edge_binaryIoTypeB._tcp", timeout)
 
 	if err != nil {
 		return nil, err
