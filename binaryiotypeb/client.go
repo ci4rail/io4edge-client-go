@@ -31,7 +31,7 @@ type Client struct {
 
 // Description represents the describe response of the binaryIoTypeB function
 type Description struct {
-	NumberOfChannels int
+	Channels []*fspb.ChannelConfig
 }
 
 // NewClientFromUniversalAddress creates a new binaryIoTypeB client from addrOrService.
@@ -65,8 +65,9 @@ func (c *Client) Describe() (*Description, error) {
 	if err := any.UnmarshalTo(res); err != nil {
 		return nil, err
 	}
+	//var desc fspb.ChannelConfig
 	desc := &Description{
-		NumberOfChannels: int(res.NumberOfChannels),
+		Channels: res.ChannelConfig,
 	}
 	return desc, err
 }
