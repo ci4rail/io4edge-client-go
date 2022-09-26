@@ -65,7 +65,7 @@ func (c *Client) Describe() (*Description, error) {
 	if err := any.UnmarshalTo(res); err != nil {
 		return nil, err
 	}
-	//var desc fspb.ChannelConfig
+
 	desc := &Description{
 		Channels: res.ChannelConfig,
 	}
@@ -73,7 +73,7 @@ func (c *Client) Describe() (*Description, error) {
 }
 
 // SetOutput sets a single output channel
-// a "true" state turns on the output switch
+// a true activates the output
 func (c *Client) SetOutput(channel int, state bool) error {
 	fsCmd := &fspb.FunctionControlSet{
 
@@ -90,7 +90,7 @@ func (c *Client) SetOutput(channel int, state bool) error {
 
 // SetAllOutputs sets all or a group of output channels
 //
-// states: binary coded map of outputs. 0 means switch off, 1 means switch on, LSB is Output0
+// states: binary coded map of outputs. 0 means deactivate output channel, 1 means activate output channel, LSB is Output0
 //
 // mask: defines which channels are affected by the set all command.
 func (c *Client) SetAllOutputs(states uint8, mask uint8) error {
@@ -109,7 +109,7 @@ func (c *Client) SetAllOutputs(states uint8, mask uint8) error {
 
 // Input reads the state of the input pin of a single channel.
 //
-// The returned value is false if the input level is below switching threshold, true otherwise
+// The returned value is false if the input channel is inactive, true if the input channel is active
 func (c *Client) Input(channel int) (bool, error) {
 	fsCmd := &fspb.FunctionControlGet{
 		Type: &fspb.FunctionControlGet_Single{
@@ -132,7 +132,7 @@ func (c *Client) Input(channel int) (bool, error) {
 // AllInputs reads the state of all input pins defined by mask.
 //
 // Each bit in the returned value corresponds to one channel, bit0 being channel 0.
-// The bit is false if the input level is below switching threshold, true otherwise.
+// The bit is false if the input channel is inactive, true if the input channel is active
 // Channels whose bit is cleared in mask are reported as 0
 func (c *Client) AllInputs(mask uint8) (uint8, error) {
 	fsCmd := &fspb.FunctionControlGet{
