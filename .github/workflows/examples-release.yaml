@@ -26,6 +26,9 @@ jobs:
           - canL2/send
           - canL2/config
           - motionSensor/stream
+          - binaryIoTypeB/describe
+          - binaryIoTypeB/get_inputs
+          - binaryIoTypeB/set_ouputs
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
