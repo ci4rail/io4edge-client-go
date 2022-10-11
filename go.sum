@@ -10,6 +10,8 @@ github.com/ci4rail/io4edge_api v0.12.0 h1:WVoIlViLa5BEjQ5gK/0TnqMZLyzbIQyEQh3y/x
 github.com/ci4rail/io4edge_api v0.12.0/go.mod h1:afUfAFndnAN0W0L5KZfdaQRNsYbwkwVWBPvBd0lWPhI=
 github.com/ci4rail/io4edge_api v0.13.0 h1:n8KdFvwsvVCOybeIH+oahab4Q/st/UsT95EeWCvbfDQ=
 github.com/ci4rail/io4edge_api v0.13.0/go.mod h1:afUfAFndnAN0W0L5KZfdaQRNsYbwkwVWBPvBd0lWPhI=
+github.com/ci4rail/io4edge_api v0.13.1-0.20220929192214-16d141f8fc8f h1:y+8jYxML6qO03x8YNsUH/q+wHx/4AkhJL+PW6UWOHBo=
+github.com/ci4rail/io4edge_api v0.13.1-0.20220929192214-16d141f8fc8f/go.mod h1:afUfAFndnAN0W0L5KZfdaQRNsYbwkwVWBPvBd0lWPhI=
 github.com/cpuguy83/go-md2man/v2 v2.0.2/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
