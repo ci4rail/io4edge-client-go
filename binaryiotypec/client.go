@@ -86,9 +86,9 @@ func WithChannelConfig(ch []*fspb.ChannelConfig) ConfigOption {
 // WithOutputWatchdog may be passed to UploadConfiguration.
 // mask defines to which outputs the watchdog shall apply (bit0=first IO).
 // timeoutMs defines the watchdog timeout in ms, it's the same for all selected outputs
-func WithOutputWatchdog(mask uint8, timoutMs uint32) ConfigOption {
+func WithOutputWatchdog(mask uint32, timoutMs uint32) ConfigOption {
 	return func(c *fspb.ConfigurationSet) {
-		c.OutputWatchdogMask = uint32(mask)
+		c.OutputWatchdogMask = mask
 		c.OutputWatchdogTimeout = timoutMs
 	}
 }
