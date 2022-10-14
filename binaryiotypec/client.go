@@ -76,7 +76,8 @@ func (c *Client) Close() {
 }
 
 // WithChannelConfig may be passed to UploadConfiguration.
-//
+// each entry describes the configuration of one channel.
+// Undescribed channels remain unchanged.
 func WithChannelConfig(ch []*fspb.ChannelConfig) ConfigOption {
 	return func(c *fspb.ConfigurationSet) {
 		c.ChannelConfig = ch
@@ -88,6 +89,7 @@ func WithChannelConfig(ch []*fspb.ChannelConfig) ConfigOption {
 // timeoutMs defines the watchdog timeout in ms, it's the same for all selected outputs
 func WithOutputWatchdog(mask uint32, timoutMs uint32) ConfigOption {
 	return func(c *fspb.ConfigurationSet) {
+		c.ChangeOutputWatchdog = true
 		c.OutputWatchdogMask = mask
 		c.OutputWatchdogTimeout = timoutMs
 	}
@@ -105,6 +107,7 @@ func (c *Client) UploadConfiguration(opts ...ConfigOption) error {
 	// set defaults
 	fsCmd := &fspb.ConfigurationSet{
 		ChannelConfig:         []*fspb.ChannelConfig{},
+		ChangeOutputWatchdog:  false,
 		OutputWatchdogMask:    uint32(0x00),
 		OutputWatchdogTimeout: 0,
 	}
@@ -217,15 +220,12 @@ func (c *Client) Input(channel int) (state bool, diag uint32, err error) {
 // The bit is false if the input level is low, true otherwise.
 //
 // diag is a slice with bitfields containing diagnostic bits for each channel, see github.com/ci4rail/io4edge_api/binaryIoTypeC/go/binaryIoTypeC/v1alpha1/ChannelDiag*
-// first diag corresponds to channel 0, second to channel 1, etc.; masked channels are also reported.
+// first diag corresponds to channel 0, second to channel 1, etc.
 //
-// Channels whose bit is cleared in mask are reported as 0
-func (c *Client) AllInputs(mask uint32) (states uint32, diag []uint32, err error) {
+func (c *Client) AllInputs() (states uint32, diag []uint32, err error) {
 	fsCmd := &fspb.FunctionControlGet{
 		Type: &fspb.FunctionControlGet_All{
-			All: &fspb.GetAll{
-				Mask: mask,
-			},
+			All: &fspb.GetAll{},
 		},
 	}
 	any, err := c.fbClient.FunctionControlGet(fsCmd)
