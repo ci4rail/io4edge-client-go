@@ -24,7 +24,7 @@ import (
 	"log"
 
 	"github.com/ci4rail/io4edge-client-go/binaryiotypec"
-	fspb "github.com/ci4rail/io4edge_api/binaryIoTypeC/go/binaryIoTypeC/v1alpha1"
+	biniopb "github.com/ci4rail/io4edge_api/binaryIoTypeC/go/binaryIoTypeC/v1alpha1"
 )
 
 func main() {
@@ -52,16 +52,16 @@ func main() {
 		log.Fatalf("Failed to create client: %v\n", err)
 	}
 
-	channnelConfig := make([]*fspb.ChannelConfig, numberOfChannels)
+	// configure the channels to use as outputs
+	channnelConfig := make([]*biniopb.ChannelConfig, numberOfChannels)
 	for i := 0; i < numberOfChannels; i++ {
-		channnelConfig[i] = &fspb.ChannelConfig{
+		channnelConfig[i] = &biniopb.ChannelConfig{
 			Channel:      int32(i),
-			Mode:         fspb.ChannelMode_BINARYIOTYPEC_OUTPUT_PUSH_PULL,
+			Mode:         biniopb.ChannelMode_BINARYIOTYPEC_OUTPUT_PUSH_PULL,
 			InitialValue: false,
 		}
 	}
 
-	// set configuration
 	if err := c.UploadConfiguration(
 		binaryiotypec.WithChannelConfig(channnelConfig),
 	); err != nil {
