@@ -99,9 +99,7 @@ func WithOutputWatchdog(mask uint32, timoutMs uint32) ConfigOption {
 // Arguments may be one or more of the following functions:
 //  - WithChannelConfig
 //  - WithOutputWatchdog
-// Options that are not specified take default values:
-// - WithChannelConfig: all channels are configured as input
-// - WithOutputWatchdog: watchdog is disabled
+// Options that are not specified remain unchanged.
 func (c *Client) UploadConfiguration(opts ...ConfigOption) error {
 
 	// set defaults
@@ -190,9 +188,9 @@ func (c *Client) SetAllOutputs(states uint32, mask uint32) error {
 	return err
 }
 
-// Input reads the state of the input pin and the diagnostic info of a single channel.
+// Input reads the state of the channel's (regardless whether its configured as input or output) and the diagnostic info of a single channel.
 //
-// The returned state is false if the input level is low, or true if input level is high.
+// The returned state is false if the pin's level is low, or true if it is high.
 //
 // The returned diagnostic info is a bitfield containing diagnostic bits, see github.com/ci4rail/io4edge_api/binaryIoTypeC/go/binaryIoTypeC/v1alpha1/ChannelDiag*
 func (c *Client) Input(channel int) (state bool, diag uint32, err error) {
@@ -214,10 +212,10 @@ func (c *Client) Input(channel int) (state bool, diag uint32, err error) {
 	return res.GetSingle().State, res.GetSingle().GetDiag(), nil
 }
 
-// AllInputs reads the state of all input pins defined by mask.
+// AllInputs reads the state of all channel pins defined by mask.
 //
 // Each bit in the returned state corresponds to one channel, bit0 being channel 0.
-// The bit is false if the input level is low, true otherwise.
+// The bit is false if the pin level is low, true otherwise.
 //
 // diag is a slice with bitfields containing diagnostic bits for each channel, see github.com/ci4rail/io4edge_api/binaryIoTypeC/go/binaryIoTypeC/v1alpha1/ChannelDiag*
 // first diag corresponds to channel 0, second to channel 1, etc.
