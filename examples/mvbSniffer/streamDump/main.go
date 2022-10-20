@@ -40,7 +40,7 @@ func readStreamFor(c *mvbsniffer.Client, duration time.Duration) {
 			fmt.Printf("got stream data seq=%d ts=%d\n", sd.Sequence, sd.DeliveryTimestamp)
 
 			for i, telegram := range telegramCollection {
-				fmt.Printf("  #%d: %v\n", i, telegram)
+				fmt.Printf("  #%d: %+v\n", i, telegram)
 			}
 		}
 		if time.Since(start) > duration {
@@ -61,13 +61,9 @@ func main() {
 	var c *mvbsniffer.Client
 	var err error
 
-	if err != nil {
-		log.Fatalf("Can't convert sample rate: %v\n", err)
-	}
-
 	c, err = mvbsniffer.NewClientFromUniversalAddress(address, timeout)
 	if err != nil {
-		log.Fatalf("Failed to create anain client: %v\n", err)
+		log.Fatalf("Failed to create client: %v\n", err)
 	}
 
 	// start stream

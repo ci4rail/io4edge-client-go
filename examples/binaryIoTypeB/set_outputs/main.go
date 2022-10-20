@@ -47,7 +47,7 @@ func main() {
 		if err != nil {
 			log.Fatalf("Failed to set outputs: %v\n", err)
 		}
-		log.Print("Set outputs to %x", values)
+		log.Printf("Set outputs to %x", values)
 		time.Sleep(1500 * time.Millisecond)
 	}
 
