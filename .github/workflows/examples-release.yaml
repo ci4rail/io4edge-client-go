@@ -21,7 +21,7 @@ jobs:
           - binaryIoTypeA/stream
           - binaryIoTypeA/stream_verify
           - mvbSniffer/pcap
-          - mvbSniffer/streamDump
+          - mvbSniffer/stream
           - canL2/streamDump
           - canL2/send
           - canL2/config
