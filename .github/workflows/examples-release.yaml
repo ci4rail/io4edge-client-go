@@ -29,6 +29,8 @@ jobs:
           - binaryIoTypeB/describe
           - binaryIoTypeB/get_inputs
           - binaryIoTypeB/set_ouputs
+          - binaryIoTypeC/blinky
+          - binaryIoTypeC/stream
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
