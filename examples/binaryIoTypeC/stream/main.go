@@ -102,7 +102,7 @@ func main() {
 				if firstTs == 0 {
 					firstTs = sample.Timestamp
 				}
-				log.Printf("sample %d: relTs=%10dus values=b%016b valid=b%016b", i, sample.Timestamp-firstTs, sample.Values, sample.ValueValid)
+				log.Printf("sample %d: relTs=%10dus values=b%0*b valid=b%0*b", i, sample.Timestamp-firstTs, numberOfChannels, sample.Values, numberOfChannels, sample.ValueValid)
 			}
 		}
 		if time.Since(start) > time.Second*time.Duration(*runtime) {
