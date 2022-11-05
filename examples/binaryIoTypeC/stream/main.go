@@ -113,9 +113,7 @@ func main() {
 
 func manipulateOutputs(c *binio.Client, numberOfChannels int, wg *sync.WaitGroup, quit chan bool) {
 	go func() {
-		var values uint32 = 0x00
 		i := uint32(0)
-		var direction int32 = 1
 		chMask := uint32((1 << numberOfChannels) - 1)
 		for {
 			select {
@@ -123,16 +121,12 @@ func manipulateOutputs(c *binio.Client, numberOfChannels int, wg *sync.WaitGroup
 				wg.Done()
 				return
 			default:
-				values += uint32(direction)
 				err := c.SetAllOutputs(i, chMask)
 				if err != nil {
 					log.Printf("can't set outputs: %v", err)
 				}
 				time.Sleep(time.Millisecond * 200)
 				i++
-				if i%chMask == 0 {
-					direction *= -1
-				}
 			}
 		}
 	}()
