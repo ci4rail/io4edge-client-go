@@ -217,7 +217,8 @@ func (c *Client) Input(channel int) (state bool, diag uint32, err error) {
 // Each bit in the returned state corresponds to one channel, bit0 being channel 0.
 // The bit is false if the pin level is low, true otherwise.
 //
-// diag is a slice with bitfields containing diagnostic bits for each channel, see github.com/ci4rail/io4edge_api/binaryIoTypeC/go/binaryIoTypeC/v1alpha1/ChannelDiag*
+// diag is a slice with bitfields containing diagnostic bits for each channel,
+// see ChannelDiag_* fields here: https://github.com/ci4rail/io4edge_api/blob/main/binaryIoTypeC/go/binaryIoTypeC/v1alpha1/binaryIoTypeC.pb.go#L92
 // first diag corresponds to channel 0, second to channel 1, etc.
 //
 func (c *Client) AllInputs() (states uint32, diag []uint32, err error) {
