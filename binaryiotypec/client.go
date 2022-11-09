@@ -192,7 +192,8 @@ func (c *Client) SetAllOutputs(states uint32, mask uint32) error {
 //
 // The returned state is false if the pin's level is low, or true if it is high.
 //
-// The returned diagnostic info is a bitfield containing diagnostic bits, see github.com/ci4rail/io4edge_api/binaryIoTypeC/go/binaryIoTypeC/v1alpha1/ChannelDiag*
+// The returned diagnostic info is a bitfield containing diagnostic bits,
+// see ChannelDiag_* fields here: https://github.com/ci4rail/io4edge_api/blob/main/binaryIoTypeC/go/binaryIoTypeC/v1alpha1/binaryIoTypeC.pb.go#L92
 func (c *Client) Input(channel int) (state bool, diag uint32, err error) {
 	fsCmd := &fspb.FunctionControlGet{
 		Type: &fspb.FunctionControlGet_Single{
