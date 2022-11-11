@@ -12,9 +12,13 @@ This package provides a Go API to
 	* Set and get persistent parameter
 
 * make use of the function blocks, such as
-	* [Analog In TypeA](analogintypea)
-	* [Binary IO TypeA](binaryiotypea)
-	* [MVB Sniffer](mvbsniffer)
+	* [Analog In TypeA](analogintypea) - IOU01, MIO01
+	* [Binary IO TypeA](binaryiotypea) - IOU01, MIO01
+	* [Binary IO TypeB](binaryiotypeb) - IOU06
+	* [Binary IO TypeC](binaryiotypec) - IOU07
+	* [CAN Layer2](canl2) - IOU04, MIO04, IOU03, MIO03, IOU06
+	* [Motion Sensor](motionsensor) - CPU01UC
+	* [MVB Sniffer](mvbsniffer) - IOU03, MIO03
 	* [Template Module](templatemodule)
 
 # Documentation
