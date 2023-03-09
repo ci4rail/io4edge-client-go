@@ -78,17 +78,16 @@ func scan(cmd *cobra.Command, args []string) {
 
 		if enableShowFunctions {
 			table.SetHeader([]string{"Device ID", "Service Type", "Service Name", "IP:Port"})
-			prevInstance := ""
 			for _, d := range devices {
+
+				// output core service info
+				_, port, _ := d.core.NetAddress()
+				table.Append([]string{d.core.GetInstanceName(), d.core.GetServiceType(), d.core.GetInstanceName(), fmt.Sprintf("%s:%d", d.ip, port)})
+
 				functions := sortServicesByPort(d.functions)
 				for _, f := range functions {
 					_, port, _ := f.NetAddress()
-					instance := ""
-					if d.core.GetInstanceName() != prevInstance {
-						instance = d.core.GetInstanceName()
-					}
-					table.Append([]string{instance, f.GetServiceType(), f.GetInstanceName(), fmt.Sprintf("%s:%d", d.ip, port)})
-					prevInstance = d.core.GetInstanceName()
+					table.Append([]string{"", f.GetServiceType(), f.GetInstanceName(), fmt.Sprintf("%s:%d", d.ip, port)})
 				}
 			}
 		} else {
