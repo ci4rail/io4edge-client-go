@@ -19,7 +19,7 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"strconv"
+	"sort"
 	"time"
 
 	"github.com/ci4rail/io4edge-client-go/client"
@@ -41,43 +41,133 @@ var (
 
 type device struct {
 	core         *client.ServiceInfo
-	functions    map[string]*client.ServiceInfo
+	functions    map[string]*client.ServiceInfo // key: instance name
+	ip           string
 	hardwareName string
 	serial       string
 }
 
+type byIP []*device
+type byPort []*client.ServiceInfo
+
 type scanResults struct {
-	devices map[string]*device // key: ip address as string
+	devices     map[string]*device // key: ip address as string
+	scanRunning bool
 }
 
-func (r *scanResults) numFoundIo4edgeDevices() int {
-	n := 0
-	for _, d := range r.devices {
-		if d.core != nil {
-			n++
+func scan(cmd *cobra.Command, args []string) {
+	result := &scanResults{
+		make(map[string]*device, 0),
+		true,
+	}
+	go func() {
+		err := client.ServiceObserver("*", result.serviceAdded, result.serviceRemoved)
+		e.ErrChk(err)
+	}()
+	time.Sleep(time.Duration(scanTime) * time.Second)
+	result.scanRunning = false
+
+	devices := result.sortDevicesByIP()
+	addDevicesHwInfo(devices)
+
+	if len(devices) == 0 {
+		fmt.Printf("No io4edge devices found\n")
+	} else {
+		table := tablewriter.NewWriter(os.Stdout)
+		setCommonTableOptions(table)
+
+		if enableShowFunctions {
+			table.SetHeader([]string{"Device ID", "Service Type", "Service Name", "IP:Port"})
+			for _, d := range devices {
+
+				// output core service info
+				_, port, _ := d.core.NetAddress()
+				table.Append([]string{d.core.GetInstanceName(), d.core.GetServiceType(), d.core.GetInstanceName(), fmt.Sprintf("%s:%d", d.ip, port)})
+
+				functions := sortServicesByPort(d.functions)
+				for _, f := range functions {
+					_, port, _ := f.NetAddress()
+					table.Append([]string{"", f.GetServiceType(), f.GetInstanceName(), fmt.Sprintf("%s:%d", d.ip, port)})
+				}
+			}
+		} else {
+			table.SetHeader([]string{"Device ID", "IP", "Hardware", "Serial"})
+			for _, d := range devices {
+				table.Append([]string{d.core.GetInstanceName(), d.ip, d.hardwareName, d.serial})
+			}
+		}
+		table.Render() // Send output
+	}
+}
+
+func setCommonTableOptions(table *tablewriter.Table) {
+	table.SetAutoWrapText(false)
+	table.SetAutoFormatHeaders(true)
+	table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
+	table.SetAlignment(tablewriter.ALIGN_LEFT)
+	table.SetCenterSeparator("")
+	table.SetColumnSeparator("")
+	table.SetRowSeparator("")
+	table.SetHeaderLine(false)
+	table.SetBorder(false)
+	table.SetTablePadding("\t") // pad with tabs
+	table.SetNoWhiteSpace(true)
+}
+
+func addDevicesHwInfo(devices []*device) {
+	for _, d := range devices {
+
+		c, err := newCliClient("", d.core.GetIPAddressPort())
+		if err == nil {
+			d.hardwareName, _, d.serial, _ = c.IdentifyHardware(time.Duration(timeoutSecs) * time.Second)
+		}
+		if d.hardwareName == "" {
+			d.hardwareName = "(Unknown)"
+		}
+		if d.serial == "" {
+			d.serial = "(Unknown)"
 		}
 	}
-	return n
+}
+
+func (a byIP) Len() int           { return len(a) }
+func (a byIP) Less(i, j int) bool { return a[i].core.GetIPAddressPort() < a[j].core.GetIPAddressPort() }
+func (a byIP) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+
+// sortDevicesByIP returns a slice of devices sorted by IP address, only devices with a core service are included
+func (r *scanResults) sortDevicesByIP() []*device {
+	devices := make([]*device, 0)
+	for _, d := range r.devices {
+		if d.core != nil {
+			devices = append(devices, d)
+		}
+	}
+	// sort devices according to IP address
+	sort.Sort(byIP(devices))
+
+	return devices
 }
 
 func (r *scanResults) serviceAdded(s client.ServiceInfo) error {
-	ip, _, _ := s.NetAddress()
-	d, known := r.devices[ip]
-	if !known {
-		r.devices[ip] = &device{
-			functions: make(map[string]*client.ServiceInfo, 0),
+	if r.scanRunning {
+		ip, _, _ := s.NetAddress()
+		d, known := r.devices[ip]
+		if !known {
+			r.devices[ip] = &device{
+				functions: make(map[string]*client.ServiceInfo, 0),
+			}
+			d = r.devices[ip]
 		}
-		d = r.devices[ip]
-	}
-	if s.GetServiceType() == coreServiceType {
-		d.core = &s
-	} else {
-		_, functionKnown := d.functions[s.GetInstanceName()]
-		if !functionKnown {
-			d.functions[s.GetInstanceName()] = &s
+		if s.GetServiceType() == coreServiceType {
+			d.core = &s
+			d.ip = ip
+		} else {
+			_, functionKnown := d.functions[s.GetInstanceName()]
+			if !functionKnown {
+				d.functions[s.GetInstanceName()] = &s
+			}
 		}
 	}
-
 	return nil
 }
 
@@ -86,66 +176,23 @@ func (r *scanResults) serviceRemoved(s client.ServiceInfo) error {
 	return nil
 }
 
-func scan(cmd *cobra.Command, args []string) {
-	result := &scanResults{
-		make(map[string]*device, 0),
+func (a byPort) Len() int { return len(a) }
+
+func (a byPort) Less(i, j int) bool {
+	_, portA, _ := a[i].NetAddress()
+	_, portB, _ := a[j].NetAddress()
+	return portA < portB
+}
+
+func (a byPort) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+
+func sortServicesByPort(svc map[string]*client.ServiceInfo) []*client.ServiceInfo {
+	services := make([]*client.ServiceInfo, 0)
+	for _, s := range svc {
+		services = append(services, s)
 	}
-	go func() {
-		err := client.ServiceObserver("*", result.serviceAdded, result.serviceRemoved)
-		e.ErrChk(err)
-	}()
-	time.Sleep(time.Duration(scanTime) * time.Second)
-
-	if result.numFoundIo4edgeDevices() == 0 {
-		fmt.Printf("No io4edge devices found\n")
-	} else {
-		devicesStr := "device"
-		if result.numFoundIo4edgeDevices() > 1 {
-			devicesStr += "s"
-		}
-		fmt.Printf("Found %d io4edge %s\n", result.numFoundIo4edgeDevices(), devicesStr)
-		for _, d := range result.devices {
-
-			if d.core != nil {
-				c, err := newCliClient("", d.core.GetIPAddressPort())
-				if err == nil {
-					d.hardwareName, _, d.serial, _ = c.IdentifyHardware(time.Duration(timeoutSecs) * time.Second)
-				}
-				if d.hardwareName == "" {
-					d.hardwareName = "(Unknown Hardware)"
-				}
-				if d.serial == "" {
-					d.serial = "(Unknown Serial)"
-				}
-			}
-		}
-
-		if enableShowFunctions {
-			for ip, d := range result.devices {
-
-				if d.core != nil {
-					table := tablewriter.NewWriter(os.Stdout)
-					table.SetHeader([]string{"Service Type", "Service Name", "Port"})
-					fmt.Printf("\n%s, %s, %s, %s\n", d.core.GetInstanceName(), ip, d.hardwareName, d.serial)
-					for _, f := range d.functions {
-						_, port, _ := f.NetAddress()
-						table.Append([]string{f.GetServiceType(), f.GetInstanceName(), strconv.Itoa(port)})
-					}
-					table.Render() // Send output
-				}
-			}
-		} else {
-			table := tablewriter.NewWriter(os.Stdout)
-			table.SetHeader([]string{"Device ID", "IP", "Hardware", "Serial"})
-			for ip, d := range result.devices {
-
-				if d.core != nil {
-					table.Append([]string{d.core.GetInstanceName(), ip, d.hardwareName, d.serial})
-				}
-			}
-			table.Render() // Send output
-		}
-	}
+	sort.Sort(byPort(services))
+	return services
 }
 
 func init() {
