@@ -64,7 +64,7 @@ func setPersistentParameter(cmd *cobra.Command, args []string) {
 			value, err = c.GetPersistentParameter(name, time.Duration(timeoutSecs)*time.Second)
 			if err != nil {
 				if strings.Contains(err.Error(), "PROGRAMMING_ERROR") {
-					fmt.Printf(" WARNING: Couldn't get parameter. May be it's read-only?\n")
+					fmt.Printf("WARNING: Couldn't read back parameter. May be it's read-only?\n")
 				} else {
 					e.ErrChk(err)
 				}
