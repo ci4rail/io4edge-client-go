@@ -28,7 +28,7 @@ jobs:
           - motionSensor/stream
           - binaryIoTypeB/describe
           - binaryIoTypeB/get_inputs
-          - binaryIoTypeB/set_ouputs
+          - binaryIoTypeB/set_outputs
           - binaryIoTypeC/blinky
           - binaryIoTypeC/stream
           - binaryIoTypeC/inputs
