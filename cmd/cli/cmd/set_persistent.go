@@ -18,10 +18,18 @@ package cmd
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+	"strings"
 	"time"
 
 	e "github.com/ci4rail/io4edge-client-go/internal/errors"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
+)
+
+var (
+	paramFile string
 )
 
 var setPersistentParameterCmd = &cobra.Command{
@@ -33,30 +41,74 @@ While the name is the key to the value. It is only possible to set parameters fo
 Passing an empty value deletes the parameter.
 Example:
 io4edge-cli -s S101-IOU04-USB-EXT-1 set-parameter wifi-ssid Ci4Rail-Guest`,
-	Run:  setPersistentParameter,
-	Args: cobra.ExactArgs(2),
+	Run: setPersistentParameter,
+	//Args: cobra.ExactArgs(2),
 }
 
 func setPersistentParameter(cmd *cobra.Command, args []string) {
-	name := args[0]
-	value := args[1]
 
 	c, err := newCliClient(deviceID, ipAddrPort)
 	e.ErrChk(err)
 
-	err = c.SetPersistentParameter(name, value, time.Duration(timeoutSecs)*time.Second)
-	e.ErrChk(err)
-
-	if value != "" {
-		value, err = c.GetPersistentParameter(name, time.Duration(timeoutSecs)*time.Second)
+	if paramFile == "" {
+		if len(args) != 2 {
+			fmt.Printf("Error: set-parameter requires exactly two arguments: NAME VALUE\n")
+			os.Exit(1)
+		}
+		name := args[0]
+		value := args[1]
+		err = c.SetPersistentParameter(name, value, time.Duration(timeoutSecs)*time.Second)
 		e.ErrChk(err)
-		fmt.Printf("Parameter %s was set to %s\n", name, value)
-	} else {
-		fmt.Printf("Parameter %s deleted\n", name)
-	}
 
+		if value != "" {
+			value, err = c.GetPersistentParameter(name, time.Duration(timeoutSecs)*time.Second)
+			if err != nil {
+				if strings.Contains(err.Error(), "PROGRAMMING_ERROR") {
+					fmt.Printf("WARNING: Couldn't read back parameter. May be it's read-only?\n")
+				} else {
+					e.ErrChk(err)
+				}
+			} else {
+				fmt.Printf("Parameter %s was set to %s\n", name, value)
+			}
+		} else {
+			fmt.Printf("Parameter %s deleted\n", name)
+		}
+	} else {
+		data, err := ioutil.ReadFile(paramFile)
+		e.ErrChk(err)
+		var params map[string]string
+		err = yaml.Unmarshal(data, &params)
+		e.ErrChk(err)
+
+		fmt.Printf("Setting parameters...\n")
+		for name, value := range params {
+			err = c.SetPersistentParameter(name, value, time.Duration(timeoutSecs)*time.Second)
+			if err != nil {
+				fmt.Printf("Error setting parameter %s: %v\n", name, err)
+			}
+		}
+		fmt.Printf("Reading back parameters...\n")
+		for name := range params {
+			value, err := c.GetPersistentParameter(name, time.Duration(timeoutSecs)*time.Second)
+			if err != nil {
+				if strings.Contains(err.Error(), "PROGRAMMING_ERROR") {
+					fmt.Printf(" %s: WARNING: Couldn't get parameter. May be it's read-only?\n", name)
+				} else {
+					fmt.Printf(" %s: ERROR getting parameter %v\n", name, err)
+				}
+			} else {
+				if value != "" {
+					fmt.Printf(" %s='%s'\n", name, value)
+				} else {
+					fmt.Printf(" %s=deleted\n", name)
+				}
+			}
+		}
+	}
 }
 
 func init() {
 	rootCmd.AddCommand(setPersistentParameterCmd)
+	setPersistentParameterCmd.Flags().StringVarP(&paramFile, "file", "f", "", "YAML file containing parameters to set")
 }
