@@ -18,6 +18,7 @@ package cmd
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"time"
 
@@ -47,9 +48,9 @@ func readPartition(cmd *cobra.Command, args []string) {
 	// open output file as bufio.Writer
 	w := bufio.NewWriter(f)
 
-	err = c.ReadPartition(time.Duration(timeoutSecs)*time.Second, partitionName, w)
+	err = c.ReadPartition(time.Duration(timeoutSecs)*time.Second, partitionName, w, progressCb)
 	e.ErrChk(err)
-
+	fmt.Printf("\n")
 }
 
 func init() {

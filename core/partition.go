@@ -18,18 +18,16 @@ package core
 
 import (
 	"bufio"
-	"fmt"
 	"time"
 
 	api "github.com/ci4rail/io4edge_api/io4edge/go/core_api/v1alpha2"
 )
 
 // ReadPartition reads a partition from the device and writes it to the given writer
-func (c *Client) ReadPartition(timeout time.Duration, partitionName string, w *bufio.Writer) (err error) {
+func (c *Client) ReadPartition(timeout time.Duration, partitionName string, w *bufio.Writer, prog func(bytes uint)) (err error) {
 	offset := uint32(0)
 
 	for {
-		fmt.Printf("Reading partition %s at offset %d\n", partitionName, offset)
 		cmd := &api.CoreCommand{
 			Id: api.CommandId_READ_PARTITION_CHUNK,
 			Data: &api.CoreCommand_ReadPartitionChunk{
@@ -54,6 +52,7 @@ func (c *Client) ReadPartition(timeout time.Duration, partitionName string, w *b
 			return err
 		}
 		offset += uint32(len)
+		prog(uint(offset))
 	}
 	return nil
 }
