@@ -2,12 +2,14 @@ module github.com/ci4rail/io4edge-client-go
 
 go 1.17
 
+replace github.com/holoplot/go-avahi => ../go-avahi
+
 require (
 	github.com/ci4rail/firmware-packaging-go v1.0.0
-	github.com/ci4rail/io4edge_api v0.14.1-0.20230721183837-bcf73acb97b1
+	github.com/ci4rail/io4edge_api v1.0.0-rc2
 	github.com/gobwas/glob v0.2.3
 	github.com/godbus/dbus/v5 v5.1.0
-	github.com/holoplot/go-avahi v1.0.1
+	github.com/holoplot/go-avahi v1.0.2-0.20230829095153-612f79028b59
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.7.0

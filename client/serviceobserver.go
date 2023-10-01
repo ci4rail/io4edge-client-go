@@ -27,6 +27,7 @@ func runServiceBrowser(domain string, serviceType string, addServiceChan chan Se
 				s, err = server.ResolveService(s.Interface, s.Protocol, s.Name,
 					s.Type, s.Domain, avahi.ProtoUnspec, 0)
 				if err == nil {
+					log.Debugf("browser got resolved service %s", s.Name)
 					svcInf.service = s
 					addServiceChan <- svcInf
 				} else {
@@ -47,12 +48,12 @@ func runServiceBrowser(domain string, serviceType string, addServiceChan chan Se
 //
 // serviceObserver runs in a loop until one of the callbacks returns an error.
 // serviceAdded and serviceRemoved are called when an instance of an observed service type is added or removed.
-//
 func ServiceObserver(serviceNamePattern string, serviceAdded func(ServiceInfo) error, serviceRemoved func(ServiceInfo) error) error {
 	startedServiceBrowsers := make(map[string]struct{}, 0)
 	addServiceChan := make(chan ServiceInfo)
 	removeServiceChan := make(chan ServiceInfo)
 
+	log.Debugf("starting service observer for %s", serviceNamePattern)
 	g, err := glob.Compile(serviceNamePattern)
 	if err != nil {
 		err = fmt.Errorf("service name pattern pattern invalid: %v", err)
@@ -72,6 +73,8 @@ func ServiceObserver(serviceNamePattern string, serviceAdded func(ServiceInfo) e
 	for {
 		select {
 		case serviceType := <-stb.AddChannel:
+			log.Debugf("ServiceObserver add %s", serviceType.Type)
+
 			if g.Match(serviceType.Type) {
 				_, present := startedServiceBrowsers[serviceType.Type]
 				if !present {
@@ -84,6 +87,7 @@ func ServiceObserver(serviceNamePattern string, serviceAdded func(ServiceInfo) e
 			log.Debugf("browser got remove service type service %s", serviceType.Type)
 
 		case svcInf := <-addServiceChan:
+			log.Debugf("ServiceObserver serviceAdded add %s", svcInf.service.Name)
 			if err := serviceAdded(svcInf); err != nil {
 				return err
 			}
