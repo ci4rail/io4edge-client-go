@@ -1,7 +1,7 @@
 github.com/ci4rail/firmware-packaging-go v1.0.0 h1:AnBRanpKnO6WgGuBC5kk4Ptq5yYuKzCar+k/7ogAeiw=
 github.com/ci4rail/firmware-packaging-go v1.0.0/go.mod h1:SuaeirmoxRxyIcfU9op5OyAEvmHym43bFIE60U+8nvw=
-github.com/ci4rail/io4edge_api v1.0.0-rc2 h1:xNkbmn0Yipywe8YhuSF5Kxcg/oVgB4hHlfhuRt2InUY=
-github.com/ci4rail/io4edge_api v1.0.0-rc2/go.mod h1:QWM/pii9vHNZ1YwC+3MePA9RSAnP/iO/xVGHoWJEX0I=
+github.com/ci4rail/io4edge_api v1.0.0-rc4 h1:y2beAAltj/V8SEW/E4YSVvl+8n1I69y2AAr71N+B8Ew=
+github.com/ci4rail/io4edge_api v1.0.0-rc4/go.mod h1:QWM/pii9vHNZ1YwC+3MePA9RSAnP/iO/xVGHoWJEX0I=
 github.com/cpuguy83/go-md2man/v2 v2.0.2/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
