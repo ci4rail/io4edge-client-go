@@ -18,7 +18,6 @@ package cmd
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 	"time"
@@ -33,14 +32,15 @@ var (
 )
 
 var setPersistentParameterCmd = &cobra.Command{
-	Use:     "set-parameter NAME VALUE",
+	Use:     "set-parameter [NAME VALUE] [-f FILE]",
 	Aliases: []string{"set-para", "set-persist"},
 	Short:   "Set a persistent parameter.",
 	Long: `Program a parameter into the non volatile storage (nvs) of the device.
 While the name is the key to the value. It is only possible to set parameters for which the device already provides a place in the nvs.
 Passing an empty value deletes the parameter.
-Example:
-io4edge-cli -s S101-IOU04-USB-EXT-1 set-parameter wifi-ssid Ci4Rail-Guest`,
+Examples:
+io4edge-cli -s S101-IOU04-USB-EXT-1 set-parameter wifi-ssid Ci4Rail-Guest
+io4edge-cli -s S101-IOU04-USB-EXT-1 set-parameter -f wifi.yaml`,
 	Run: setPersistentParameter,
 	//Args: cobra.ExactArgs(2),
 }
@@ -75,7 +75,7 @@ func setPersistentParameter(cmd *cobra.Command, args []string) {
 			fmt.Printf("Parameter %s deleted\n", name)
 		}
 	} else {
-		data, err := ioutil.ReadFile(paramFile)
+		data, err := os.ReadFile(paramFile)
 		e.ErrChk(err)
 		var params map[string]string
 		err = yaml.Unmarshal(data, &params)
