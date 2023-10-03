@@ -26,6 +26,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	readPartitionOffset uint32
+)
+
 var readPartitionCmd = &cobra.Command{
 	Use:     "read-partition PARTITION_NAME OUTPUT_FILE",
 	Aliases: []string{"part", "rp"},
@@ -48,11 +52,12 @@ func readPartition(cmd *cobra.Command, args []string) {
 	// open output file as bufio.Writer
 	w := bufio.NewWriter(f)
 
-	err = c.ReadPartition(time.Duration(timeoutSecs)*time.Second, partitionName, w, progressCb)
+	err = c.ReadPartition(time.Duration(timeoutSecs)*time.Second, partitionName, readPartitionOffset, w, progressCb)
 	e.ErrChk(err)
 	fmt.Printf("\n")
 }
 
 func init() {
 	rootCmd.AddCommand(readPartitionCmd)
+	readPartitionCmd.Flags().Uint32VarP(&readPartitionOffset, "offset", "o", 0, "Offset in partition to start reading from")
 }

@@ -24,8 +24,7 @@ import (
 )
 
 // ReadPartition reads a partition from the device and writes it to the given writer
-func (c *Client) ReadPartition(timeout time.Duration, partitionName string, w *bufio.Writer, prog func(bytes uint)) (err error) {
-	offset := uint32(0)
+func (c *Client) ReadPartition(timeout time.Duration, partitionName string, offset uint32, w *bufio.Writer, prog func(bytes uint)) (err error) {
 
 	for {
 		cmd := &api.CoreCommand{
