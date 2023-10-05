@@ -53,8 +53,13 @@ func readPartition(cmd *cobra.Command, args []string) {
 	w := bufio.NewWriter(f)
 
 	err = c.ReadPartition(time.Duration(timeoutSecs)*time.Second, partitionName, readPartitionOffset, w, progressCb)
-	e.ErrChk(err)
 	fmt.Printf("\n")
+	if err != nil {
+		// delete file
+		f.Close()
+		os.Remove(outputFile)
+		e.ErrChk(err)
+	}
 }
 
 func init() {
