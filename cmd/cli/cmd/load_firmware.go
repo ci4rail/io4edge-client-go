@@ -41,7 +41,10 @@ io4edge-cli load-firmware <firmware-package-file>`,
 	Args: cobra.ExactArgs(1),
 }
 
-func progressCb(bytes uint) {
+func progressCb(bytes uint, msg string) {
+	if msg != "" {
+		fmt.Printf("\n%s\n", msg)
+	}
 	fmt.Printf("\r%d kBytes loaded.", bytes/1024)
 }
 

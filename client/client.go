@@ -70,15 +70,23 @@ func NewClientFromSocketAddress(address string) (*Client, error) {
 }
 
 func newClientFromSocketAddress(address string, funcInfo FunctionInfo) (*Client, error) {
+	ch, err := createChannel(address)
+	if err != nil {
+		return nil, err
+	}
+	c := NewClient(ch, funcInfo)
+
+	return c, nil
+}
+
+func createChannel(address string) (*Channel, error) {
 	t, err := socket.NewSocketConnection(address)
 	if err != nil {
 		return nil, errors.New("can't create connection: " + err.Error())
 	}
 	ms := transport.NewFramedStreamFromTransport(t)
 	ch := NewChannel(ms)
-	c := NewClient(ch, funcInfo)
-
-	return c, nil
+	return ch, nil
 }
 
 // NewClientFromService creates a new function client from a socket with a address, which was acquired from the specified service.
@@ -125,6 +133,22 @@ func NewClientFromUniversalAddress(addrOrService string, service string, timeout
 // Close terminates the underlying connection to the service
 func (c *Client) Close() {
 	c.Ch.Close()
+}
+
+// RestartChannel restarts the connection to the device
+// May be used to reestablish a connection after a device reset or after network disconnection of the device (e.g. WLAN roaming)
+func (c *Client) RestartChannel() error {
+	host, port, err := c.FuncInfo.NetAddress()
+	if err != nil {
+		return err
+	}
+	address := fmt.Sprintf("%s:%d", host, port)
+	ch, err := createChannel(address)
+	if err != nil {
+		return err
+	}
+	c.Ch = ch
+	return nil
 }
 
 // Command issues a command cmd to a channel, waits for the devices response and returns it in res

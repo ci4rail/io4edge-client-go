@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,8 +24,11 @@ import (
 	"github.com/ci4rail/io4edge-client-go/core"
 )
 
-func progressCb(bytes uint) {
-	fmt.Printf("%d kBytes loaded\n", bytes/1024)
+func progressCb(bytes uint, msg string) {
+	if msg != "" {
+		fmt.Printf("\n%s\n", msg)
+	}
+	fmt.Printf("\r%d kBytes loaded.", bytes/1024)
 }
 
 func createClient(addressType string, address string, timeout time.Duration) *core.Client {
