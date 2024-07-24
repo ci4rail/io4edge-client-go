@@ -89,22 +89,31 @@ func (fs *FramedStream) writeBytesSafe(payload []byte) error {
 }
 
 // ReadMsg reads a io4edge standard message from transport stream
-func (fs *FramedStream) ReadMsg() ([]byte, error) {
+func (fs *FramedStream) ReadMsg() MsgData {
+	msg := MsgData{
+		Payload: nil,
+		Err:     nil,
+	}
 	// make sure we have the magic bytes
 	err := fs.readMagicBytes()
 	if err != nil {
-		return nil, err
+		msg.Err = err
+		return msg
 	}
 
 	length, err := fs.readLength()
 	if err != nil {
-		return nil, err
+		msg.Err = err
+		return msg
 	}
 	payload, err := fs.readPayload(length)
 	if err != nil {
-		return nil, err
+		msg.Err = err
+		return msg
 	}
-	return payload, nil
+
+	msg.Payload = payload
+	return msg
 }
 
 // readMagicBytes blocks until it receives the magic bytes 0xFE, 0xED from transport stream.

@@ -16,10 +16,27 @@ limitations under the License.
 
 package transport
 
+import (
+	"errors"
+	"time"
+)
+
 // Transport is the interface used by message stream to communicate with the underlying transport layer
-// e.g. socket, websocket...
+// e.g. tcp sockets
 type Transport interface {
 	Read(p []byte) (n int, err error)
 	Write(p []byte) (n int, err error)
 	Close() error
 }
+
+// TransportMsg is the interface used by message stream to communicate with the underlying transport layer
+// e.g. udp sockets
+type TransportMsg interface {
+	Read(p []byte) (n int, err error)
+	Write(p []byte) (n int, err error)
+	SetReadTimeout(t time.Duration) error
+	Close() error
+}
+
+// Timeout error
+var ErrTimeout = errors.New("Timeout")

@@ -19,7 +19,13 @@ package transport
 // MsgStream is the interface used by a Channel to exchange message frames with the transport layer
 // e.g. socket, websocket...
 type MsgStream interface {
-	ReadMsg() (payload []byte, err error)
+	ReadMsg() MsgData
 	WriteMsg(payload []byte) (err error)
 	Close() error
+}
+
+// MsgData is the data structure used to summerize the result of a ReadMsg operation
+type MsgData struct {
+	Payload []byte
+	Err     error
 }
