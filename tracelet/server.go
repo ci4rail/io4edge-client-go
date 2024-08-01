@@ -76,8 +76,8 @@ func (t *TraceletChannel) ReadData() (*tracelet.TraceletToServer, error) {
 	msg := &tracelet.TraceletToServer{}
 	err := t.ch.ReadMessage(msg, t.timeout)
 	if err == transport.ErrTimeout {
-		log.Printf("connection timed out -> close socket")
-		t.ch.Close()
+		log.Printf("Read timeout -> close socket")
+		t.Close()
 		return nil, err
 	} else if err != nil {
 		log.Fatal("can't read from connection: " + err.Error())

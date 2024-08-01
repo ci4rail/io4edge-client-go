@@ -19,9 +19,9 @@ package transport
 import (
 	"encoding/binary"
 	"errors"
-	"fmt"
-	"log"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // FramedStream represents a stream with message semantics
@@ -34,7 +34,6 @@ type FrameHandshake struct {
 type recvSeqNum struct {
 	lastSeq      uint32
 	lastSeqValid bool
-	// lastMsgReceivedTs time.Time
 }
 
 // NewFrameHandshakeFromTransport creates a message stream from transport t
@@ -65,7 +64,7 @@ func (fh *FrameHandshake) receiveAck() error {
 		if binary.LittleEndian.Uint32(ack) == fh.sendSeq {
 			break
 		} else {
-			fmt.Printf("Ignoring old ack #%d, expected %d", binary.LittleEndian.Uint32(ack), fh.sendSeq)
+			log.Debugf("Ignoring old ack #%d, expected %d", binary.LittleEndian.Uint32(ack), fh.sendSeq)
 		}
 	}
 
@@ -123,10 +122,10 @@ func (fh *FrameHandshake) ReadMsg(timeout time.Duration) ([]byte, error) {
 			fh.recvSeq.lastSeq = seq
 			fh.recvSeq.lastSeqValid = true
 			payload := msg[4:n]
-			log.Printf("FrameHandshake ReadMsg: Received message #%d, len %d\n", seq, len(payload))
+			log.Debugf("FrameHandshake ReadMsg: Received message #%d, len %d\n", seq, len(payload))
 			return payload, nil
 		} else {
-			fmt.Printf("Ignoring DUP message #%d, lastSeq: %d\n", seq, fh.recvSeq.lastSeq)
+			log.Debugf("Ignoring DUP message #%d, lastSeq: %d\n", seq, fh.recvSeq.lastSeq)
 		}
 	}
 }

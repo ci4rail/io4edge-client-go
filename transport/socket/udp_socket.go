@@ -17,11 +17,11 @@ limitations under the License.
 package socket
 
 import (
-	"log"
 	"net"
 	"time"
 
 	"github.com/ci4rail/io4edge-client-go/transport"
+	log "github.com/sirupsen/logrus"
 )
 
 // UDPConnection manages the UDP connection and sorts data for the simulated sockets
@@ -43,7 +43,6 @@ type UDPSocket struct {
 	remoteAddr   *net.UDPAddr
 	readDeadline time.Time
 	readData     chan []byte
-	//mutex       sync.Mutex
 }
 
 // NewUDPSocketListener creates a Listener on a socket on a UDP socket
@@ -78,10 +77,10 @@ func NewUDPSocketListener(port string) (*UDPListener, error) {
 // WaitForUDPSocketConnect waits for a client to connect to the UDP socket and returns a UDPSocket object
 // There is no timeout
 func (l *UDPListener) WaitForUDPSocketConnect() (*UDPSocket, error) {
-	log.Printf("Waiting for UDP Socket connection")
+	log.Debugf("Waiting for UDP Socket connection")
 	// wait on channel for client connection
 	s := <-l.socket
-	log.Printf("UDP Socket connected")
+	log.Debugf("UDP Socket connected")
 	return s, nil
 }
 
@@ -99,9 +98,9 @@ func NewUDPSocketConnection(address string) (*UDPSocket, error) {
 
 	// create UDPSocket
 	s := &UDPSocket{
-		remoteAddr: addr,
-		// readTimeout: 0,
-		readData: make(chan []byte),
+		remoteAddr:   addr,
+		readDeadline: time.Time{},
+		readData:     make(chan []byte),
 	}
 
 	// create UDPConnection
@@ -122,21 +121,21 @@ func NewUDPSocketConnection(address string) (*UDPSocket, error) {
 func (c *UDPConnection) readFromUDPConnection() error {
 CONNREAD:
 	for {
-		log.Printf("Waiting for UDP packet")
+		log.Debugf("Waiting for UDP packet")
 		tmp := make([]byte, 65507)
 		n, remoteAddr, err := c.netudp.ReadFromUDP(tmp)
 		if err != nil {
 			return err
 		}
 
-		// log.Printf("Received: %s size: %d", tmp, n)
+		// log.Debugf("Received: %s size: %d", tmp, n)
 		// recreate message buffer with correct size
 		msg := tmp[:n]
 
 		// check if socket exists
 		s, ok := c.sockets[remoteAddr.String()]
 		if ok {
-			log.Printf("Received on socket for remote %s", remoteAddr.String())
+			log.Debugf("Received on socket for remote %s", remoteAddr.String())
 			go func() {
 				// timeout?
 				s.readData <- msg
@@ -145,16 +144,17 @@ CONNREAD:
 		}
 
 		if c.lis == nil {
-			log.Printf("No listener -> client connection")
+			log.Debugf("No listener -> client connection")
 			// no listener -> only one socket allowed -> drop packet
 			continue CONNREAD
 		} else {
-			log.Printf("Received on new socket for remote %s", remoteAddr.String())
+			log.Debugf("Received on new socket for remote %s", remoteAddr.String())
 			// create new socDurationket
 			s := &UDPSocket{
-				conn:       c,
-				remoteAddr: remoteAddr,
-				readData:   make(chan []byte),
+				conn:         c,
+				remoteAddr:   remoteAddr,
+				readDeadline: time.Time{},
+				readData:     make(chan []byte),
 			}
 			go func() {
 				// timeout?
@@ -205,7 +205,7 @@ func (s *UDPSocket) Read(p []byte) (n int, err error) {
 		select {
 		case data := <-s.readData:
 			n = copy(p, data)
-			// log.Printf("Read data: %v", p)
+			// log.Debugf("Read data: %v", p)
 			return n, nil
 		case <-time.After(timeout):
 			return 0, transport.ErrTimeout
