@@ -39,8 +39,6 @@ type recvSeqNum struct {
 
 // NewFrameHandshakeFromTransport creates a message stream from transport t
 func NewFrameHandshakeFromTransport(t TransportMsg) *FrameHandshake {
-	t.SetReadTimeout(time.Millisecond * 100)
-
 	return &FrameHandshake{
 		Trans: t,
 		recvSeq: recvSeqNum{
@@ -52,6 +50,7 @@ func NewFrameHandshakeFromTransport(t TransportMsg) *FrameHandshake {
 }
 
 func (fh *FrameHandshake) receiveAck() error {
+	fh.Trans.SetReadDeadline(time.Now().Add(5 * time.Second))
 	for {
 		// wait for ack but stop on timeout
 		ack := make([]byte, 4)
@@ -93,45 +92,42 @@ func (fh *FrameHandshake) WriteMsg(payload []byte) error {
 }
 
 // ReadMsg reads a io4edge standard message from transport without timeout
-// func (fh *FrameHandshake) ReadMsg() ([]byte, error) {
-func (fh *FrameHandshake) ReadMsg() MsgData {
+func (fh *FrameHandshake) ReadMsg(timeout time.Duration) ([]byte, error) {
+	if timeout != 0 {
+		// set deadline for read
+		fh.Trans.SetReadDeadline(time.Now().Add(timeout))
+		defer fh.Trans.SetReadDeadline(time.Time{})
+	}
+
 	for {
-		msgData := MsgData{
-			Payload: nil,
-			Err:     nil,
-		}
 		msg := make([]byte, 65507)
 		n, err := fh.Trans.Read(msg)
-		log.Printf("FrameHandshake ReadMsg: Read returned n=%d\n", n)
 		if err != nil {
-			if errors.Is(err, ErrTimeout) {
-				continue
-			}
-			msgData.Err = err
-			return msgData
-		} else if n < 4 {
-			msgData.Err = errors.New("FrameHandshake ReadMsg: Message too short")
-			return msgData
+			return nil, err
 
+		} else if n < 4 {
+			err := errors.New("FrameHandshake ReadMsg: Message too short")
+			return nil, err
 		}
 
-		// fh.recvSeq.lastMsgReceivedTs = time.Now()
-		seq := binary.LittleEndian.Uint32(msg[:4])
+		// log.Printf("FrameHandshake ReadMsg: Read returned n=%d\n", n)
 
 		// Acknowledge the new message
+		seq := binary.LittleEndian.Uint32(msg[:4])
 		ackBuf := make([]byte, 4)
 		binary.LittleEndian.PutUint32(ackBuf, seq)
+		// log.Printf("FrameHandshake ReadMsg: Sending ACK for message #%d", seq)
 		fh.Trans.Write(ackBuf)
 
 		// evaluate sequence number
 		if !fh.recvSeq.lastSeqValid || (seq-fh.recvSeq.lastSeq) >= 1 && (seq-fh.recvSeq.lastSeq) <= 100 {
-			payload := msg[4:n]
 			fh.recvSeq.lastSeq = seq
 			fh.recvSeq.lastSeqValid = true
-			msgData.Payload = payload
-			return msgData
+			payload := msg[4:n]
+			log.Printf("FrameHandshake ReadMsg: Received message #%d, len %d\n", seq, len(payload))
+			return payload, nil
 		} else {
-			fmt.Printf("Ignoring DUP message #%d, lastSeq: %d", seq, fh.recvSeq.lastSeq)
+			fmt.Printf("Ignoring DUP message #%d, lastSeq: %d\n", seq, fh.recvSeq.lastSeq)
 		}
 	}
 }

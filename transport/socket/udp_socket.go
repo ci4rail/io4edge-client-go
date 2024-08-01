@@ -27,7 +27,7 @@ import (
 // UDPConnection manages the UDP connection and sorts data for the simulated sockets
 type UDPConnection struct {
 	netudp  *net.UDPConn
-	sockets []*UDPSocket
+	sockets map[string]*UDPSocket
 	lis     *UDPListener
 }
 
@@ -39,10 +39,11 @@ type UDPListener struct {
 // UDPSocket implements the Transport interface for UDP sockets
 // It simulates a a connection to each UDP counterpart that its api behaves like a TCP connection.
 type UDPSocket struct {
-	conn        *UDPConnection
-	remoteAddr  *net.UDPAddr
-	readTimeout time.Duration
-	readData    chan []byte
+	conn         *UDPConnection
+	remoteAddr   *net.UDPAddr
+	readDeadline time.Time
+	readData     chan []byte
+	//mutex       sync.Mutex
 }
 
 // NewUDPSocketListener creates a Listener on a socket on a UDP socket
@@ -65,7 +66,7 @@ func NewUDPSocketListener(port string) (*UDPListener, error) {
 
 	c := &UDPConnection{
 		netudp:  conn,
-		sockets: []*UDPSocket{},
+		sockets: map[string]*UDPSocket{},
 		lis:     lis,
 	}
 
@@ -98,15 +99,15 @@ func NewUDPSocketConnection(address string) (*UDPSocket, error) {
 
 	// create UDPSocket
 	s := &UDPSocket{
-		remoteAddr:  addr,
-		readTimeout: 0,
-		readData:    make(chan []byte),
+		remoteAddr: addr,
+		// readTimeout: 0,
+		readData: make(chan []byte),
 	}
 
 	// create UDPConnection
 	c := &UDPConnection{
 		netudp:  conn,
-		sockets: []*UDPSocket{s},
+		sockets: map[string]*UDPSocket{addr.String(): s},
 		lis:     nil,
 	}
 
@@ -122,22 +123,25 @@ func (c *UDPConnection) readFromUDPConnection() error {
 CONNREAD:
 	for {
 		log.Printf("Waiting for UDP packet")
-		msg := make([]byte, 65507)
-		_, remoteAddr, err := c.netudp.ReadFromUDP(msg)
+		tmp := make([]byte, 65507)
+		n, remoteAddr, err := c.netudp.ReadFromUDP(tmp)
 		if err != nil {
 			return err
 		}
 
-		log.Printf("Received: %s", msg)
+		// log.Printf("Received: %s size: %d", tmp, n)
+		// recreate message buffer with correct size
+		msg := tmp[:n]
 
-		for _, s := range c.sockets {
-			if s.remoteAddr.String() == remoteAddr.String() {
-				log.Printf("Received on socket for remote %s", remoteAddr.String())
-				go func() {
-					s.readData <- msg
-				}()
-				continue CONNREAD
-			}
+		// check if socket exists
+		s, ok := c.sockets[remoteAddr.String()]
+		if ok {
+			log.Printf("Received on socket for remote %s", remoteAddr.String())
+			go func() {
+				// timeout?
+				s.readData <- msg
+			}()
+			continue CONNREAD
 		}
 
 		if c.lis == nil {
@@ -146,31 +150,33 @@ CONNREAD:
 			continue CONNREAD
 		} else {
 			log.Printf("Received on new socket for remote %s", remoteAddr.String())
-			// create new socket
+			// create new socDurationket
 			s := &UDPSocket{
+				conn:       c,
 				remoteAddr: remoteAddr,
 				readData:   make(chan []byte),
 			}
 			go func() {
+				// timeout?
 				s.readData <- msg
 			}()
-			c.sockets = append(c.sockets, s)
+			c.sockets[remoteAddr.String()] = s
 			c.lis.socket <- s
 		}
 	}
 }
 
+func (s *UDPSocket) SetReadDeadline(t time.Time) error {
+	s.readDeadline = t
+	return nil
+}
+
 // Close closes the UDP socket
 func (s *UDPSocket) Close() error {
 	// remove socket from connection
-	// todo mutex?
-	for i, socket := range s.conn.sockets {
-		if socket == s {
-			s.conn.sockets = append(s.conn.sockets[:i], s.conn.sockets[i+1:]...)
-			break
-		}
-	}
+	delete(s.conn.sockets, s.remoteAddr.String())
 
+	// close connection if no sockets left
 	if len(s.conn.sockets) == 0 {
 		return s.conn.netudp.Close()
 	}
@@ -185,11 +191,24 @@ func (s *UDPSocket) Write(p []byte) (n int, err error) {
 
 // Read reads data from the UDP socket
 func (s *UDPSocket) Read(p []byte) (n int, err error) {
-	select {
-	case data := <-s.readData:
+	_, ok := s.conn.sockets[s.remoteAddr.String()]
+	if !ok {
+		return 0, transport.ErrClosed
+	}
+
+	if s.readDeadline == (time.Time{}) {
+		data := <-s.readData
 		n = copy(p, data)
 		return n, nil
-	case <-time.After(s.readTimeout):
-		return 0, transport.ErrTimeout
+	} else {
+		timeout := time.Until(s.readDeadline)
+		select {
+		case data := <-s.readData:
+			n = copy(p, data)
+			// log.Printf("Read data: %v", p)
+			return n, nil
+		case <-time.After(timeout):
+			return 0, transport.ErrTimeout
+		}
 	}
 }

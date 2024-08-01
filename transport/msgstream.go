@@ -16,16 +16,18 @@ limitations under the License.
 
 package transport
 
+import "time"
+
 // MsgStream is the interface used by a Channel to exchange message frames with the transport layer
 // e.g. socket, websocket...
 type MsgStream interface {
-	ReadMsg() MsgData
+	ReadMsg(timeout time.Duration) ([]byte, error)
 	WriteMsg(payload []byte) (err error)
 	Close() error
 }
 
 // MsgData is the data structure used to summerize the result of a ReadMsg operation
-type MsgData struct {
-	Payload []byte
-	Err     error
-}
+// type MsgData struct {
+// 	Payload []byte
+// 	Err     error
+// }

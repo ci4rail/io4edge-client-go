@@ -26,6 +26,7 @@ import (
 type Transport interface {
 	Read(p []byte) (n int, err error)
 	Write(p []byte) (n int, err error)
+	SetReadDeadline(t time.Time) error
 	Close() error
 }
 
@@ -34,9 +35,10 @@ type Transport interface {
 type TransportMsg interface {
 	Read(p []byte) (n int, err error)
 	Write(p []byte) (n int, err error)
-	SetReadTimeout(t time.Duration) error
+	SetReadDeadline(t time.Time) error
 	Close() error
 }
 
 // Timeout error
-var ErrTimeout = errors.New("Timeout")
+var ErrTimeout = errors.New("socket timeout")
+var ErrClosed = errors.New("socket closed")

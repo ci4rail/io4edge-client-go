@@ -57,29 +57,11 @@ func (c *Channel) WriteMessage(m proto.Message) error {
 // ReadMessage waits until Timeout for a new message in transport stream and decodes it via protobuf
 // timeout of 0 waits forever
 func (c *Channel) ReadMessage(m proto.Message, timeout time.Duration) error {
-	var ch chan transport.MsgData
+	msg, err := c.ms.ReadMsg(timeout)
 
-	if timeout == 0 {
-		go func() {
-			ch <- c.ms.ReadMsg()
-		}()
-	} else {
-		go func() {
-			select {
-			case ch <- c.ms.ReadMsg():
-			case <-time.After(timeout):
-				ch <- transport.MsgData{
-					Payload: nil,
-					Err:     transport.ErrTimeout,
-				}
-			}
-		}()
+	if err != nil {
+		return err
 	}
 
-	msg := <-ch
-
-	if msg.Err != nil {
-		return msg.Err
-	}
-	return proto.Unmarshal(msg.Payload, m)
+	return proto.Unmarshal(msg, m)
 }
