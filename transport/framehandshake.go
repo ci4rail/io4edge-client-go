@@ -74,7 +74,6 @@ func (fh *FrameHandshake) receiveAck() error {
 
 // WriteMsg writes io4edge standard message to the transport stream
 func (fh *FrameHandshake) WriteMsg(payload []byte) error {
-
 	// send message via transport
 	fh.sendSeq++
 	msg := make([]byte, 4+len(payload))

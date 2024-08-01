@@ -10,17 +10,20 @@ import (
 	"github.com/ci4rail/io4edge_api/tracelet/go/tracelet"
 )
 
+// TraceletServer represents a tracelet server
 type TraceletServer struct {
 	srv     *server.UDPServer
 	timeout time.Duration
 }
 
+// TraceletChannel represents a connection to a tracelet
 type TraceletChannel struct {
 	ch          *client.Channel
 	Tracelet_id string
 	timeout     time.Duration
 }
 
+// NewTraceletServer creates a new tracelet server
 func NewTraceletServer(port string, defaultTimeout time.Duration) *TraceletServer {
 	// create server
 	addr := ":" + port
@@ -36,6 +39,7 @@ func NewTraceletServer(port string, defaultTimeout time.Duration) *TraceletServe
 	return traceletServer
 }
 
+// ManageConnections manages the connections to the tracelet server
 func (s *TraceletServer) ManageConnections(c chan *TraceletChannel) {
 	go func() {
 		for {
@@ -45,9 +49,7 @@ func (s *TraceletServer) ManageConnections(c chan *TraceletChannel) {
 				continue
 			}
 
-			// todo mutex?
 			tracelet := &TraceletChannel{
-				// srv:         s,
 				ch:          ch,
 				Tracelet_id: "",
 				timeout:     s.timeout,
@@ -59,6 +61,7 @@ func (s *TraceletServer) ManageConnections(c chan *TraceletChannel) {
 	}()
 }
 
+// WriteData writes a single message to the tracelet channel
 func (t *TraceletChannel) WriteData(msg *tracelet.ServerToTracelet) error {
 	err := t.ch.WriteMessage(msg)
 	if err != nil {
@@ -68,28 +71,7 @@ func (t *TraceletChannel) WriteData(msg *tracelet.ServerToTracelet) error {
 	return nil
 }
 
-func (t *TraceletChannel) TestTimeout() {
-	msg := &tracelet.TraceletToServer{}
-	for {
-		log.Printf("empty buffer")
-		err := t.ch.ReadMessage(msg, time.Second*2)
-		if err == transport.ErrTimeout {
-			log.Printf("connection timed out")
-			break
-		}
-	}
-	time.Sleep(2 * time.Second)
-	err := t.ch.ReadMessage(msg, time.Second*3)
-	if err == transport.ErrTimeout {
-		log.Printf("connection timed out")
-	}
-	err = t.ch.ReadMessage(msg, 0)
-	if err == transport.ErrTimeout {
-		log.Printf("connection timed out")
-	}
-	log.Printf("TestTimeout done")
-}
-
+// ReadData reads a single message from the tracelet channel
 func (t *TraceletChannel) ReadData() (*tracelet.TraceletToServer, error) {
 	msg := &tracelet.TraceletToServer{}
 	err := t.ch.ReadMessage(msg, t.timeout)
@@ -102,17 +84,16 @@ func (t *TraceletChannel) ReadData() (*tracelet.TraceletToServer, error) {
 		return nil, err
 	}
 
-	// update tracelet id on read
-	t.Tracelet_id = msg.TraceletId
-	// if t.Tracelet_id == "" {
-	// 	// store tracelet_id on first read
-	// 	t.Tracelet_id = msg.TraceletId
-	// 	log.Printf("Tracelet ID: %s", t.Tracelet_id)
-	// }
+	if t.Tracelet_id == "" {
+		// store tracelet_id on first read
+		t.Tracelet_id = msg.TraceletId
+		log.Printf("Tracelet ID: %s", t.Tracelet_id)
+	}
 	return msg, nil
 }
 
-func (t *TraceletChannel) ReadStream(stream chan *tracelet.TraceletToServer_Location) {
+// ReadStream reads messages from the tracelet channel and sends them to the provided channel
+func (t *TraceletChannel) ReadStream(stream chan *tracelet.TraceletToServer) {
 	go func() {
 		for {
 			msg, err := t.ReadData()
@@ -121,9 +102,7 @@ func (t *TraceletChannel) ReadStream(stream chan *tracelet.TraceletToServer_Loca
 			} else if err != nil {
 				continue
 			}
-
-			loc := msg.GetLocation()
-			stream <- loc
+			stream <- msg
 		}
 	}()
 }
