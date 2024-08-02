@@ -34,6 +34,7 @@ type UDPConnection struct {
 // UDPListener implements the Listener interface for UDP sockets
 type UDPListener struct {
 	socket chan *UDPSocket
+	conn   *UDPConnection
 }
 
 // UDPSocket implements the Transport interface for UDP sockets
@@ -69,6 +70,8 @@ func NewUDPSocketListener(port string) (*UDPListener, error) {
 		lis:     lis,
 	}
 
+	lis.conn = c
+
 	go c.readFromUDPConnection()
 
 	return lis, nil
@@ -82,6 +85,11 @@ func (l *UDPListener) WaitForUDPSocketConnect() (*UDPSocket, error) {
 	s := <-l.socket
 	log.Debugf("UDP Socket connected")
 	return s, nil
+}
+
+// Close closes the UDP Connection
+func (l *UDPListener) Close() error {
+	return l.conn.netudp.Close()
 }
 
 // NewUDPSocketConnection connects to a UDP server at address and returns a UDPSocket object
@@ -176,8 +184,8 @@ func (s *UDPSocket) Close() error {
 	// remove socket from connection
 	delete(s.conn.sockets, s.remoteAddr.String())
 
-	// close connection if no sockets left
-	if len(s.conn.sockets) == 0 {
+	// close connection if it is no server
+	if s.conn.lis == nil {
 		return s.conn.netudp.Close()
 	}
 	return nil

@@ -61,6 +61,10 @@ func (s *TraceletServer) ManageConnections(c chan *TraceletChannel) {
 	}()
 }
 
+func (s *TraceletServer) Close() {
+	s.srv.Close()
+}
+
 // WriteData writes a single message to the tracelet channel
 func (t *TraceletChannel) WriteData(msg *tracelet.ServerToTracelet) error {
 	err := t.ch.WriteMessage(msg)

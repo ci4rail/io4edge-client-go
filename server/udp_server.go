@@ -58,3 +58,7 @@ func (s *UDPServer) ManageConnections() (*client.Channel, error) {
 
 	return ch, nil
 }
+
+func (s *UDPServer) Close() {
+	s.lis.Close()
+}
