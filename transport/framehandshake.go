@@ -24,7 +24,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// FramedStream represents a stream with message semantics
+// FrameHandshake represents a stream with message semantics
 type FrameHandshake struct {
 	Trans   TransportMsg
 	recvSeq recvSeqNum
@@ -50,6 +50,7 @@ func NewFrameHandshakeFromTransport(t TransportMsg) *FrameHandshake {
 
 func (fh *FrameHandshake) receiveAck() error {
 	fh.Trans.SetReadDeadline(time.Now().Add(5 * time.Second))
+	defer fh.Trans.SetReadDeadline(time.Time{})
 	for {
 		// wait for ack but stop on timeout
 		ack := make([]byte, 4)
@@ -124,9 +125,8 @@ func (fh *FrameHandshake) ReadMsg(timeout time.Duration) ([]byte, error) {
 			payload := msg[4:n]
 			log.Debugf("FrameHandshake ReadMsg: Received message #%d, len %d\n", seq, len(payload))
 			return payload, nil
-		} else {
-			log.Debugf("Ignoring DUP message #%d, lastSeq: %d\n", seq, fh.recvSeq.lastSeq)
 		}
+		log.Debugf("Ignoring DUP message #%d, lastSeq: %d\n", seq, fh.recvSeq.lastSeq)
 	}
 }
 

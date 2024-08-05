@@ -136,7 +136,7 @@ CONNREAD:
 			return err
 		}
 
-		// log.Debugf("Received: %s size: %d", tmp, n)
+		log.Debugf("Received: %s size: %d", tmp, n)
 		// recreate message buffer with correct size
 		msg := tmp[:n]
 
@@ -157,7 +157,7 @@ CONNREAD:
 			continue CONNREAD
 		} else {
 			log.Debugf("Received on new socket for remote %s", remoteAddr.String())
-			// create new socDurationket
+			// create new socket
 			s := &UDPSocket{
 				conn:         c,
 				remoteAddr:   remoteAddr,
@@ -174,6 +174,7 @@ CONNREAD:
 	}
 }
 
+// SetReadDeadline sets the read deadline for the UDP socket
 func (s *UDPSocket) SetReadDeadline(t time.Time) error {
 	s.readDeadline = t
 	return nil
@@ -193,12 +194,19 @@ func (s *UDPSocket) Close() error {
 
 // Write writes data to the UDP socket
 func (s *UDPSocket) Write(p []byte) (n int, err error) {
-	n, err = s.conn.netudp.WriteToUDP(p, s.remoteAddr)
+	if s.conn.lis == nil {
+		// client connection
+		n, err = s.conn.netudp.Write(p)
+	} else {
+		n, err = s.conn.netudp.WriteToUDP(p, s.remoteAddr)
+	}
+
 	return n, err
 }
 
 // Read reads data from the UDP socket
 func (s *UDPSocket) Read(p []byte) (n int, err error) {
+	// check if socket still exists
 	_, ok := s.conn.sockets[s.remoteAddr.String()]
 	if !ok {
 		return 0, transport.ErrClosed
@@ -208,15 +216,15 @@ func (s *UDPSocket) Read(p []byte) (n int, err error) {
 		data := <-s.readData
 		n = copy(p, data)
 		return n, nil
-	} else {
-		timeout := time.Until(s.readDeadline)
-		select {
-		case data := <-s.readData:
-			n = copy(p, data)
-			// log.Debugf("Read data: %v", p)
-			return n, nil
-		case <-time.After(timeout):
-			return 0, transport.ErrTimeout
-		}
 	}
+	timeout := time.Until(s.readDeadline)
+	select {
+	case data := <-s.readData:
+		n = copy(p, data)
+		// log.Debugf("Read data: %v", p)
+		return n, nil
+	case <-time.After(timeout):
+		return 0, transport.ErrTimeout
+	}
+
 }

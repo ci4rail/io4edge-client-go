@@ -1,15 +1,16 @@
 package main
 
 import (
-	"log"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/ci4rail/io4edge-client-go/tracelet"
 	"github.com/ci4rail/io4edge-client-go/transport"
 	proto "github.com/ci4rail/io4edge_api/tracelet/go/tracelet"
 )
 
-var tracelet_map = map[string]chan *proto.TraceletToServer{
+var traceletMap = map[string]chan *proto.TraceletToServer{
 	"TRACELET-1": make(chan *proto.TraceletToServer),
 	"TRACELET-2": make(chan *proto.TraceletToServer),
 	"TRACELET-3": make(chan *proto.TraceletToServer),
@@ -39,7 +40,7 @@ func catchTracelet3Stream(stream chan *proto.TraceletToServer) {
 	}
 }
 
-func traceletRegistration(register chan *tracelet.TraceletChannel) {
+func traceletRegistration(register chan *tracelet.Channel) {
 	for {
 		ch := <-register
 		log.Printf("Received new tracelet")
@@ -50,7 +51,7 @@ func traceletRegistration(register chan *tracelet.TraceletChannel) {
 			continue
 		}
 
-		stream, ok := tracelet_map[ch.Tracelet_id]
+		stream, ok := traceletMap[ch.TraceletID]
 		// its one of the tracelets we are interested in
 		if ok {
 			stream <- msg
@@ -72,13 +73,13 @@ func traceletRegistration(register chan *tracelet.TraceletChannel) {
 }
 
 func main() {
-	register := make(chan *tracelet.TraceletChannel)
-	server := tracelet.NewTraceletServer("11002", time.Second*5)
+	register := make(chan *tracelet.Channel)
+	server := tracelet.NewTraceletServer("11001", time.Second*5)
 	server.ManageConnections(register)
 
-	go catchTracelet1Stream(tracelet_map["TRACELET-1"])
-	go catchTracelet2Stream(tracelet_map["TRACELET-2"])
-	go catchTracelet3Stream(tracelet_map["TRACELET-3"])
+	go catchTracelet1Stream(traceletMap["TRACELET-1"])
+	go catchTracelet2Stream(traceletMap["TRACELET-2"])
+	go catchTracelet3Stream(traceletMap["TRACELET-3"])
 
 	traceletRegistration(register)
 }

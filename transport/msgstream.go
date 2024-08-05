@@ -25,9 +25,3 @@ type MsgStream interface {
 	WriteMsg(payload []byte) (err error)
 	Close() error
 }
-
-// MsgData is the data structure used to summerize the result of a ReadMsg operation
-// type MsgData struct {
-// 	Payload []byte
-// 	Err     error
-// }

@@ -14,12 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package client provides the API for io4edge I/O devices
+// Package server provides a server API for io4edge I/O devices
 package server
 
 import (
 	"errors"
-	"log"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/ci4rail/io4edge-client-go/client"
 	"github.com/ci4rail/io4edge-client-go/transport"
@@ -46,6 +47,7 @@ func NewServer(port string) (*UDPServer, error) {
 	return srv, nil
 }
 
+// ManageConnections waits for a new connection and returns a channel to the client
 func (s *UDPServer) ManageConnections() (*client.Channel, error) {
 	sock, err := s.lis.WaitForUDPSocketConnect()
 	if err != nil {
@@ -54,11 +56,12 @@ func (s *UDPServer) ManageConnections() (*client.Channel, error) {
 
 	fh := transport.NewFrameHandshakeFromTransport(sock)
 	ch := client.NewChannel(fh)
-	log.Printf("New channel created")
+	log.Infof("New channel created")
 
 	return ch, nil
 }
 
+// Close closes the server
 func (s *UDPServer) Close() {
 	s.lis.Close()
 }
