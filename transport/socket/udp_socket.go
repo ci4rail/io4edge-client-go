@@ -24,6 +24,9 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// ReadBufferSize is the size of the buffer for incoming messages of one connection
+var ReadBufferSize = 10
+
 // UDPConnection manages the UDP connection and sorts data for the simulated sockets
 type UDPConnection struct {
 	netudp  *net.UDPConn
@@ -38,7 +41,7 @@ type UDPListener struct {
 }
 
 // UDPSocket implements the Transport interface for UDP sockets
-// It simulates a a connection to each UDP counterpart that its api behaves like a TCP connection.
+// It simulates a connection to each UDP counterpart that its api behaves like a TCP connection.
 type UDPSocket struct {
 	conn         *UDPConnection
 	remoteAddr   *net.UDPAddr
@@ -108,7 +111,7 @@ func NewUDPSocketConnection(address string) (*UDPSocket, error) {
 	s := &UDPSocket{
 		remoteAddr:   addr,
 		readDeadline: time.Time{},
-		readData:     make(chan []byte),
+		readData:     make(chan []byte, ReadBufferSize),
 	}
 
 	// create UDPConnection
@@ -145,8 +148,13 @@ CONNREAD:
 		if ok {
 			log.Debugf("Received on socket for remote %s", remoteAddr.String())
 			go func() {
-				// timeout?
-				s.readData <- msg
+				select {
+				case s.readData <- msg:
+				default:
+					log.Debugf("Message buffer full -> drop oldest message")
+					<-s.readData
+					s.readData <- msg
+				}
 			}()
 			continue CONNREAD
 		}
@@ -162,11 +170,16 @@ CONNREAD:
 				conn:         c,
 				remoteAddr:   remoteAddr,
 				readDeadline: time.Time{},
-				readData:     make(chan []byte),
+				readData:     make(chan []byte, ReadBufferSize),
 			}
 			go func() {
-				// timeout?
-				s.readData <- msg
+				select {
+				case s.readData <- msg:
+				default:
+					log.Debugf("Message buffer full -> drop oldest message")
+					<-s.readData
+					s.readData <- msg
+				}
 			}()
 			c.sockets[remoteAddr.String()] = s
 			c.lis.socket <- s

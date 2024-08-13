@@ -47,8 +47,8 @@ func NewServer(port string) (*UDPServer, error) {
 	return srv, nil
 }
 
-// ManageConnections waits for a new connection and returns a channel to the client
-func (s *UDPServer) ManageConnections() (*client.Channel, error) {
+// ListenForNextConnection waits for a new connection and returns a channel to the client
+func (s *UDPServer) ListenForNextConnection() (*client.Channel, error) {
 	sock, err := s.lis.WaitForUDPSocketConnect()
 	if err != nil {
 		return nil, errors.New("Error reading message: " + err.Error())

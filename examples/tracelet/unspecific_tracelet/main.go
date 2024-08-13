@@ -17,21 +17,10 @@ func catchTraceletStream(stream chan *proto.TraceletToServer) {
 	}
 }
 
-func traceletRegistration(register chan *tracelet.Channel, stream chan *proto.TraceletToServer) {
-	for {
-		ch := <-register
-		log.Printf("Received new tracelet")
-
-		ch.ReadStream(stream)
-	}
-}
-
 func main() {
-	register := make(chan *tracelet.Channel)
-	stream := make(chan *proto.TraceletToServer)
-	server := tracelet.NewTraceletServer("11001", time.Second*5)
-	server.ManageConnections(register)
+	log.SetLevel(log.InfoLevel)
+	server := tracelet.NewTraceletServer("11002", time.Second*5)
+	go server.ListenForConnections()
 
-	go catchTraceletStream(stream)
-	traceletRegistration(register, stream)
+	catchTraceletStream(server.Subscribe(".*"))
 }
