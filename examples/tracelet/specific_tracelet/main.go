@@ -13,7 +13,7 @@ func catchTracelet1Stream(stream chan *proto.TraceletToServer) {
 	for {
 		msg := <-stream
 		loc := msg.GetLocation()
-		log.Printf("Received tracelet 1 location: %v", loc.Gnss)
+		log.Infof("Received tracelet 1 location: %v", loc.Gnss)
 	}
 }
 
@@ -21,7 +21,7 @@ func catchTracelet2Stream(stream chan *proto.TraceletToServer) {
 	for {
 		msg := <-stream
 		loc := msg.GetLocation()
-		log.Printf("Received tracelet 2 location: %v", loc.Gnss)
+		log.Infof("Received tracelet 2 location: %v", loc.Gnss)
 	}
 }
 
@@ -29,13 +29,13 @@ func catchTracelet3Stream(stream chan *proto.TraceletToServer) {
 	for {
 		msg := <-stream
 		loc := msg.GetLocation()
-		log.Printf("Received tracelet 3 location: %v", loc.Gnss)
+		log.Infof("Received tracelet 3 location: %v", loc.Gnss)
 	}
 }
 
 func main() {
 	log.SetLevel(log.InfoLevel)
-	server := tracelet.NewTraceletServer("11002", time.Second*5)
+	server := tracelet.NewTraceletUDPServer(11002, time.Second*5)
 
 	go catchTracelet1Stream(server.Subscribe("TRACELET-1"))
 	go catchTracelet2Stream(server.Subscribe("TRACELET-2"))

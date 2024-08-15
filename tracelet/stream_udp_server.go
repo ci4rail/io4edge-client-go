@@ -2,6 +2,7 @@ package tracelet
 
 import (
 	"regexp"
+	"strconv"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -12,8 +13,8 @@ import (
 	"github.com/ci4rail/io4edge_api/tracelet/go/tracelet"
 )
 
-// Server represents a tracelet server
-type Server struct {
+// UDPServer represents a tracelet server
+type UDPServer struct {
 	srv           *server.UDPServer
 	timeout       time.Duration
 	subscriptions map[string]chan *tracelet.TraceletToServer
@@ -25,16 +26,16 @@ type Channel struct {
 	timeout time.Duration
 }
 
-// NewTraceletServer creates a new tracelet server
-func NewTraceletServer(port string, timeout time.Duration) *Server {
+// NewTraceletUDPServer creates a new tracelet server
+func NewTraceletUDPServer(port int, timeout time.Duration) *UDPServer {
 	// create server
-	addr := ":" + port
-	srv, err := server.NewServer(addr)
+	addr := ":" + strconv.Itoa(port)
+	srv, err := server.NewUDPServer(addr)
 	if err != nil {
 		log.Fatal("can't create server: " + err.Error())
 		return nil
 	}
-	traceletServer := &Server{
+	traceletServer := &UDPServer{
 		srv:           srv,
 		timeout:       timeout,
 		subscriptions: make(map[string]chan *tracelet.TraceletToServer),
@@ -43,7 +44,7 @@ func NewTraceletServer(port string, timeout time.Duration) *Server {
 }
 
 // ListenForConnections listens for connections to the tracelet server and starts reading stream
-func (s *Server) ListenForConnections() {
+func (s *UDPServer) ListenForConnections() {
 	for {
 		ch, err := s.srv.ListenForNextConnection()
 		if err != nil {
@@ -62,21 +63,24 @@ func (s *Server) ListenForConnections() {
 }
 
 // Close closes the tracelet server
-func (s *Server) Close() {
+func (s *UDPServer) Close() {
 	s.srv.Close()
 }
 
 // Subscribe subscribes to a tracelet pattern and returns a stream channel. All messages of
 // tracelets whose ids matches the pattern will be sent to this channel.
-func (s *Server) Subscribe(traceletPattern string) chan *tracelet.TraceletToServer {
+// For the pattern regular expressions are used. For example ".*" will match all tracelets.
+// The pattern is provided with fixed bounderies internally, so it is not necessary to use "^" and "$"
+// to achieve an exact match.
+func (s *UDPServer) Subscribe(traceletPattern string) chan *tracelet.TraceletToServer {
 	stream := make(chan *tracelet.TraceletToServer)
-	s.subscriptions[traceletPattern] = stream
+	s.subscriptions["^"+traceletPattern+"$"] = stream
 	return stream
 }
 
 // Unsubscribe unsubscribes from a tracelet pattern
-func (s *Server) Unsubscribe(traceletPattern string) {
-	delete(s.subscriptions, traceletPattern)
+func (s *UDPServer) Unsubscribe(traceletPattern string) {
+	delete(s.subscriptions, "^"+traceletPattern+"$")
 }
 
 // ReadData reads a single message from the tracelet channel
@@ -110,7 +114,7 @@ func (t *Channel) ReadStream(subscriptions *map[string]chan *tracelet.TraceletTo
 				// check if pattern matches tracelet id
 				match, err := regexp.MatchString(pattern, msg.TraceletId)
 				if err != nil {
-					log.Errorf("Error matching pattern: %v", err)
+					log.Debugf("No subscription for tracelet %s", msg.TraceletId)
 				} else if match {
 					stream <- msg
 				}
@@ -121,6 +125,6 @@ func (t *Channel) ReadStream(subscriptions *map[string]chan *tracelet.TraceletTo
 
 // Close closes the tracelet channel
 func (t *Channel) Close() {
-	log.Printf("Closing connection")
+	log.Debugf("Closing connection")
 	t.ch.Close()
 }

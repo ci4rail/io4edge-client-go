@@ -32,8 +32,8 @@ type UDPServer struct {
 	lis *socket.UDPListener
 }
 
-// NewServer creates a new function client from a socket with the specified address.
-func NewServer(port string) (*UDPServer, error) {
+// NewUDPServer creates a new function client from a socket with the specified address.
+func NewUDPServer(port string) (*UDPServer, error) {
 	lis, err := socket.NewUDPSocketListener(port)
 	if err != nil {
 		log.Fatal("can't create listener: " + err.Error())
@@ -56,7 +56,7 @@ func (s *UDPServer) ListenForNextConnection() (*client.Channel, error) {
 
 	fh := transport.NewFrameHandshakeFromTransport(sock)
 	ch := client.NewChannel(fh)
-	log.Infof("New channel created")
+	log.Debugf("New channel created")
 
 	return ch, nil
 }

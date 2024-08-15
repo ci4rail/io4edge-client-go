@@ -24,8 +24,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// ReadBufferSize is the size of the buffer for incoming messages of one connection
-var ReadBufferSize = 10
+// readBufferSize is the size of the buffer for incoming messages of one connection
+const readBufferSize = 10
 
 // UDPConnection manages the UDP connection and sorts data for the simulated sockets
 type UDPConnection struct {
@@ -111,7 +111,7 @@ func NewUDPSocketConnection(address string) (*UDPSocket, error) {
 	s := &UDPSocket{
 		remoteAddr:   addr,
 		readDeadline: time.Time{},
-		readData:     make(chan []byte, ReadBufferSize),
+		readData:     make(chan []byte, readBufferSize),
 	}
 
 	// create UDPConnection
@@ -147,15 +147,7 @@ CONNREAD:
 		s, ok := c.sockets[remoteAddr.String()]
 		if ok {
 			log.Debugf("Received on socket for remote %s", remoteAddr.String())
-			go func() {
-				select {
-				case s.readData <- msg:
-				default:
-					log.Debugf("Message buffer full -> drop oldest message")
-					<-s.readData
-					s.readData <- msg
-				}
-			}()
+			go s.pushDataToSocket(msg)
 			continue CONNREAD
 		}
 
@@ -170,20 +162,22 @@ CONNREAD:
 				conn:         c,
 				remoteAddr:   remoteAddr,
 				readDeadline: time.Time{},
-				readData:     make(chan []byte, ReadBufferSize),
+				readData:     make(chan []byte, readBufferSize),
 			}
-			go func() {
-				select {
-				case s.readData <- msg:
-				default:
-					log.Debugf("Message buffer full -> drop oldest message")
-					<-s.readData
-					s.readData <- msg
-				}
-			}()
+			go s.pushDataToSocket(msg)
 			c.sockets[remoteAddr.String()] = s
 			c.lis.socket <- s
 		}
+	}
+}
+
+func (s *UDPSocket) pushDataToSocket(data []byte) {
+	select {
+	case s.readData <- data:
+	default:
+		log.Debugf("Message buffer full -> drop oldest message")
+		<-s.readData
+		s.readData <- data
 	}
 }
 
@@ -234,7 +228,7 @@ func (s *UDPSocket) Read(p []byte) (n int, err error) {
 	select {
 	case data := <-s.readData:
 		n = copy(p, data)
-		// log.Debugf("Read data: %v", p)
+		log.Debugf("Read data: %v", p)
 		return n, nil
 	case <-time.After(timeout):
 		return 0, transport.ErrTimeout

@@ -19,7 +19,7 @@ func catchTraceletStream(stream chan *proto.TraceletToServer) {
 
 func main() {
 	log.SetLevel(log.InfoLevel)
-	server := tracelet.NewTraceletServer("11002", time.Second*5)
+	server := tracelet.NewTraceletUDPServer(11002, time.Second*5)
 	go server.ListenForConnections()
 
 	catchTraceletStream(server.Subscribe(".*"))
