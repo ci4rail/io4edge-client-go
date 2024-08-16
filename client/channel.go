@@ -17,7 +17,6 @@ limitations under the License.
 package client
 
 import (
-	"errors"
 	"time"
 
 	"github.com/ci4rail/io4edge-client-go/transport"
@@ -58,29 +57,11 @@ func (c *Channel) WriteMessage(m proto.Message) error {
 // ReadMessage waits until Timeout for a new message in transport stream and decodes it via protobuf
 // timeout of 0 waits forever
 func (c *Channel) ReadMessage(m proto.Message, timeout time.Duration) error {
-	var err error
-	var errTimeout error
-	payload := []byte{}
+	msg, err := c.ms.ReadMsg(timeout)
 
-	if timeout == 0 {
-		payload, err = c.ms.ReadMsg()
-	} else {
-		ch := make(chan bool)
-		go func() {
-			payload, err = c.ms.ReadMsg()
-			ch <- true
-		}()
-		select {
-		case <-ch:
-		case <-time.After(timeout):
-			errTimeout = errors.New("Timeout")
-		}
-	}
 	if err != nil {
 		return err
 	}
-	if errTimeout != nil {
-		return errTimeout
-	}
-	return proto.Unmarshal(payload, m)
+
+	return proto.Unmarshal(msg, m)
 }

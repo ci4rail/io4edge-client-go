@@ -24,7 +24,9 @@ limitations under the License.
 package transport
 
 import (
+	"net"
 	"sync"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -89,22 +91,41 @@ func (fs *FramedStream) writeBytesSafe(payload []byte) error {
 }
 
 // ReadMsg reads a io4edge standard message from transport stream
-func (fs *FramedStream) ReadMsg() ([]byte, error) {
+func (fs *FramedStream) ReadMsg(timeout time.Duration) ([]byte, error) {
+	if timeout != 0 {
+		// set deadline for read
+		fs.Trans.SetReadDeadline(time.Now().Add(timeout))
+		defer fs.Trans.SetReadDeadline(time.Time{})
+	}
+
 	// make sure we have the magic bytes
 	err := fs.readMagicBytes()
 	if err != nil {
+		netErr, ok := err.(net.Error)
+		if ok && netErr.Timeout() {
+			err = ErrTimeout
+		}
 		return nil, err
 	}
 
 	length, err := fs.readLength()
 	if err != nil {
+		netErr, ok := err.(net.Error)
+		if ok && netErr.Timeout() {
+			err = ErrTimeout
+		}
 		return nil, err
 	}
-	payload, err := fs.readPayload(length)
+
+	msg, err := fs.readPayload(length)
 	if err != nil {
+		netErr, ok := err.(net.Error)
+		if ok && netErr.Timeout() {
+			err = ErrTimeout
+		}
 		return nil, err
 	}
-	return payload, nil
+	return msg, nil
 }
 
 // readMagicBytes blocks until it receives the magic bytes 0xFE, 0xED from transport stream.

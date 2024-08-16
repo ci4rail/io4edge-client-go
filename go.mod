@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/ci4rail/firmware-packaging-go v1.0.0
-	github.com/ci4rail/io4edge_api v1.0.0
+	github.com/ci4rail/io4edge_api v1.0.1-0.20240610100102-99aeeea1613a
 	github.com/gobwas/glob v0.2.3
 	github.com/godbus/dbus/v5 v5.1.0
 	github.com/holoplot/go-avahi v1.0.2-0.20230829095153-612f79028b59
