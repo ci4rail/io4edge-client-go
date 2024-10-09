@@ -14,9 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package core provides the API for the io4edge core functions
+// Package socketcore provides the API for the io4edge core functions
 // i.e. firmware and hardware id management
-package core
+// for devices using the classic socket transport.
+package socketcore
 
 import (
 	"errors"

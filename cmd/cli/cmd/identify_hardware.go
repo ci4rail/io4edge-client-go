@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ci4rail/io4edge-client-go/core"
+	"github.com/ci4rail/io4edge-client-go/coreclient"
 	e "github.com/ci4rail/io4edge-client-go/internal/errors"
 	"github.com/spf13/cobra"
 )
@@ -38,7 +38,7 @@ func identifyHardware(cmd *cobra.Command, args []string) {
 	identifyHardwareFromClient(c)
 }
 
-func identifyHardwareFromClient(c *core.Client) {
+func identifyHardwareFromClient(c coreclient.If) {
 	rootArticle, majorVersion, serialNumber, err := c.IdentifyHardware(time.Duration(timeoutSecs) * time.Second)
 	e.ErrChk(err)
 

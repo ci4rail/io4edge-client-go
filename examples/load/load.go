@@ -21,7 +21,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/ci4rail/io4edge-client-go/core"
+	"github.com/ci4rail/io4edge-client-go/coreclient"
+	"github.com/ci4rail/io4edge-client-go/socketcore"
 )
 
 func progressCb(bytes uint, msg string) {
@@ -31,14 +32,14 @@ func progressCb(bytes uint, msg string) {
 	fmt.Printf("\r%d kBytes loaded.", bytes/1024)
 }
 
-func createClient(addressType string, address string, timeout time.Duration) *core.Client {
-	var c *core.Client
+func createClient(addressType string, address string, timeout time.Duration) coreclient.If {
+	var c coreclient.If
 	var err error
 
 	if addressType == "svc" {
-		c, err = core.NewClientFromService(address, timeout)
+		c, err = socketcore.NewClientFromService(address, timeout)
 	} else {
-		c, err = core.NewClientFromSocketAddress(address)
+		c, err = socketcore.NewClientFromSocketAddress(address)
 	}
 	if err != nil {
 		log.Fatalf("Failed to create core client: %v\n", err)

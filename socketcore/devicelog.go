@@ -1,4 +1,4 @@
-package core
+package socketcore
 
 /*
 Copyright © 2023 Ci4Rail GmbH <engineering@ci4rail.com>

@@ -14,19 +14,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package core
+package socketcore
 
 import (
 	"bufio"
 	"bytes"
 	"errors"
-	"fmt"
 	"io"
 	"os"
 	"strings"
 	"time"
 
 	fwpkg "github.com/ci4rail/firmware-packaging-go"
+	"github.com/ci4rail/io4edge-client-go/coreclient"
 	api "github.com/ci4rail/io4edge_api/io4edge/go/core_api/v1alpha2"
 )
 
@@ -77,7 +77,7 @@ func (c *Client) LoadFirmware(file string, chunkSize uint, timeout time.Duration
 	}
 
 	// check compatibility
-	err = AssertFirmwareIsCompatibleWithHardware(
+	err = coreclient.AssertFirmwareIsCompatibleWithHardware(
 		manifest.Compatibility.HW,
 		manifest.Compatibility.MajorRevs,
 		rootArticle,
@@ -186,22 +186,4 @@ func (c *Client) LoadFirmwareBinary(r *bufio.Reader, chunkSize uint, timeout tim
 	}
 
 	return restartingNow, nil
-}
-
-// AssertFirmwareIsCompatibleWithHardware checks if the firmware specified by fwHw and fwMajorRevs is compatible
-// with hardware hwName, hwMajor
-func AssertFirmwareIsCompatibleWithHardware(fwHw string, fwMajorRevs []int, hwName string, hwMajor int) error {
-	if !strings.EqualFold(fwHw, hwName) {
-		return errors.New("firmware " + fwHw + " not suitable for hardware " + hwName)
-	}
-	var ok = false
-	for _, b := range fwMajorRevs {
-		if hwMajor == b {
-			ok = true
-		}
-	}
-	if !ok {
-		return fmt.Errorf("firmware doesn't support hardware version %d", hwMajor)
-	}
-	return nil
 }

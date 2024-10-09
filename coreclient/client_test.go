@@ -1,4 +1,4 @@
-package core
+package coreclient
 
 import (
 	"testing"
