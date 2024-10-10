@@ -1,6 +1,6 @@
 module github.com/ci4rail/io4edge-client-go
 
-go 1.17
+go 1.23
 
 require (
 	github.com/ci4rail/firmware-packaging-go v1.0.0

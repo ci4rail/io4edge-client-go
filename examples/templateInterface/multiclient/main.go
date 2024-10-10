@@ -8,8 +8,8 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/ci4rail/io4edge-client-go/functionblock"
-	"github.com/ci4rail/io4edge-client-go/templateinterface"
+	"github.com/ci4rail/io4edge-client-go/pkg/protobufcom/common/functionblock"
+	"github.com/ci4rail/io4edge-client-go/pkg/protobufcom/functionblockclients/templateinterface"
 )
 
 const (

@@ -38,7 +38,7 @@ $ go get github.com/ci4rail/io4edge-client-go
 
 ## Examples for Management of io4edge Devices
 
-### Indentify currently running firmware
+### Identify currently running firmware
 
 ```go
 package main

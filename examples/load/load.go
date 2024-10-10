@@ -21,8 +21,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/ci4rail/io4edge-client-go/coreclient"
-	"github.com/ci4rail/io4edge-client-go/socketcore"
+	"github.com/ci4rail/io4edge-client-go/pkg/core"
+	pbcore "github.com/ci4rail/io4edge-client-go/pkg/protobufcom/core"
 )
 
 func progressCb(bytes uint, msg string) {
@@ -32,14 +32,14 @@ func progressCb(bytes uint, msg string) {
 	fmt.Printf("\r%d kBytes loaded.", bytes/1024)
 }
 
-func createClient(addressType string, address string, timeout time.Duration) coreclient.If {
-	var c coreclient.If
+func createClient(addressType string, address string, timeout time.Duration) core.If {
+	var c core.If
 	var err error
 
 	if addressType == "svc" {
-		c, err = socketcore.NewClientFromService(address, timeout)
+		c, err = pbcore.NewClientFromService(address, timeout)
 	} else {
-		c, err = socketcore.NewClientFromSocketAddress(address)
+		c, err = pbcore.NewClientFromSocketAddress(address)
 	}
 	if err != nil {
 		log.Fatalf("Failed to create core client: %v\n", err)

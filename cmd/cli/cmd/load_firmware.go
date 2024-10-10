@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ci4rail/io4edge-client-go/coreclient"
 	e "github.com/ci4rail/io4edge-client-go/internal/errors"
+	"github.com/ci4rail/io4edge-client-go/pkg/core"
 
 	"github.com/spf13/cobra"
 )
@@ -81,7 +81,7 @@ func loadRawFirmware(cmd *cobra.Command, args []string) {
 	readbackFirmwareID(c, restartingNow)
 }
 
-func readbackFirmwareID(c coreclient.If, restartingNow bool) {
+func readbackFirmwareID(c core.If, restartingNow bool) {
 	fmt.Println("\nFirmware load finished.")
 	if restartingNow {
 		fmt.Println("Let device restart...")

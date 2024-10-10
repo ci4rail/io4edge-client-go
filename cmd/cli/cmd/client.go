@@ -4,8 +4,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/ci4rail/io4edge-client-go/coreclient"
-	"github.com/ci4rail/io4edge-client-go/socketcore"
+	"github.com/ci4rail/io4edge-client-go/pkg/core"
+	pbcore "github.com/ci4rail/io4edge-client-go/pkg/protobufcom/core"
 )
 
 const (
@@ -13,22 +13,22 @@ const (
 )
 
 // newCliClientFromService creates the io4edge core client from the device address
-func newCliClientFromService(deviceID string) (coreclient.If, error) {
+func newCliClientFromService(deviceID string) (core.If, error) {
 	serviceAddr := deviceID + "." + coreServiceType
-	c, err := socketcore.NewClientFromService(serviceAddr, time.Duration(timeoutSecs)*time.Second)
+	c, err := pbcore.NewClientFromService(serviceAddr, time.Duration(timeoutSecs)*time.Second)
 	return c, err
 }
 
 // newCliClientFromIP creates the io4edge core client from the ip address and the port
-func newCliClientFromIP(ipAddrPort string) (coreclient.If, error) {
-	c, err := socketcore.NewClientFromSocketAddress(ipAddrPort)
+func newCliClientFromIP(ipAddrPort string) (core.If, error) {
+	c, err := pbcore.NewClientFromSocketAddress(ipAddrPort)
 	return c, err
 }
 
 // newCliClient creates the io4edge cli client from either the ip address and port or from the device address,
 // depending on which parameter is given.
-func newCliClient(deviceID string, ipAddrPort string) (coreclient.If, error) {
-	var c coreclient.If
+func newCliClient(deviceID string, ipAddrPort string) (core.If, error) {
+	var c core.If
 	var err error
 
 	if deviceID != "" {

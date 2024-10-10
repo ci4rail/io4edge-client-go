@@ -20,8 +20,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/ci4rail/io4edge-client-go/coreclient"
-	"github.com/ci4rail/io4edge-client-go/socketcore"
+	"github.com/ci4rail/io4edge-client-go/pkg/core"
+	pbcore "github.com/ci4rail/io4edge-client-go/pkg/protobufcom/core"
 )
 
 func main() {
@@ -41,13 +41,13 @@ func main() {
 	}
 
 	// Create a client object to work with the io4edge device at <address>
-	var c coreclient.If
+	var c core.If
 	var err error
 
 	if addressType == "svc" {
-		c, err = socketcore.NewClientFromService(address, timeout)
+		c, err = pbcore.NewClientFromService(address, timeout)
 	} else {
-		c, err = socketcore.NewClientFromSocketAddress(address)
+		c, err = pbcore.NewClientFromSocketAddress(address)
 	}
 	if err != nil {
 		log.Fatalf("Failed to create core client: %v\n", err)
