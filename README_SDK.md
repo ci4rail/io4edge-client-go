@@ -154,6 +154,6 @@ func main() {
 
 ## Copyright
 
-Copyright © 2021-2022 Ci4Rail GmbH <engineering@ci4rail.com>
+Copyright © 2024-2022 Ci4Rail GmbH <engineering@ci4rail.com>
 
 io4edge package released unter Apache 2.0 License, see [LICENSE](LICENSE) for details.
