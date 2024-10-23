@@ -5,11 +5,14 @@ import (
 	"time"
 
 	"github.com/ci4rail/io4edge-client-go/pkg/core"
+	"github.com/ci4rail/io4edge-client-go/pkg/iputil"
 	pbcore "github.com/ci4rail/io4edge-client-go/pkg/protobufcom/core"
+	restcore "github.com/ci4rail/io4edge-client-go/pkg/restcom/core"
 )
 
 const (
 	coreServiceType = "_io4edge-core._tcp"
+	restCorePort    = 443
 )
 
 // newCliClientFromService creates the io4edge core client from the device address
@@ -21,7 +24,20 @@ func newCliClientFromService(deviceID string) (core.If, error) {
 
 // newCliClientFromIP creates the io4edge core client from the ip address and the port
 func newCliClientFromIP(ipAddrPort string) (core.If, error) {
-	c, err := pbcore.NewClientFromSocketAddress(ipAddrPort)
+	var c core.If
+
+	_, port, err := iputil.NetAddressSplit(ipAddrPort)
+	if err != nil {
+		return nil, err
+	}
+	if port == restCorePort {
+		if password == "" {
+			return nil, errors.New("password required for REST API")
+		}
+		c, err = restcore.NewClientFromSocketAddress(ipAddrPort, password)
+	} else {
+		c, err = pbcore.NewClientFromSocketAddress(ipAddrPort)
+	}
 	return c, err
 }
 

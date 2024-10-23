@@ -26,6 +26,7 @@ var (
 	deviceID    string
 	ipAddrPort  string
 	timeoutSecs int
+	password    string
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -48,4 +49,5 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&deviceID, "device id", "d", "", "Distinct designation of the device (mdns instance name of the the device)")
 	rootCmd.PersistentFlags().StringVarP(&ipAddrPort, "ip address", "i", "", "IP address of io4edge devices with port e.g. 192.168.200.1:9999")
 	rootCmd.PersistentFlags().IntVarP(&timeoutSecs, "timeout", "t", 30, "Timeout in seconds to wait for device responses")
+	rootCmd.PersistentFlags().StringVarP(&password, "password", "p", "core_io4edge", "Password for the REST API")
 }

@@ -26,6 +26,15 @@ type If interface {
 	StreamLogs(streamTimeout time.Duration, infoCb func(msg string)) (io.ReadCloser, error)
 }
 
+// FirmwareAlreadyPresentError is returned by LoadFirmware as a dummy error
+type FirmwareAlreadyPresentError struct {
+}
+
+// Error returns the error string for FirmwareAlreadyPresentError
+func (e *FirmwareAlreadyPresentError) Error() string {
+	return "Requested Firmware already present"
+}
+
 // AssertFirmwareIsCompatibleWithHardware checks if the firmware specified by fwHw and fwMajorRevs is compatible
 // with hardware hwName, hwMajor
 func AssertFirmwareIsCompatibleWithHardware(fwHw string, fwMajorRevs []int, hwName string, hwMajor int) error {

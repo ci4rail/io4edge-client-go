@@ -30,15 +30,6 @@ import (
 	api "github.com/ci4rail/io4edge_api/io4edge/go/core_api/v1alpha2"
 )
 
-// FirmwareAlreadyPresentError is returned by LoadFirmware as a dummy error
-type FirmwareAlreadyPresentError struct {
-}
-
-// Error returns the error string for FirmwareAlreadyPresentError
-func (e *FirmwareAlreadyPresentError) Error() string {
-	return "Requested Firmware already present"
-}
-
 // IdentifyFirmware gets the firmware name and version from the device
 func (c *Client) IdentifyFirmware(timeout time.Duration) (name string, version string, err error) {
 	cmd := &api.CoreCommand{
@@ -89,7 +80,7 @@ func (c *Client) LoadFirmware(file string, chunkSize uint, timeout time.Duration
 
 	// check if fw already running
 	if strings.EqualFold(fwName, manifest.Name) && fwVersion == manifest.Version {
-		return restartingNow, &FirmwareAlreadyPresentError{}
+		return restartingNow, &core.FirmwareAlreadyPresentError{}
 	}
 
 	fwFile := new(bytes.Buffer)
