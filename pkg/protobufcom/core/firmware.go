@@ -18,14 +18,10 @@ package pbcore
 
 import (
 	"bufio"
-	"bytes"
 	"errors"
 	"io"
-	"os"
-	"strings"
 	"time"
 
-	fwpkg "github.com/ci4rail/firmware-packaging-go"
 	"github.com/ci4rail/io4edge-client-go/pkg/core"
 	api "github.com/ci4rail/io4edge_api/io4edge/go/core_api/v1alpha2"
 )
@@ -47,64 +43,13 @@ func (c *Client) IdentifyFirmware(timeout time.Duration) (name string, version s
 // Checks then if the device's firmware version is the same
 // timeout is for each chunk
 func (c *Client) LoadFirmware(file string, chunkSize uint, timeout time.Duration, prog func(bytes uint, msg string)) (restartingNow bool, err error) {
-	restartingNow = false
-
-	pkg, err := fwpkg.NewFirmwarePackageConsumerFromFile(file)
-	if err != nil {
-		return restartingNow, err
-	}
-	manifest := pkg.Manifest()
-
-	// get currently running firmware
-	fwName, fwVersion, err := c.IdentifyFirmware(timeout)
-	if err != nil {
-		return restartingNow, err
-	}
-
-	// get devices hardware id
-	rootArticle, majorVersion, _, err := c.IdentifyHardware(timeout)
-	if err != nil {
-		return restartingNow, err
-	}
-
-	// check compatibility
-	err = core.AssertFirmwareIsCompatibleWithHardware(
-		manifest.Compatibility.HW,
-		manifest.Compatibility.MajorRevs,
-		rootArticle,
-		int(majorVersion),
-	)
-	if err != nil {
-		return restartingNow, err
-	}
-
-	// check if fw already running
-	if strings.EqualFold(fwName, manifest.Name) && fwVersion == manifest.Version {
-		return restartingNow, &core.FirmwareAlreadyPresentError{}
-	}
-
-	fwFile := new(bytes.Buffer)
-	err = pkg.File(fwFile)
-	if err != nil {
-		return restartingNow, err
-	}
-
-	restartingNow, err = c.LoadFirmwareBinary(bufio.NewReader(fwFile), chunkSize, timeout, prog)
-	return restartingNow, err
+	return core.LoadFirmware(c, file, chunkSize, timeout, prog)
 }
 
 // LoadFirmwareBinaryFromFile loads new firmware from file into the device device
 // timeout is for each chunk
 func (c *Client) LoadFirmwareBinaryFromFile(file string, chunkSize uint, timeout time.Duration, prog func(bytes uint, msg string)) (restartingNow bool, err error) {
-	f, err := os.Open(file)
-	if err != nil {
-		return false, errors.New("cannot open file " + file + " : " + err.Error())
-	}
-
-	defer f.Close()
-
-	r := bufio.NewReader(f)
-	return c.LoadFirmwareBinary(r, chunkSize, timeout, prog)
+	return core.LoadFirmwareBinaryFromFile(c, file, chunkSize, timeout, prog)
 }
 
 // LoadFirmwareBinary loads new firmware via r into the device device

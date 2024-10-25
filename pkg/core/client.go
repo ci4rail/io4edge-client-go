@@ -2,10 +2,7 @@ package core
 
 import (
 	"bufio"
-	"errors"
-	"fmt"
 	"io"
-	"strings"
 	"time"
 )
 
@@ -33,22 +30,4 @@ type FirmwareAlreadyPresentError struct {
 // Error returns the error string for FirmwareAlreadyPresentError
 func (e *FirmwareAlreadyPresentError) Error() string {
 	return "Requested Firmware already present"
-}
-
-// AssertFirmwareIsCompatibleWithHardware checks if the firmware specified by fwHw and fwMajorRevs is compatible
-// with hardware hwName, hwMajor
-func AssertFirmwareIsCompatibleWithHardware(fwHw string, fwMajorRevs []int, hwName string, hwMajor int) error {
-	if !strings.EqualFold(fwHw, hwName) {
-		return errors.New("firmware " + fwHw + " not suitable for hardware " + hwName)
-	}
-	var ok = false
-	for _, b := range fwMajorRevs {
-		if hwMajor == b {
-			ok = true
-		}
-	}
-	if !ok {
-		return fmt.Errorf("firmware doesn't support hardware version %d", hwMajor)
-	}
-	return nil
 }

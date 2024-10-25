@@ -4,12 +4,12 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"net/http"
-	"strings"
 	"time"
 
-	fwpkg "github.com/ci4rail/firmware-packaging-go"
 	"github.com/ci4rail/io4edge-client-go/pkg/core"
 )
 
@@ -20,13 +20,17 @@ type getFirmwareResponse struct {
 
 // IdentifyFirmware gets the firmware name and version from the device
 func (c *Client) IdentifyFirmware(timeout time.Duration) (name string, version string, err error) {
-	resp, err := c.requestMustBeOk("/firmware", http.MethodGet, nil)
+	resp, err := c.requestMustBeOk("/firmware", http.MethodGet, nil, nil)
 	if err != nil {
 		return "", "", err
 	}
 	var id getFirmwareResponse
 
-	err = json.Unmarshal(resp, &id)
+	body, err := responseBodyToBytes(resp)
+	if err != nil {
+		return "", "", err
+	}
+	err = json.Unmarshal(body, &id)
 	if err != nil {
 		return "", "", err
 	}
@@ -38,59 +42,65 @@ func (c *Client) IdentifyFirmware(timeout time.Duration) (name string, version s
 // Checks then if the device's firmware version is the same
 // timeout is for each chunk
 func (c *Client) LoadFirmware(file string, chunkSize uint, timeout time.Duration, prog func(bytes uint, msg string)) (restartingNow bool, err error) {
-	restartingNow = false
-
-	pkg, err := fwpkg.NewFirmwarePackageConsumerFromFile(file)
-	if err != nil {
-		return restartingNow, err
-	}
-	manifest := pkg.Manifest()
-
-	// get currently running firmware
-	fwName, fwVersion, err := c.IdentifyFirmware(timeout)
-	if err != nil {
-		return restartingNow, err
-	}
-
-	// get devices hardware id
-	rootArticle, majorVersion, _, err := c.IdentifyHardware(timeout)
-	if err != nil {
-		return restartingNow, err
-	}
-
-	// check compatibility
-	err = core.AssertFirmwareIsCompatibleWithHardware(
-		manifest.Compatibility.HW,
-		manifest.Compatibility.MajorRevs,
-		rootArticle,
-		int(majorVersion),
-	)
-	if err != nil {
-		return restartingNow, err
-	}
-
-	// check if fw already running
-	if strings.EqualFold(fwName, manifest.Name) && fwVersion == manifest.Version {
-		return restartingNow, &core.FirmwareAlreadyPresentError{}
-	}
-
-	fwFile := new(bytes.Buffer)
-	err = pkg.File(fwFile)
-	if err != nil {
-		return restartingNow, err
-	}
-
-	restartingNow, err = c.LoadFirmwareBinary(bufio.NewReader(fwFile), chunkSize, timeout, prog)
-	return restartingNow, err
-
+	return core.LoadFirmware(c, file, chunkSize, timeout, prog)
 }
 
 // LoadFirmwareBinaryFromFile loads new firmware from file into the device device
+// timeout is for each chunk
 func (c *Client) LoadFirmwareBinaryFromFile(file string, chunkSize uint, timeout time.Duration, prog func(bytes uint, msg string)) (restartingNow bool, err error) {
-	return false, fmt.Errorf("not implemented")
+	return core.LoadFirmwareBinaryFromFile(c, file, chunkSize, timeout, prog)
 }
 
 // LoadFirmwareBinary loads new firmware from r into the device device
 func (c *Client) LoadFirmwareBinary(r *bufio.Reader, chunkSize uint, timeout time.Duration, prog func(bytes uint, msg string)) (restartingNow bool, err error) {
-	return false, fmt.Errorf("not implemented")
+	totalBytes := uint(0)
+	restartingNow = false
+
+	data := make([]byte, chunkSize)
+
+	for {
+		atEOF := false
+
+		_, err := r.Read(data)
+		if err != nil {
+			return restartingNow, errors.New("read firmware failed: " + err.Error())
+		}
+
+		// check if we are at EOF
+		_, err = r.Peek(1)
+		if err == io.EOF {
+			atEOF = true
+		}
+
+		urlParams := map[string]string{
+			"offset": fmt.Sprintf("%d", totalBytes),
+			"last":   fmt.Sprintf("%t", atEOF),
+		}
+
+		try := 3
+
+		for try = 3; try >= 0; try-- {
+			// create io.reader from data
+			body := bytes.NewReader(data)
+
+			_, err := c.requestMustBeOk("/firmware", http.MethodPut, body, urlParams)
+			if err == nil {
+				break
+			}
+			prog(totalBytes, fmt.Sprintf("Error %s Retry...", err))
+		}
+		if try < 0 || err != nil {
+			return restartingNow, errors.New("load firmware chunk command failed: " + err.Error())
+		}
+
+		totalBytes += uint(len(data))
+		prog(totalBytes, "")
+
+		restartingNow = true // TODO: response has no info if restart is needed
+		if atEOF {
+			break
+		}
+	}
+
+	return restartingNow, nil
 }

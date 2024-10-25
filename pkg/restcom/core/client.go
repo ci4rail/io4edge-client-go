@@ -4,9 +4,11 @@ import (
 	"bufio"
 	"context"
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -20,7 +22,12 @@ const (
 type Client struct {
 	password   string
 	httpClient *http.Client
-	baseURL    string
+	baseURL    *url.URL
+}
+
+type errorResponse struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
 }
 
 // NewClientFromSocketAddress creates a new client for the io4edge core functions via REST API
@@ -32,21 +39,40 @@ func NewClientFromSocketAddress(address string, password string) (*Client, error
 
 	// Create an HTTP client with the custom transport
 	client := &http.Client{Transport: tr}
-
+	urlStr := fmt.Sprintf("https://%s%s", address, urlPrefix)
+	baseURL, err := url.Parse(urlStr)
+	if err != nil {
+		return nil, err
+	}
 	c := &Client{
 		password:   password,
 		httpClient: client,
-		baseURL:    fmt.Sprintf("https://%s%s", address, urlPrefix),
+		baseURL:    baseURL,
 	}
 	return c, nil
 }
 
-// request sends a request to the device and returns the response
-func (c *Client) request(url string, verb string, body io.Reader) (*http.Response, error) {
+// request sends a request to the device and returns the response.
+// url is appended to the base URL and must start with a slash.
+// body is the request body or nil.
+// params are URL parameters or nil.
+func (c *Client) request(url string, verb string, body io.Reader, params map[string]string) (*http.Response, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), httpTimeout)
 	defer cancel()
 
-	req, err := http.NewRequestWithContext(ctx, verb, c.baseURL+url, body)
+	//make a copy of the base URL
+	reqURL := *c.baseURL
+	reqURL.Path += url
+
+	if params != nil {
+		v := reqURL.Query()
+		for key, value := range params {
+			v.Add(key, value)
+		}
+		reqURL.RawQuery = v.Encode()
+	}
+	fmt.Printf("Requesting %s %s\n", verb, reqURL.String())
+	req, err := http.NewRequestWithContext(ctx, verb, reqURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -56,20 +82,40 @@ func (c *Client) request(url string, verb string, body io.Reader) (*http.Respons
 
 // requestMustBeOk sends a request to the device and returns the response body as
 // bytes if the status code is 200
-func (c *Client) requestMustBeOk(url string, verb string, body io.Reader) ([]byte, error) {
-	resp, err := c.request(url, verb, body)
+// see request for parameter description
+func (c *Client) requestMustBeOk(url string, verb string, body io.Reader, params map[string]string) (*http.Response, error) {
+	resp, err := c.request(url, verb, body, params)
 	if err != nil {
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code %d", resp.StatusCode)
+		detail := ""
+		// check if response body is in json format
+		defer resp.Body.Close()
+		contentType := resp.Header.Get("Content-Type")
+		if contentType == "application/json" {
+			body, err := responseBodyToBytes(resp)
+			if err == nil {
+				var errDetail errorResponse
+				err = json.Unmarshal(body, &errDetail)
+				if err == nil {
+					detail = fmt.Sprintf(" (%s:%s)", errDetail.Code, errDetail.Message)
+				}
+			}
+		}
+
+		return nil, fmt.Errorf("unexpected status code %d%s", resp.StatusCode, detail)
 	}
-	defer resp.Body.Close()
-	resBody, err := io.ReadAll(resp.Body)
+	return resp, nil
+}
+
+// responseBodyToBytes reads the response body and returns it as bytes
+func responseBodyToBytes(r *http.Response) ([]byte, error) {
+	defer r.Body.Close()
+	resBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		return nil, err
 	}
-
 	return resBody, nil
 }
 
