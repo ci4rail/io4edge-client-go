@@ -16,7 +16,7 @@ type If interface {
 	IdentifyHardware(timeout time.Duration) (name string, major uint32, serial string, err error)
 	ProgramHardwareIdentification(name string, major uint32, serial string, timeout time.Duration) error
 	ReadPartition(timeout time.Duration, partitionName string, offset uint32, w *bufio.Writer, prog func(bytes uint, msg string)) (err error)
-	SetPersistentParameter(name string, value string, timeout time.Duration) error
+	SetPersistentParameter(name string, value string, timeout time.Duration) (bool, error)
 	GetPersistentParameter(name string, timeout time.Duration) (value string, err error)
 	ResetReason(timeout time.Duration) (reason string, err error)
 	Restart(timeout time.Duration) (restartingNow bool, err error)
@@ -30,4 +30,12 @@ type FirmwareAlreadyPresentError struct {
 // Error returns the error string for FirmwareAlreadyPresentError
 func (e *FirmwareAlreadyPresentError) Error() string {
 	return "Requested Firmware already present"
+}
+
+// ParameterIsReadProtectedError is returned by SetPersistentParameter if the parameter is read protected
+type ParameterIsReadProtectedError struct {
+}
+
+func (e *ParameterIsReadProtectedError) Error() string {
+	return "Parameter is read protected"
 }

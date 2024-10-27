@@ -17,13 +17,15 @@ limitations under the License.
 package pbcore
 
 import (
+	"strings"
 	"time"
 
+	"github.com/ci4rail/io4edge-client-go/pkg/core"
 	api "github.com/ci4rail/io4edge_api/io4edge/go/core_api/v1alpha2"
 )
 
 // SetPersistentParameter writes a persistent parameter into the device
-func (c *Client) SetPersistentParameter(name string, value string, timeout time.Duration) error {
+func (c *Client) SetPersistentParameter(name string, value string, timeout time.Duration) (bool, error) {
 	cmd := &api.CoreCommand{
 		Id: api.CommandId_SET_PERSISTENT_PARAMETER,
 		Data: &api.CoreCommand_SetPersistentParameter{
@@ -35,9 +37,9 @@ func (c *Client) SetPersistentParameter(name string, value string, timeout time.
 	}
 	res := &api.CoreResponse{}
 	if err := c.Command(cmd, res, timeout); err != nil {
-		return err
+		return false, err
 	}
-	return nil
+	return false, nil // rebootRequired is not available in protobuf API
 }
 
 // GetPersistentParameter reads a persistent parameter from the device
@@ -52,6 +54,9 @@ func (c *Client) GetPersistentParameter(name string, timeout time.Duration) (val
 	}
 	res := &api.CoreResponse{}
 	if err := c.Command(cmd, res, timeout); err != nil {
+		if strings.Contains(err.Error(), "PROGRAMMING_ERROR") {
+			return "", &core.ParameterIsReadProtectedError{}
+		}
 		return "", err
 	}
 	return res.GetPersistentParameter().Value, nil

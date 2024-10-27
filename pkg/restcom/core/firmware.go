@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"time"
 
@@ -25,12 +24,8 @@ func (c *Client) IdentifyFirmware(timeout time.Duration) (name string, version s
 		return "", "", err
 	}
 	var id getFirmwareResponse
+	err = json.NewDecoder(resp.Body).Decode(&id)
 
-	body, err := responseBodyToBytes(resp)
-	if err != nil {
-		return "", "", err
-	}
-	err = json.Unmarshal(body, &id)
 	if err != nil {
 		return "", "", err
 	}
@@ -59,16 +54,15 @@ func (c *Client) LoadFirmwareBinary(r *bufio.Reader, chunkSize uint, timeout tim
 	data := make([]byte, chunkSize)
 
 	for {
+		var err error
 		atEOF := false
 
-		_, err := r.Read(data)
+		n, err := r.Read(data)
 		if err != nil {
 			return restartingNow, errors.New("read firmware failed: " + err.Error())
 		}
 
-		// check if we are at EOF
-		_, err = r.Peek(1)
-		if err == io.EOF {
+		if n < int(chunkSize) {
 			atEOF = true
 		}
 
@@ -83,7 +77,7 @@ func (c *Client) LoadFirmwareBinary(r *bufio.Reader, chunkSize uint, timeout tim
 			// create io.reader from data
 			body := bytes.NewReader(data)
 
-			_, err := c.requestMustBeOk("/firmware", http.MethodPut, body, urlParams)
+			_, err = c.requestMustBeOk("/firmware", http.MethodPut, body, urlParams)
 			if err == nil {
 				break
 			}
@@ -96,8 +90,8 @@ func (c *Client) LoadFirmwareBinary(r *bufio.Reader, chunkSize uint, timeout tim
 		totalBytes += uint(len(data))
 		prog(totalBytes, "")
 
-		restartingNow = true // TODO: response has no info if restart is needed
 		if atEOF {
+			restartingNow = true // TODO: response has no info if restart is needed
 			break
 		}
 	}

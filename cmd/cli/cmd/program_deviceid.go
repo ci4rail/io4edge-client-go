@@ -18,7 +18,6 @@ package cmd
 
 import (
 	"fmt"
-	"time"
 
 	e "github.com/ci4rail/io4edge-client-go/internal/errors"
 	"github.com/spf13/cobra"
@@ -43,10 +42,7 @@ func programDeviceIdentification(cmd *cobra.Command, args []string) {
 	c, err := newCliClient(deviceID, ipAddrPort)
 	e.ErrChk(err)
 
-	err = c.SetPersistentParameter(name, value, time.Duration(timeoutSecs)*time.Second)
-	e.ErrChk(err)
-
-	value, err = c.GetPersistentParameter(name, time.Duration(timeoutSecs)*time.Second)
+	_, err = setAndVerifyParameter(c, name, value)
 	e.ErrChk(err)
 
 	fmt.Printf("Device id was set to %s\n", value)

@@ -19,10 +19,10 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"strings"
 	"time"
 
 	e "github.com/ci4rail/io4edge-client-go/internal/errors"
+	"github.com/ci4rail/io4edge-client-go/pkg/core"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )
@@ -36,8 +36,9 @@ var setPersistentParameterCmd = &cobra.Command{
 	Aliases: []string{"set-para", "set-persist"},
 	Short:   "Set a persistent parameter.",
 	Long: `Program a parameter into the non volatile storage (nvs) of the device.
-While the name is the key to the value. It is only possible to set parameters for which the device already provides a place in the nvs.
+It is only possible to set parameters for which the device already provides a place in the nvs.
 Passing an empty value deletes the parameter.
+It is possible to set multiple parameters at once by providing a YAML file with the parameters via the -f option.
 Examples:
 io4edge-cli -s S101-IOU04-USB-EXT-1 set-parameter wifi-ssid Ci4Rail-Guest
 io4edge-cli -s S101-IOU04-USB-EXT-1 set-parameter -f wifi.yaml`,
@@ -46,6 +47,8 @@ io4edge-cli -s S101-IOU04-USB-EXT-1 set-parameter -f wifi.yaml`,
 }
 
 func setPersistentParameter(cmd *cobra.Command, args []string) {
+	haveErrors := false
+	rebootRequired := false
 
 	c, err := newCliClient(deviceID, ipAddrPort)
 	e.ErrChk(err)
@@ -57,22 +60,11 @@ func setPersistentParameter(cmd *cobra.Command, args []string) {
 		}
 		name := args[0]
 		value := args[1]
-		err = c.SetPersistentParameter(name, value, time.Duration(timeoutSecs)*time.Second)
-		e.ErrChk(err)
 
-		if value != "" {
-			value, err = c.GetPersistentParameter(name, time.Duration(timeoutSecs)*time.Second)
-			if err != nil {
-				if strings.Contains(err.Error(), "PROGRAMMING_ERROR") {
-					fmt.Printf("WARNING: Couldn't read back parameter. May be it's read-only?\n")
-				} else {
-					e.ErrChk(err)
-				}
-			} else {
-				fmt.Printf("Parameter %s was set to %s\n", name, value)
-			}
-		} else {
-			fmt.Printf("Parameter %s deleted\n", name)
+		rebootRequired, err = setAndVerifyParameter(c, name, value)
+		if err != nil {
+			fmt.Printf("Error setting parameter %s: %v\n", name, err)
+			haveErrors = true
 		}
 	} else {
 		data, err := os.ReadFile(paramFile)
@@ -83,29 +75,46 @@ func setPersistentParameter(cmd *cobra.Command, args []string) {
 
 		fmt.Printf("Setting parameters...\n")
 		for name, value := range params {
-			err = c.SetPersistentParameter(name, value, time.Duration(timeoutSecs)*time.Second)
+			reboot, err := setAndVerifyParameter(c, name, value)
 			if err != nil {
 				fmt.Printf("Error setting parameter %s: %v\n", name, err)
+				haveErrors = true
 			}
-		}
-		fmt.Printf("Reading back parameters...\n")
-		for name := range params {
-			value, err := c.GetPersistentParameter(name, time.Duration(timeoutSecs)*time.Second)
-			if err != nil {
-				if strings.Contains(err.Error(), "PROGRAMMING_ERROR") {
-					fmt.Printf(" %s: WARNING: Couldn't get parameter. May be it's read-only?\n", name)
-				} else {
-					fmt.Printf(" %s: ERROR getting parameter %v\n", name, err)
-				}
-			} else {
-				if value != "" {
-					fmt.Printf(" %s='%s'\n", name, value)
-				} else {
-					fmt.Printf(" %s=deleted\n", name)
-				}
+			if reboot {
+				rebootRequired = true
 			}
 		}
 	}
+	if rebootRequired {
+		fmt.Printf("Reboot is required to apply parameters\n")
+	}
+	if haveErrors {
+		os.Exit(1)
+	}
+}
+
+// setAndVerifyParameter sets a parameter and verifies it was set correctly
+// returns rebootRequired and error
+func setAndVerifyParameter(c core.If, name string, value string) (bool, error) {
+	rebootRequired, err := c.SetPersistentParameter(name, value, time.Duration(timeoutSecs)*time.Second)
+	if err != nil {
+		return rebootRequired, err
+	}
+	if value != "" {
+		value, err = c.GetPersistentParameter(name, time.Duration(timeoutSecs)*time.Second)
+		if err != nil {
+			if _, ok := err.(*core.ParameterIsReadProtectedError); ok {
+				fmt.Printf("Couldn't read back parameter %s. May be it's read-only?\n", name)
+			} else {
+				return rebootRequired, fmt.Errorf("error reading back parameter %s: %v", name, err)
+			}
+		} else {
+			fmt.Printf("%s = %s\n", name, value)
+		}
+	} else {
+		fmt.Printf("Parameter %s deleted\n", name)
+	}
+	return rebootRequired, nil
 }
 
 func init() {

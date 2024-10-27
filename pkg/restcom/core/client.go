@@ -89,34 +89,24 @@ func (c *Client) requestMustBeOk(url string, verb string, body io.Reader, params
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		detail := ""
-		// check if response body is in json format
-		defer resp.Body.Close()
-		contentType := resp.Header.Get("Content-Type")
-		if contentType == "application/json" {
-			body, err := responseBodyToBytes(resp)
-			if err == nil {
-				var errDetail errorResponse
-				err = json.Unmarshal(body, &errDetail)
-				if err == nil {
-					detail = fmt.Sprintf(" (%s:%s)", errDetail.Code, errDetail.Message)
-				}
-			}
-		}
-
-		return nil, fmt.Errorf("unexpected status code %d%s", resp.StatusCode, detail)
+		return nil, c.decodeErrorResponse(resp)
 	}
 	return resp, nil
 }
 
-// responseBodyToBytes reads the response body and returns it as bytes
-func responseBodyToBytes(r *http.Response) ([]byte, error) {
-	defer r.Body.Close()
-	resBody, err := io.ReadAll(r.Body)
-	if err != nil {
-		return nil, err
+func (c *Client) decodeErrorResponse(resp *http.Response) error {
+	detail := ""
+	// check if response body is in json format
+	contentType := resp.Header.Get("Content-Type")
+	if contentType == "application/json" {
+		var errDetail errorResponse
+		err := json.NewDecoder(resp.Body).Decode(&errDetail)
+		if err == nil {
+			detail = fmt.Sprintf(" (%s:%s)", errDetail.Code, errDetail.Message)
+		}
 	}
-	return resBody, nil
+
+	return fmt.Errorf("unexpected status code %d%s", resp.StatusCode, detail)
 }
 
 // IdentifyHardware gets the firmware name and version from the device
@@ -132,16 +122,6 @@ func (c *Client) ProgramHardwareIdentification(name string, major uint32, serial
 // ReadPartition reads a partition from the device
 func (c *Client) ReadPartition(timeout time.Duration, partitionName string, offset uint32, w *bufio.Writer, prog func(bytes uint, msg string)) (err error) {
 	return fmt.Errorf("not implemented")
-}
-
-// SetPersistentParameter sets a persistent parameter
-func (c *Client) SetPersistentParameter(name string, value string, timeout time.Duration) error {
-	return fmt.Errorf("not implemented")
-}
-
-// GetPersistentParameter gets a persistent parameter
-func (c *Client) GetPersistentParameter(name string, timeout time.Duration) (value string, err error) {
-	return "", fmt.Errorf("not implemented")
 }
 
 // ResetReason gets the reset reason
