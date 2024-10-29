@@ -26,7 +26,7 @@ func (c *Client) SetPersistentParameter(name string, value string, timeout time.
 	if err != nil {
 		return false, fmt.Errorf("failed to encode value: %w", err)
 	}
-	resp, err := c.requestMustBeOk(parameterUrlFromName(name), http.MethodPut, bytes.NewReader(body), nil)
+	resp, err := c.requestMustBeOk(parameterURLFromName(name), http.MethodPut, bytes.NewReader(body), nil)
 	if err != nil {
 		return false, fmt.Errorf("failed to set parameter: %w", err)
 	}
@@ -41,7 +41,7 @@ func (c *Client) SetPersistentParameter(name string, value string, timeout time.
 // GetPersistentParameter gets a persistent parameter
 // name is the name of the parameter, it can be in the form "namespace.parameter" or just "parameter"
 func (c *Client) GetPersistentParameter(name string, timeout time.Duration) (value string, err error) {
-	resp, err := c.request(parameterUrlFromName(name), "GET", nil, nil)
+	resp, err := c.request(parameterURLFromName(name), "GET", nil, nil)
 	if err != nil {
 		return "", fmt.Errorf("failed to exec parameter get: %w", err)
 	}
@@ -69,8 +69,8 @@ func splitNameSpaceAndParameter(name string) (string, string) {
 	return "", s
 }
 
-// parameterUrlFromName returns the URL for a parameter (with optional namespace)
-func parameterUrlFromName(name string) string {
+// parameterURLFromName returns the URL for a parameter (with optional namespace)
+func parameterURLFromName(name string) string {
 	namespace, parameter := splitNameSpaceAndParameter(name)
 	if namespace == "" {
 		return "/parameter/" + parameter

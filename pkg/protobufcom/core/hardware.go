@@ -19,8 +19,8 @@ package pbcore
 import (
 	"time"
 
-	api "github.com/ci4rail/io4edge_api/io4edge/go/core_api/v1alpha2"
 	"github.com/ci4rail/io4edge-client-go/pkg/core"
+	api "github.com/ci4rail/io4edge_api/io4edge/go/core_api/v1alpha2"
 )
 
 // IdentifyHardware gets the hardware inventory data from the device
@@ -33,9 +33,9 @@ func (c *Client) IdentifyHardware(timeout time.Duration) (*core.HardwareInventor
 		return nil, err
 	}
 	return &core.HardwareInventory{
-		PartNumber:       res.GetIdentifyHardware().RootArticle,
-		SerialNumber:     res.GetIdentifyHardware().SerialNumber,
-		MajorVersion:     res.GetIdentifyHardware().MajorVersion,
+		PartNumber:   res.GetIdentifyHardware().RootArticle,
+		SerialNumber: res.GetIdentifyHardware().SerialNumber,
+		MajorVersion: res.GetIdentifyHardware().MajorVersion,
 	}, nil
 }
 

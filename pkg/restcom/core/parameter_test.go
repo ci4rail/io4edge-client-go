@@ -1,6 +1,5 @@
 package core
 
-
 import (
 	"testing"
 

@@ -42,8 +42,8 @@ func (e *ParameterIsReadProtectedError) Error() string {
 
 // HardwareInventory represents the hardware inventory information
 type HardwareInventory struct {
-	PartNumber string
-	SerialNumber string
-	MajorVersion uint32
+	PartNumber      string
+	SerialNumber    string
+	MajorVersion    uint32
 	CustomExtension map[string]string // may contain e.g. customer part number
 }
