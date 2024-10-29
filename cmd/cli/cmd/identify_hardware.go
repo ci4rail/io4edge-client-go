@@ -39,10 +39,15 @@ func identifyHardware(cmd *cobra.Command, args []string) {
 }
 
 func identifyHardwareFromClient(c core.If) {
-	rootArticle, majorVersion, serialNumber, err := c.IdentifyHardware(time.Duration(timeoutSecs) * time.Second)
+	i, err := c.IdentifyHardware(time.Duration(timeoutSecs) * time.Second)
 	e.ErrChk(err)
 
-	fmt.Printf("Hardware name: %s, rev: %d, serial: %s\n", rootArticle, majorVersion, serialNumber)
+	fmt.Printf("Hardware name: %s, rev: %d, serial: %s\n", i.PartNumber, i.MajorVersion, i.SerialNumber)
+	if len(i.CustomExtension) > 0 {
+		for k, v := range i.CustomExtension {
+			fmt.Printf("  %s=%s\n", k, v)
+		}
+	}
 }
 
 func init() {

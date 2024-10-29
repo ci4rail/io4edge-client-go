@@ -20,30 +20,35 @@ import (
 	"time"
 
 	api "github.com/ci4rail/io4edge_api/io4edge/go/core_api/v1alpha2"
+	"github.com/ci4rail/io4edge-client-go/pkg/core"
 )
 
 // IdentifyHardware gets the hardware inventory data from the device
-func (c *Client) IdentifyHardware(timeout time.Duration) (name string, major uint32, serial string, err error) {
+func (c *Client) IdentifyHardware(timeout time.Duration) (*core.HardwareInventory, error) {
 	cmd := &api.CoreCommand{
 		Id: api.CommandId_IDENTIFY_HARDWARE,
 	}
 	res := &api.CoreResponse{}
 	if err := c.Command(cmd, res, timeout); err != nil {
-		return "", 0, "", err
+		return nil, err
 	}
-	return res.GetIdentifyHardware().RootArticle, res.GetIdentifyHardware().MajorVersion, res.GetIdentifyHardware().SerialNumber, nil
+	return &core.HardwareInventory{
+		PartNumber:       res.GetIdentifyHardware().RootArticle,
+		SerialNumber:     res.GetIdentifyHardware().SerialNumber,
+		MajorVersion:     res.GetIdentifyHardware().MajorVersion,
+	}, nil
 }
 
 // ProgramHardwareIdentification programs hardware inventory data into the device.
 // Intended to be used during hardware manufacturing process only
-func (c *Client) ProgramHardwareIdentification(name string, major uint32, serial string, timeout time.Duration) error {
+func (c *Client) ProgramHardwareIdentification(i *core.HardwareInventory, timeout time.Duration) error {
 	cmd := &api.CoreCommand{
 		Id: api.CommandId_PROGRAM_HARDWARE_IDENTIFICATION,
 		Data: &api.CoreCommand_ProgramHardwareIdentification{
 			ProgramHardwareIdentification: &api.ProgramHardwareIdentificationCommand{
-				RootArticle:  name,
-				MajorVersion: major,
-				SerialNumber: serial,
+				RootArticle:  i.PartNumber,
+				MajorVersion: i.MajorVersion,
+				SerialNumber: i.SerialNumber,
 			},
 		},
 	}

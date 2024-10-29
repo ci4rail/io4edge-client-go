@@ -13,8 +13,8 @@ type If interface {
 	LoadFirmware(file string, chunkSize uint, timeout time.Duration, prog func(bytes uint, msg string)) (restartingNow bool, err error)
 	LoadFirmwareBinaryFromFile(file string, chunkSize uint, timeout time.Duration, prog func(bytes uint, msg string)) (restartingNow bool, err error)
 	LoadFirmwareBinary(r *bufio.Reader, chunkSize uint, timeout time.Duration, prog func(bytes uint, msg string)) (restartingNow bool, err error)
-	IdentifyHardware(timeout time.Duration) (name string, major uint32, serial string, err error)
-	ProgramHardwareIdentification(name string, major uint32, serial string, timeout time.Duration) error
+	IdentifyHardware(timeout time.Duration) (*HardwareInventory, error)
+	ProgramHardwareIdentification(i *HardwareInventory, timeout time.Duration) error
 	ReadPartition(timeout time.Duration, partitionName string, offset uint32, w *bufio.Writer, prog func(bytes uint, msg string)) (err error)
 	SetPersistentParameter(name string, value string, timeout time.Duration) (bool, error)
 	GetPersistentParameter(name string, timeout time.Duration) (value string, err error)
@@ -38,4 +38,12 @@ type ParameterIsReadProtectedError struct {
 
 func (e *ParameterIsReadProtectedError) Error() string {
 	return "Parameter is read protected"
+}
+
+// HardwareInventory represents the hardware inventory information
+type HardwareInventory struct {
+	PartNumber string
+	SerialNumber string
+	MajorVersion uint32
+	CustomExtension map[string]string // may contain e.g. customer part number
 }

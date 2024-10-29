@@ -52,7 +52,7 @@ func LoadFirmware(c If, file string, chunkSize uint, timeout time.Duration, prog
 	}
 
 	// get devices hardware id
-	rootArticle, majorVersion, _, err := c.IdentifyHardware(timeout)
+	i, err := c.IdentifyHardware(timeout)
 	if err != nil {
 		return restartingNow, err
 	}
@@ -61,8 +61,8 @@ func LoadFirmware(c If, file string, chunkSize uint, timeout time.Duration, prog
 	err = AssertFirmwareIsCompatibleWithHardware(
 		manifest.Compatibility.HW,
 		manifest.Compatibility.MajorRevs,
-		rootArticle,
-		int(majorVersion),
+		i.PartNumber,
+		int(i.MajorVersion),
 	)
 	if err != nil {
 		return restartingNow, err

@@ -119,7 +119,14 @@ func addDevicesHwInfo(devices []*device) {
 
 		c, err := newCliClient("", d.core.GetIPAddressPort())
 		if err == nil {
-			d.hardwareName, _, d.serial, _ = c.IdentifyHardware(time.Duration(timeoutSecs) * time.Second)
+			i, err := c.IdentifyHardware(time.Duration(timeoutSecs) * time.Second)
+			if err != nil {
+				d.hardwareName = ""
+				d.serial = ""
+			} else {
+				d.hardwareName = i.PartNumber
+				d.serial = i.SerialNumber
+			}
 		}
 		if d.hardwareName == "" {
 			d.hardwareName = "(Unknown)"
