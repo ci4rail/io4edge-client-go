@@ -109,16 +109,6 @@ func (c *Client) decodeErrorResponse(resp *http.Response) error {
 	return fmt.Errorf("unexpected status code %d%s", resp.StatusCode, detail)
 }
 
-// IdentifyHardware gets the firmware name and version from the device
-func (c *Client) IdentifyHardware(timeout time.Duration) (name string, major uint32, serial string, err error) {
-	return "", 0, "", fmt.Errorf("not implemented")
-}
-
-// ProgramHardwareIdentification programs the hardware identification
-func (c *Client) ProgramHardwareIdentification(name string, major uint32, serial string, timeout time.Duration) error {
-	return fmt.Errorf("not implemented")
-}
-
 // ReadPartition reads a partition from the device
 func (c *Client) ReadPartition(timeout time.Duration, partitionName string, offset uint32, w *bufio.Writer, prog func(bytes uint, msg string)) (err error) {
 	return fmt.Errorf("not implemented")
