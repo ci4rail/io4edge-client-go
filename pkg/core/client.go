@@ -21,6 +21,8 @@ type If interface {
 	ResetReason(timeout time.Duration) (reason string, err error)
 	Restart(timeout time.Duration) (restartingNow bool, err error)
 	StreamLogs(streamTimeout time.Duration, infoCb func(msg string)) (io.ReadCloser, error)
+	GetParameterSet(timeout time.Duration, namespace string) ([]byte, error)
+	LoadParameterSet(timeout time.Duration, namespace string, data []byte) ([]byte, error)
 }
 
 // FirmwareAlreadyPresentError is returned by LoadFirmware as a dummy error

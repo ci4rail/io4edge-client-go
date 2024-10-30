@@ -21,6 +21,7 @@ package pbcore
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	pbchannelclient "github.com/ci4rail/io4edge-client-go/pkg/protobufcom/common/channel"
@@ -71,4 +72,14 @@ func (c *Client) Command(cmd *api.CoreCommand, res *api.CoreResponse, timeout ti
 		return errors.New("Device reported error status: " + res.Status.String())
 	}
 	return err
+}
+
+// GetParameterSet retrieves the parameter set from the device
+func (c *Client) GetParameterSet(timeout time.Duration, namespace string) ([]byte, error) {
+	return nil, fmt.Errorf("not implemented")
+}
+
+// LoadParameterSet loads the parameter set to the device
+func (c *Client) LoadParameterSet(timeout time.Duration, namespace string, data []byte) ([]byte, error) {
+	return nil, fmt.Errorf("not implemented")
 }
