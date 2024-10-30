@@ -119,11 +119,6 @@ func (c *Client) ResetReason(timeout time.Duration) (reason string, err error) {
 	return "", fmt.Errorf("not implemented")
 }
 
-// Restart restarts the device
-func (c *Client) Restart(timeout time.Duration) (restartingNow bool, err error) {
-	return false, fmt.Errorf("not implemented")
-}
-
 // StreamLogs streams the logs from the device
 func (c *Client) StreamLogs(streamTimeout time.Duration, infoCb func(msg string)) (io.ReadCloser, error) {
 	return nil, fmt.Errorf("not implemented")
