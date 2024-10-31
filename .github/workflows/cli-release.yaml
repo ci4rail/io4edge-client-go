@@ -20,7 +20,7 @@ jobs:
           build_flags: -tags netgo,osusergo,static_build
           goos: ${{ matrix.goos }}
           goarch: ${{ matrix.goarch }}
-          goversion: "https://go.dev/dl/go1.17.5.linux-amd64.tar.gz"
+          goversion: "https://go.dev/dl/go1.23.2.linux-amd64.tar.gz"
           project_path: "./cmd/cli"
           binary_name: "io4edge-cli"
           extra_files: LICENSE README_CLI.md
