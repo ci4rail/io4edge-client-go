@@ -83,3 +83,8 @@ func (c *Client) GetParameterSet(timeout time.Duration, namespace string) ([]byt
 func (c *Client) LoadParameterSet(timeout time.Duration, namespace string, data []byte) ([]byte, error) {
 	return nil, fmt.Errorf("not implemented")
 }
+
+// Close closes the core function client
+func (c *Client) Close() {
+	c.funcClient.Close()
+}
