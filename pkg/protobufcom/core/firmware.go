@@ -46,6 +46,14 @@ func (c *Client) LoadFirmware(file string, chunkSize uint, timeout time.Duration
 	return core.LoadFirmware(c, file, chunkSize, timeout, prog)
 }
 
+// LoadFirmwareFromBuffer loads a binary from a firmware package in memory to the device.
+// Checks first if the firmware is compatible with the device.
+// Checks then if the device's firmware version is the same
+// timeout is for each chunk
+func (c *Client) LoadFirmwareFromBuffer(buffer []byte, chunkSize uint, timeout time.Duration, prog func(bytes uint, msg string)) (restartingNow bool, err error) {
+	return core.LoadFirmwareFromBuffer(c, buffer, chunkSize, timeout, prog)
+}
+
 // LoadFirmwareBinaryFromFile loads new firmware from file into the device device
 // timeout is for each chunk
 func (c *Client) LoadFirmwareBinaryFromFile(file string, chunkSize uint, timeout time.Duration, prog func(bytes uint, msg string)) (restartingNow bool, err error) {

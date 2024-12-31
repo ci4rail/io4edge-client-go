@@ -1,5 +1,5 @@
-github.com/ci4rail/firmware-packaging-go v1.0.0 h1:AnBRanpKnO6WgGuBC5kk4Ptq5yYuKzCar+k/7ogAeiw=
-github.com/ci4rail/firmware-packaging-go v1.0.0/go.mod h1:SuaeirmoxRxyIcfU9op5OyAEvmHym43bFIE60U+8nvw=
+github.com/ci4rail/firmware-packaging-go v1.0.1-0.20241231154716-82e7c6d1d985 h1:LF+Kan/4NzDjVsgFeA39TJmj+bxloJrMBJ6RMVGVHtQ=
+github.com/ci4rail/firmware-packaging-go v1.0.1-0.20241231154716-82e7c6d1d985/go.mod h1:SuaeirmoxRxyIcfU9op5OyAEvmHym43bFIE60U+8nvw=
 github.com/ci4rail/io4edge_api v1.0.1-0.20240610100102-99aeeea1613a h1:urDTkpC80iX4DcIYZ/R5OWP8CPW8oqm03xjPw1UUG4I=
 github.com/ci4rail/io4edge_api v1.0.1-0.20240610100102-99aeeea1613a/go.mod h1:QWM/pii9vHNZ1YwC+3MePA9RSAnP/iO/xVGHoWJEX0I=
 github.com/cpuguy83/go-md2man/v2 v2.0.2/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=

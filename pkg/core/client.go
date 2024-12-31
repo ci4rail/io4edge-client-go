@@ -11,6 +11,7 @@ import (
 type If interface {
 	IdentifyFirmware(timeout time.Duration) (name string, version string, err error)
 	LoadFirmware(file string, chunkSize uint, timeout time.Duration, prog func(bytes uint, msg string)) (restartingNow bool, err error)
+	LoadFirmwareFromBuffer(buffer []byte, chunkSize uint, timeout time.Duration, prog func(bytes uint, msg string)) (restartingNow bool, err error)
 	LoadFirmwareBinaryFromFile(file string, chunkSize uint, timeout time.Duration, prog func(bytes uint, msg string)) (restartingNow bool, err error)
 	LoadFirmwareBinary(r *bufio.Reader, chunkSize uint, timeout time.Duration, prog func(bytes uint, msg string)) (restartingNow bool, err error)
 	IdentifyHardware(timeout time.Duration) (*HardwareInventory, error)
@@ -23,6 +24,7 @@ type If interface {
 	StreamLogs(streamTimeout time.Duration, infoCb func(msg string)) (io.ReadCloser, error)
 	GetParameterSet(timeout time.Duration, namespace string) ([]byte, error)
 	LoadParameterSet(timeout time.Duration, namespace string, data []byte) ([]byte, error)
+	Close()
 }
 
 // FirmwareAlreadyPresentError is returned by LoadFirmware as a dummy error

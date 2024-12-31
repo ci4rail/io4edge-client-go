@@ -123,3 +123,7 @@ func (c *Client) ResetReason(timeout time.Duration) (reason string, err error) {
 func (c *Client) StreamLogs(streamTimeout time.Duration, infoCb func(msg string)) (io.ReadCloser, error) {
 	return nil, fmt.Errorf("not implemented")
 }
+
+// Close closes the client. Here it does nothing
+func (c *Client) Close() {
+}

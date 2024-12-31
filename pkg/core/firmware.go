@@ -32,7 +32,7 @@ func AssertFirmwareIsCompatibleWithHardware(fwHw string, fwMajorRevs []int, hwNa
 	return nil
 }
 
-// LoadFirmware loads a binary from a firmware package to the device.
+// LoadFirmware loads a binary from a firmware package file to the device.
 // Checks first if the firmware is compatible with the device.
 // Checks then if the device's firmware version is the same
 // timeout is for each chunk
@@ -43,6 +43,28 @@ func LoadFirmware(c If, file string, chunkSize uint, timeout time.Duration, prog
 	if err != nil {
 		return restartingNow, err
 	}
+	return loadFirmwareFromFirmwarePackageConsumer(c, pkg, chunkSize, timeout, prog)
+}
+
+// LoadFirmwareFromBuffer loads a binary from a firmware package in memory to the device.
+// Checks first if the firmware is compatible with the device.
+// Checks then if the device's firmware version is the same
+// timeout is for each chunk
+func LoadFirmwareFromBuffer(c If, buffer []byte, chunkSize uint, timeout time.Duration, prog func(bytes uint, msg string)) (restartingNow bool, err error) {
+	restartingNow = false
+
+	pkg, err := fwpkg.NewFirmwarePackageConsumerFromBuffer(buffer)
+	if err != nil {
+		return restartingNow, err
+	}
+	return loadFirmwareFromFirmwarePackageConsumer(c, pkg, chunkSize, timeout, prog)
+}
+
+func loadFirmwareFromFirmwarePackageConsumer(c If, pkg *fwpkg.FirmwarePackageConsumer,
+	chunkSize uint, timeout time.Duration, prog func(bytes uint, msg string)) (restartingNow bool, err error) {
+
+	restartingNow = false
+
 	manifest := pkg.Manifest()
 
 	// get currently running firmware
