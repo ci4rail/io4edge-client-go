@@ -1,5 +1,3 @@
-github.com/ci4rail/firmware-packaging-go v1.0.1-0.20241231154716-82e7c6d1d985 h1:LF+Kan/4NzDjVsgFeA39TJmj+bxloJrMBJ6RMVGVHtQ=
-github.com/ci4rail/firmware-packaging-go v1.0.1-0.20241231154716-82e7c6d1d985/go.mod h1:SuaeirmoxRxyIcfU9op5OyAEvmHym43bFIE60U+8nvw=
 github.com/ci4rail/firmware-packaging-go v1.1.0 h1:rdOwMMDeYu8T9g6Mtepaoa06ZZh5Fcb7GoyqW0mtWrQ=
 github.com/ci4rail/firmware-packaging-go v1.1.0/go.mod h1:SuaeirmoxRxyIcfU9op5OyAEvmHym43bFIE60U+8nvw=
 github.com/ci4rail/io4edge_api v1.0.1-0.20240610100102-99aeeea1613a h1:urDTkpC80iX4DcIYZ/R5OWP8CPW8oqm03xjPw1UUG4I=

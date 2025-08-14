@@ -26,6 +26,9 @@ func (c *Client) LoadParameterSet(timeout time.Duration, namespace string, data 
 	reader := bytes.NewReader(data)
 
 	resp, err := c.requestMustBeOk(parameterSetURL(namespace), http.MethodPut, reader, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load parameter set: %w", err)
+	}
 	bytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response: %w", err)
