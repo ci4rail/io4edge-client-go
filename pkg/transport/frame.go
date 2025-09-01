@@ -177,6 +177,10 @@ func (fs *FramedStream) Close() error {
 func (fs *FramedStream) readAll(length uint) ([]byte, error) {
 	payload := []byte{}
 	received := 0
+
+	if length == 0 {
+		return []byte{}, nil
+	}
 	for {
 		chunk := make([]byte, length-uint(received))
 		n, err := fs.Trans.Read(chunk)
