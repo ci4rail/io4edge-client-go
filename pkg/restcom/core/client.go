@@ -13,9 +13,8 @@ import (
 )
 
 const (
-	userName    = "io4edge"
-	urlPrefix   = "/api/v1"
-	httpTimeout = 10 * time.Second // TODO: make configurable
+	userName  = "io4edge"
+	urlPrefix = "/api/v1"
 )
 
 // Client represents a client for the io4edge core function via REST API
@@ -56,23 +55,20 @@ func NewClientFromSocketAddress(address string, password string) (*Client, error
 // url is appended to the base URL and must start with a slash.
 // body is the request body or nil.
 // params are URL parameters or nil.
-func (c *Client) request(url string, verb string, body io.Reader, params map[string]string) (*http.Response, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), httpTimeout)
-	defer cancel()
-
-	//make a copy of the base URL
-	reqURL := *c.baseURL
-	reqURL.Path += url
+func (c *Client) request(ctx context.Context, relPath string, verb string, body io.Reader, params map[string]string) (*http.Response, error) {
+	full := *c.baseURL
+	full.Path += relPath
 
 	if params != nil {
-		v := reqURL.Query()
+		v := full.Query()
 		for key, value := range params {
 			v.Add(key, value)
 		}
-		reqURL.RawQuery = v.Encode()
+		full.RawQuery = v.Encode()
 	}
-	fmt.Printf("Requesting %s %s\n", verb, reqURL.String())
-	req, err := http.NewRequestWithContext(ctx, verb, reqURL.String(), body)
+	c.httpClient.Timeout = 0
+	fmt.Printf("Requesting %s %s\n", verb, full.String())
+	req, err := http.NewRequestWithContext(ctx, verb, full.String(), body)
 	if err != nil {
 		return nil, err
 	}
@@ -83,11 +79,14 @@ func (c *Client) request(url string, verb string, body io.Reader, params map[str
 // requestMustBeOk sends a request to the device and returns the response body as
 // bytes if the status code is 200
 // see request for parameter description
-func (c *Client) requestMustBeOk(url string, verb string, body io.Reader, params map[string]string) (*http.Response, error) {
-	resp, err := c.request(url, verb, body, params)
+func (c *Client) requestMustBeOk(url string, verb string, body io.Reader, params map[string]string, timeout time.Duration) (*http.Response, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	resp, err := c.request(ctx, url, verb, body, params)
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		return nil, c.decodeErrorResponse(resp)
 	}

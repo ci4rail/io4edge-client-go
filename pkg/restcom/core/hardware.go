@@ -13,7 +13,7 @@ import (
 // IdentifyHardware gets the firmware name and version from the device
 // TODO: support customer part number
 func (c *Client) IdentifyHardware(timeout time.Duration) (*core.HardwareInventory, error) {
-	resp, err := c.requestMustBeOk("/hardware", http.MethodGet, nil, nil)
+	resp, err := c.requestMustBeOk("/hardware", http.MethodGet, nil, nil, timeout)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +70,7 @@ func (c *Client) ProgramHardwareIdentification(i *core.HardwareInventory, timeou
 	if err != nil {
 		return fmt.Errorf("failed to encode value: %w", err)
 	}
-	_, err = c.requestMustBeOk("/hardware", http.MethodPut, bytes.NewReader(body), nil)
+	_, err = c.requestMustBeOk("/hardware", http.MethodPut, bytes.NewReader(body), nil, timeout)
 	if err != nil {
 		return fmt.Errorf("failed to program hardware info: %w", err)
 	}

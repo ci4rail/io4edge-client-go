@@ -10,7 +10,7 @@ import (
 
 // GetParameterSet gets the parameter set from the device
 func (c *Client) GetParameterSet(timeout time.Duration, namespace string) ([]byte, error) {
-	resp, err := c.requestMustBeOk(parameterSetURL(namespace), http.MethodGet, nil, nil)
+	resp, err := c.requestMustBeOk(parameterSetURL(namespace), http.MethodGet, nil, nil, timeout)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get parameter set: %w", err)
 	}
@@ -25,7 +25,7 @@ func (c *Client) GetParameterSet(timeout time.Duration, namespace string) ([]byt
 func (c *Client) LoadParameterSet(timeout time.Duration, namespace string, data []byte) ([]byte, error) {
 	reader := bytes.NewReader(data)
 
-	resp, err := c.requestMustBeOk(parameterSetURL(namespace), http.MethodPut, reader, nil)
+	resp, err := c.requestMustBeOk(parameterSetURL(namespace), http.MethodPut, reader, nil, timeout)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load parameter set: %w", err)
 	}

@@ -19,7 +19,7 @@ type getFirmwareResponse struct {
 
 // IdentifyFirmware gets the firmware name and version from the device
 func (c *Client) IdentifyFirmware(timeout time.Duration) (name string, version string, err error) {
-	resp, err := c.requestMustBeOk("/firmware", http.MethodGet, nil, nil)
+	resp, err := c.requestMustBeOk("/firmware", http.MethodGet, nil, nil, timeout)
 	if err != nil {
 		return "", "", err
 	}
@@ -85,7 +85,7 @@ func (c *Client) LoadFirmwareBinary(r *bufio.Reader, chunkSize uint, timeout tim
 			// create io.reader from data
 			body := bytes.NewReader(data)
 
-			_, err = c.requestMustBeOk("/firmware", http.MethodPut, body, urlParams)
+			_, err = c.requestMustBeOk("/firmware", http.MethodPut, body, urlParams, timeout)
 			if err == nil {
 				break
 			}

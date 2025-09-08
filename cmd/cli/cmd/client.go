@@ -30,7 +30,7 @@ func newCliClientFromIP(ipAddrPort string) (core.If, error) {
 	if err != nil {
 		return nil, err
 	}
-	if port == restCorePort {
+	if port%1000 == restCorePort {
 		if password == "" {
 			return nil, errors.New("password required for REST API")
 		}
