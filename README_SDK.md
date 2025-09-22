@@ -13,6 +13,7 @@ This package provides a Go API to
 
 * make use of the function blocks, such as
 	* [Analog In TypeA](analogintypea) - IOU01, MIO01
+	* [Analog In TypeB](analogintypeb) - IOU09, MIO09
 	* [Binary IO TypeA](binaryiotypea) - IOU01, MIO01
 	* [Binary IO TypeB](binaryiotypeb) - IOU06
 	* [Binary IO TypeC](binaryiotypec) - IOU07
@@ -49,7 +50,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/ci4rail/io4edge-client-go/core"
+	"github.com/ci4rail/io4edge-client-go/pkg/core"
 )
 
 func main() {
@@ -88,7 +89,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/ci4rail/io4edge-client-go/core"
+	"github.com/ci4rail/io4edge-client-go/pkg/core"
 )
 
 func main() {
@@ -127,7 +128,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/ci4rail/io4edge-client-go/core"
+	"github.com/ci4rail/io4edge-client-go/pkg/core"
 )
 
 func main() {
@@ -154,6 +155,6 @@ func main() {
 
 ## Copyright
 
-Copyright © 2024-2022 Ci4Rail GmbH <engineering@ci4rail.com>
+Copyright © 2024-2025 Ci4Rail GmbH <engineering@ci4rail.com>
 
 io4edge package released unter Apache 2.0 License, see [LICENSE](LICENSE) for details.
