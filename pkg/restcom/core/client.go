@@ -55,6 +55,7 @@ func NewClientFromSocketAddress(address string, password string) (*Client, error
 // url is appended to the base URL and must start with a slash.
 // body is the request body or nil.
 // params are URL parameters or nil.
+// caller must close resp.Body
 func (c *Client) request(ctx context.Context, relPath string, verb string, body io.Reader, params map[string]string) (*http.Response, error) {
 	full := *c.baseURL
 	full.Path += relPath
@@ -79,6 +80,7 @@ func (c *Client) request(ctx context.Context, relPath string, verb string, body 
 // requestMustBeOk sends a request to the device and returns the response body as
 // bytes if the status code is 200
 // see request for parameter description
+// caller must close resp.Body if no error is returned
 func (c *Client) requestMustBeOk(url string, verb string, body io.Reader, params map[string]string, timeout time.Duration) (*http.Response, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
@@ -86,8 +88,9 @@ func (c *Client) requestMustBeOk(url string, verb string, body io.Reader, params
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+
 	if resp.StatusCode != http.StatusOK {
+		defer resp.Body.Close()
 		return nil, c.decodeErrorResponse(resp)
 	}
 	return resp, nil

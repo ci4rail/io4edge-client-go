@@ -23,6 +23,7 @@ func (c *Client) IdentifyFirmware(timeout time.Duration) (name string, version s
 	if err != nil {
 		return "", "", err
 	}
+	defer resp.Body.Close()
 	var id getFirmwareResponse
 	err = json.NewDecoder(resp.Body).Decode(&id)
 

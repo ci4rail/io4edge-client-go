@@ -14,6 +14,7 @@ func (c *Client) GetParameterSet(timeout time.Duration, namespace string) ([]byt
 	if err != nil {
 		return nil, fmt.Errorf("failed to get parameter set: %w", err)
 	}
+	defer resp.Body.Close()
 	bytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response: %w", err)
@@ -29,6 +30,7 @@ func (c *Client) LoadParameterSet(timeout time.Duration, namespace string, data 
 	if err != nil {
 		return nil, fmt.Errorf("failed to load parameter set: %w", err)
 	}
+	defer resp.Body.Close()
 	bytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response: %w", err)

@@ -31,6 +31,7 @@ func (c *Client) SetPersistentParameter(name string, value string, timeout time.
 	if err != nil {
 		return false, fmt.Errorf("failed to set parameter: %w", err)
 	}
+	defer resp.Body.Close()
 	var r setParameterResponse
 	err = json.NewDecoder(resp.Body).Decode(&r)
 	if err != nil {

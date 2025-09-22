@@ -17,6 +17,7 @@ func (c *Client) IdentifyHardware(timeout time.Duration) (*core.HardwareInventor
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 	var id map[string]any
 	err = json.NewDecoder(resp.Body).Decode(&id)
 
@@ -70,9 +71,10 @@ func (c *Client) ProgramHardwareIdentification(i *core.HardwareInventory, timeou
 	if err != nil {
 		return fmt.Errorf("failed to encode value: %w", err)
 	}
-	_, err = c.requestMustBeOk("/hardware", http.MethodPut, bytes.NewReader(body), nil, timeout)
+	resp, err := c.requestMustBeOk("/hardware", http.MethodPut, bytes.NewReader(body), nil, timeout)
 	if err != nil {
 		return fmt.Errorf("failed to program hardware info: %w", err)
 	}
+	defer resp.Body.Close()
 	return nil
 }
