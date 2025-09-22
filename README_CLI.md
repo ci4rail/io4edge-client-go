@@ -8,17 +8,24 @@ Command line tool to manage io4edge devices.
 
 Io4edge devices are intelligent I/O devices invented by Ci4Rail, connected to the host via network.
 
+There are two flavours of io4edge devices:
+- Original (O): Using TCP and protobuf for management functions
+- New (N): Using HTTPS REST API for management functions
+
+Some functions are only available for the original devices, some only for the new devices, and some for both.
+
 The `io4edge-cli` tool is intended to run on the host machine. Via the command line tool, you can:
-* Scan for io4edge devices in the network
-* Identify the currently running firmware
-* Load new firmware
-* Identify HW (name, revision, serial number)
-* Program HW identification
-* Restart device
-* Set device id
-* Set/Get persistent parameter
-* Read a partition from the device
-* Get reset reason
+* Scan for io4edge devices in the network (O)
+* Identify the currently running firmware (O/N)
+* Load new firmware (O/N)
+* Identify HW (name, revision, serial number) (O/N)
+* Program HW identification (O/N)
+* Restart device (O/N)
+* Set device id (O/N)
+* Set/Get persistent parameter (O/N)
+* Read a partition from the device (O)
+* Get reset reason (O)
+* Load/Get parameterset (N)
 
 ## Examples
 

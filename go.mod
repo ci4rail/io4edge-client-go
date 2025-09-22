@@ -1,9 +1,9 @@
 module github.com/ci4rail/io4edge-client-go
 
-go 1.17
+go 1.23
 
 require (
-	github.com/ci4rail/firmware-packaging-go v1.0.0
+	github.com/ci4rail/firmware-packaging-go v1.1.0
 	github.com/ci4rail/io4edge_api v1.0.1-0.20240610100102-99aeeea1613a
 	github.com/gobwas/glob v0.2.3
 	github.com/godbus/dbus/v5 v5.1.0
@@ -18,9 +18,10 @@ require (
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/mattn/go-runewidth v0.0.9 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8 // indirect
+	golang.org/x/sys v0.26.0 // indirect
 )

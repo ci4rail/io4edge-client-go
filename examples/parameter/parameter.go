@@ -1,11 +1,11 @@
 /*
-Copyright © 2021 Ci4Rail GmbH <engineering@ci4rail.com>
+Copyright © 2024 Ci4Rail GmbH <engineering@ci4rail.com>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,7 +20,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/ci4rail/io4edge-client-go/core"
+	"github.com/ci4rail/io4edge-client-go/pkg/core"
+	pbcore "github.com/ci4rail/io4edge-client-go/pkg/protobufcom/core"
 )
 
 func main() {
@@ -40,20 +41,20 @@ func main() {
 	}
 
 	// Create a client object to work with the io4edge device at <address>
-	var c *core.Client
+	var c core.If
 	var err error
 
 	if addressType == "svc" {
-		c, err = core.NewClientFromService(address, timeout)
+		c, err = pbcore.NewClientFromService(address, timeout)
 	} else {
-		c, err = core.NewClientFromSocketAddress(address)
+		c, err = pbcore.NewClientFromSocketAddress(address)
 	}
 	if err != nil {
 		log.Fatalf("Failed to create core client: %v\n", err)
 	}
 
 	if len(value) > 0 {
-		err = c.SetPersistentParameter(name, value, timeout)
+		_, err = c.SetPersistentParameter(name, value, timeout)
 	} else {
 		value, err = c.GetPersistentParameter(name, timeout)
 		if err == nil {

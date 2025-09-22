@@ -22,8 +22,8 @@ import (
 	"sort"
 	"time"
 
-	"github.com/ci4rail/io4edge-client-go/client"
 	e "github.com/ci4rail/io4edge-client-go/internal/errors"
+	"github.com/ci4rail/io4edge-client-go/pkg/zeroconfservice"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )
@@ -40,15 +40,15 @@ var (
 )
 
 type device struct {
-	core         *client.ServiceInfo
-	functions    map[string]*client.ServiceInfo // key: instance name
+	core         *zeroconfservice.ServiceInfo
+	functions    map[string]*zeroconfservice.ServiceInfo // key: instance name
 	ip           string
 	hardwareName string
 	serial       string
 }
 
 type byIP []*device
-type byPort []*client.ServiceInfo
+type byPort []*zeroconfservice.ServiceInfo
 
 type scanResults struct {
 	devices     map[string]*device // key: ip address as string
@@ -61,7 +61,7 @@ func scan(cmd *cobra.Command, args []string) {
 		true,
 	}
 	go func() {
-		err := client.ServiceObserver("*", result.serviceAdded, result.serviceRemoved)
+		err := zeroconfservice.ServiceObserver("*", result.serviceAdded, result.serviceRemoved)
 		e.ErrChk(err)
 	}()
 	time.Sleep(time.Duration(scanTime) * time.Second)
@@ -119,7 +119,14 @@ func addDevicesHwInfo(devices []*device) {
 
 		c, err := newCliClient("", d.core.GetIPAddressPort())
 		if err == nil {
-			d.hardwareName, _, d.serial, _ = c.IdentifyHardware(time.Duration(timeoutSecs) * time.Second)
+			i, err := c.IdentifyHardware(time.Duration(timeoutSecs) * time.Second)
+			if err != nil {
+				d.hardwareName = ""
+				d.serial = ""
+			} else {
+				d.hardwareName = i.PartNumber
+				d.serial = i.SerialNumber
+			}
 		}
 		if d.hardwareName == "" {
 			d.hardwareName = "(Unknown)"
@@ -148,13 +155,13 @@ func (r *scanResults) sortDevicesByIP() []*device {
 	return devices
 }
 
-func (r *scanResults) serviceAdded(s client.ServiceInfo) error {
+func (r *scanResults) serviceAdded(s zeroconfservice.ServiceInfo) error {
 	if r.scanRunning {
 		ip, _, _ := s.NetAddress()
 		d, known := r.devices[ip]
 		if !known {
 			r.devices[ip] = &device{
-				functions: make(map[string]*client.ServiceInfo, 0),
+				functions: make(map[string]*zeroconfservice.ServiceInfo, 0),
 			}
 			d = r.devices[ip]
 		}
@@ -171,7 +178,7 @@ func (r *scanResults) serviceAdded(s client.ServiceInfo) error {
 	return nil
 }
 
-func (r *scanResults) serviceRemoved(s client.ServiceInfo) error {
+func (r *scanResults) serviceRemoved(s zeroconfservice.ServiceInfo) error {
 	// ignore removals for now
 	return nil
 }
@@ -186,8 +193,8 @@ func (a byPort) Less(i, j int) bool {
 
 func (a byPort) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 
-func sortServicesByPort(svc map[string]*client.ServiceInfo) []*client.ServiceInfo {
-	services := make([]*client.ServiceInfo, 0)
+func sortServicesByPort(svc map[string]*zeroconfservice.ServiceInfo) []*zeroconfservice.ServiceInfo {
+	services := make([]*zeroconfservice.ServiceInfo, 0)
 	for _, s := range svc {
 		services = append(services, s)
 	}

@@ -1,5 +1,5 @@
 /*
-Copyright © 2021 Ci4Rail GmbH <engineering@ci4rail.com>
+Copyright © 2024 Ci4Rail GmbH <engineering@ci4rail.com>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -21,7 +21,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/ci4rail/io4edge-client-go/core"
+	"github.com/ci4rail/io4edge-client-go/pkg/core"
+	pbcore "github.com/ci4rail/io4edge-client-go/pkg/protobufcom/core"
 )
 
 func progressCb(bytes uint, msg string) {
@@ -31,14 +32,14 @@ func progressCb(bytes uint, msg string) {
 	fmt.Printf("\r%d kBytes loaded.", bytes/1024)
 }
 
-func createClient(addressType string, address string, timeout time.Duration) *core.Client {
-	var c *core.Client
+func createClient(addressType string, address string, timeout time.Duration) core.If {
+	var c core.If
 	var err error
 
 	if addressType == "svc" {
-		c, err = core.NewClientFromService(address, timeout)
+		c, err = pbcore.NewClientFromService(address, timeout)
 	} else {
-		c, err = core.NewClientFromSocketAddress(address)
+		c, err = pbcore.NewClientFromSocketAddress(address)
 	}
 	if err != nil {
 		log.Fatalf("Failed to create core client: %v\n", err)

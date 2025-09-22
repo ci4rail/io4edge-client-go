@@ -1,5 +1,5 @@
 /*
-Copyright © 2021 Ci4Rail GmbH <engineering@ci4rail.com>
+Copyright © 2024 Ci4Rail GmbH <engineering@ci4rail.com>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import (
 )
 
 const (
-	io4edge_api_package = "github.com/ci4rail/io4edge_api"
+	io4edgeAPIPackage = "github.com/ci4rail/io4edge_api"
 )
 
 var versionCmd = &cobra.Command{
@@ -41,7 +41,7 @@ This command displays version information for the io4edge-cli.`,
 		}
 		fmt.Printf("io4edge-cli version: %s\n", version.Version)
 		for _, dep := range buildInfo.Deps {
-			if dep.Path == io4edge_api_package {
+			if dep.Path == io4edgeAPIPackage {
 				fmt.Printf("io4edge api version: %s\n", dep.Version)
 			}
 		}

@@ -1,5 +1,5 @@
 /*
-Copyright © 2021 Ci4Rail GmbH <engineering@ci4rail.com>
+Copyright © 2024 Ci4Rail GmbH <engineering@ci4rail.com>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ci4rail/io4edge-client-go/core"
 	e "github.com/ci4rail/io4edge-client-go/internal/errors"
+	"github.com/ci4rail/io4edge-client-go/pkg/core"
 	"github.com/spf13/cobra"
 )
 
@@ -38,11 +38,16 @@ func identifyHardware(cmd *cobra.Command, args []string) {
 	identifyHardwareFromClient(c)
 }
 
-func identifyHardwareFromClient(c *core.Client) {
-	rootArticle, majorVersion, serialNumber, err := c.IdentifyHardware(time.Duration(timeoutSecs) * time.Second)
+func identifyHardwareFromClient(c core.If) {
+	i, err := c.IdentifyHardware(time.Duration(timeoutSecs) * time.Second)
 	e.ErrChk(err)
 
-	fmt.Printf("Hardware name: %s, rev: %d, serial: %s\n", rootArticle, majorVersion, serialNumber)
+	fmt.Printf("Hardware name: %s, rev: %d, serial: %s\n", i.PartNumber, i.MajorVersion, i.SerialNumber)
+	if len(i.CustomExtension) > 0 {
+		for k, v := range i.CustomExtension {
+			fmt.Printf("  %s=%s\n", k, v)
+		}
+	}
 }
 
 func init() {

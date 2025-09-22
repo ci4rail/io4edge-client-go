@@ -1,0 +1,7 @@
+{
+    "version": "0.1",
+    "parameters": {
+      "input-pubhost": "192.168.23.107",
+      "input-pubper": "2.0"
+    }
+  }

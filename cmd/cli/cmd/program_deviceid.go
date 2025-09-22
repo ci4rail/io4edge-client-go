@@ -1,5 +1,5 @@
 /*
-Copyright © 2021 Ci4Rail GmbH <engineering@ci4rail.com>
+Copyright © 2024 Ci4Rail GmbH <engineering@ci4rail.com>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package cmd
 
 import (
 	"fmt"
-	"time"
 
 	e "github.com/ci4rail/io4edge-client-go/internal/errors"
 	"github.com/spf13/cobra"
@@ -43,10 +42,7 @@ func programDeviceIdentification(cmd *cobra.Command, args []string) {
 	c, err := newCliClient(deviceID, ipAddrPort)
 	e.ErrChk(err)
 
-	err = c.SetPersistentParameter(name, value, time.Duration(timeoutSecs)*time.Second)
-	e.ErrChk(err)
-
-	value, err = c.GetPersistentParameter(name, time.Duration(timeoutSecs)*time.Second)
+	_, err = setAndVerifyParameter(c, name, value)
 	e.ErrChk(err)
 
 	fmt.Printf("Device id was set to %s\n", value)

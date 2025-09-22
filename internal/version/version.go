@@ -1,5 +1,5 @@
 /*
-Copyright © 2021 Ci4Rail GmbH
+Copyright © 2024 Ci4Rail GmbH
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at

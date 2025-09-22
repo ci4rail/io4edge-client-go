@@ -38,7 +38,7 @@ $ go get github.com/ci4rail/io4edge-client-go
 
 ## Examples for Management of io4edge Devices
 
-### Indentify currently running firmware
+### Identify currently running firmware
 
 ```go
 package main
@@ -154,6 +154,6 @@ func main() {
 
 ## Copyright
 
-Copyright © 2021-2022 Ci4Rail GmbH <engineering@ci4rail.com>
+Copyright © 2024-2022 Ci4Rail GmbH <engineering@ci4rail.com>
 
 io4edge package released unter Apache 2.0 License, see [LICENSE](LICENSE) for details.

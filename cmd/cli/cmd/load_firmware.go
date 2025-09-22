@@ -1,5 +1,5 @@
 /*
-Copyright © 2021 Ci4Rail GmbH <engineering@ci4rail.com>
+Copyright © 2024 Ci4Rail GmbH <engineering@ci4rail.com>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ci4rail/io4edge-client-go/core"
 	e "github.com/ci4rail/io4edge-client-go/internal/errors"
+	"github.com/ci4rail/io4edge-client-go/pkg/core"
 
 	"github.com/spf13/cobra"
 )
@@ -81,7 +81,7 @@ func loadRawFirmware(cmd *cobra.Command, args []string) {
 	readbackFirmwareID(c, restartingNow)
 }
 
-func readbackFirmwareID(c *core.Client, restartingNow bool) {
+func readbackFirmwareID(c core.If, restartingNow bool) {
 	fmt.Println("\nFirmware load finished.")
 	if restartingNow {
 		fmt.Println("Let device restart...")
