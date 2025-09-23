@@ -117,7 +117,7 @@ func readStreamFor(c *anain.Client, duration time.Duration) {
 			fmt.Printf("got stream data seq=%d ts=%d\n", sd.Sequence, sd.DeliveryTimestamp)
 
 			for i, sample := range samples {
-				fmt.Printf("  #%d: ts=%d", i, sample.Timestamp)
+				fmt.Printf("  #%d: ts=%d ch %d", i, sample.Timestamp, sample.BaseChannel)
 				for _, value := range sample.Value {
 					fmt.Printf(" %.4f", value)
 				}
