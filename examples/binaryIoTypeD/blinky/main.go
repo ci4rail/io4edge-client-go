@@ -13,6 +13,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
+// May be used to test binary IO groups of EKF SQ1 against each other
+// Group 1 operates as output, Group 2 operates as input
+// Connect I/O 1 of first group to I/O 1 of second group
+// Connect I/O 2 of first group to I/O 2 of second group
+// Connect I/O 3 of first group to I/O 3 of second group
+// Connect I/O 4 of first group to I/O 4 of second group
+
 package main
 
 import (
@@ -90,7 +98,11 @@ func main() {
 				}
 				time.Sleep(1000 * time.Millisecond)
 
-				errorCount += checkChannels(c, 1<<channel+1<<(numberOfChannels/2))
+				expectedMask := uint32(0)
+				if state {
+					expectedMask = 1<<channel + 1<<(numberOfChannels/2)
+				}
+				errorCount += checkChannels(c, 1<<channel+1<<(numberOfChannels/2), expectedMask)
 				fmt.Printf("Errors so far: %d\n", errorCount)
 			}
 		}
@@ -98,20 +110,23 @@ func main() {
 	}
 }
 
-func checkChannels(c *binio.Client, chMask uint32) int {
+func checkChannels(c *binio.Client, chMask uint32, expectedMask uint32) int {
 	errorCount := 0
 	inputs, diags, err := c.Inputs()
 	if err != nil {
 		log.Printf("can't read inputs: %v", err)
 		return 1
 	}
-	if inputs != chMask {
-		log.Printf("input mismatch: expected %08b, got %08b", chMask, inputs)
+	if inputs&chMask != expectedMask {
+		log.Printf("input mismatch: expected %08b, got %08b", chMask, inputs&chMask)
 		errorCount++
 	}
-	for _, diag := range diags {
+	for ch, diag := range diags {
+		if 1<<ch&chMask == 0 {
+			continue
+		}
 		if diag != uint32(biniopb.ChannelDiag_NoDiag) {
-			log.Printf("diagnostic error: %v", diag)
+			log.Printf("diagnostic error ch %d: %v", ch, diag)
 			errorCount++
 		}
 	}
