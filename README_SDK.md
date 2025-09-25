@@ -13,7 +13,7 @@ This package provides a Go API to
 
 * make use of the function blocks, such as
 	* [Analog In TypeA](analogintypea) - IOU01, MIO01
-	* [Analog In TypeB](analogintypeb) - IOU09, MIO09
+	* [Analog In TypeB](analogintypeb) - IOU09, MIO09, EKF SQ1
 	* [Binary IO TypeA](binaryiotypea) - IOU01, MIO01
 	* [Binary IO TypeB](binaryiotypeb) - IOU06, EKF SQ1, EKF SQ3
 	* [Binary IO TypeC](binaryiotypec) - IOU07
