@@ -214,7 +214,7 @@ func (c *Client) Input(channel int) (state bool, diag uint32, err error) {
 	return res.GetSingle().State, res.GetSingle().GetDiag(), nil
 }
 
-// AllInputs reads the state of all channel pins defined by mask.
+// AllInputs reads the state of all channel pins.
 //
 // Each bit in the returned state corresponds to one channel, bit0 being channel 0.
 // The bit is false if the pin level is low, true otherwise.

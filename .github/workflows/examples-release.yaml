@@ -34,6 +34,7 @@ jobs:
           - binaryIoTypeC/blinky
           - binaryIoTypeC/stream
           - binaryIoTypeC/inputs
+          - binaryIoTypeD/blinky
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
