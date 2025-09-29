@@ -24,7 +24,7 @@ import (
 	"fmt"
 	"time"
 
-	pbchannelclient "github.com/ci4rail/io4edge-client-go/pkg/protobufcom/common/channel"
+	pbchannelclient "github.com/ci4rail/io4edge-client-go/v2/pkg/protobufcom/common/channel"
 	api "github.com/ci4rail/io4edge_api/io4edge/go/core_api/v1alpha2"
 )
 

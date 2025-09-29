@@ -4,10 +4,10 @@ import (
 	"errors"
 	"time"
 
-	"github.com/ci4rail/io4edge-client-go/pkg/core"
-	"github.com/ci4rail/io4edge-client-go/pkg/iputil"
-	pbcore "github.com/ci4rail/io4edge-client-go/pkg/protobufcom/core"
-	restcore "github.com/ci4rail/io4edge-client-go/pkg/restcom/core"
+	"github.com/ci4rail/io4edge-client-go/v2/pkg/core"
+	"github.com/ci4rail/io4edge-client-go/v2/pkg/iputil"
+	pbcore "github.com/ci4rail/io4edge-client-go/v2/pkg/protobufcom/core"
+	restcore "github.com/ci4rail/io4edge-client-go/v2/pkg/restcom/core"
 )
 
 const (

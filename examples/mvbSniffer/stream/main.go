@@ -23,8 +23,8 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/ci4rail/io4edge-client-go/pkg/protobufcom/common/functionblock"
-	"github.com/ci4rail/io4edge-client-go/pkg/protobufcom/functionblockclients/mvbsniffer"
+	"github.com/ci4rail/io4edge-client-go/v2/pkg/protobufcom/common/functionblock"
+	"github.com/ci4rail/io4edge-client-go/v2/pkg/protobufcom/functionblockclients/mvbsniffer"
 	mvbpb "github.com/ci4rail/io4edge_api/mvbSniffer/go/mvbSniffer/v1"
 )
 

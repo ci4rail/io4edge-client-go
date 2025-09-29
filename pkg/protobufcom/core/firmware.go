@@ -22,7 +22,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/ci4rail/io4edge-client-go/pkg/core"
+	"github.com/ci4rail/io4edge-client-go/v2/pkg/core"
 	api "github.com/ci4rail/io4edge_api/io4edge/go/core_api/v1alpha2"
 )
 

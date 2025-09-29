@@ -19,9 +19,9 @@ package pbchannelclient
 import (
 	"errors"
 
-	"github.com/ci4rail/io4edge-client-go/pkg/transport"
-	"github.com/ci4rail/io4edge-client-go/pkg/transport/socket"
-	"github.com/ci4rail/io4edge-client-go/pkg/zeroconfservice"
+	"github.com/ci4rail/io4edge-client-go/v2/pkg/transport"
+	"github.com/ci4rail/io4edge-client-go/v2/pkg/transport/socket"
+	"github.com/ci4rail/io4edge-client-go/v2/pkg/zeroconfservice"
 )
 
 // NewUDPClientFromSocketAddress creates a new function client from a socket with the specified address.

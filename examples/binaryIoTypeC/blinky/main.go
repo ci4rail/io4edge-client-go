@@ -23,7 +23,7 @@ import (
 
 	"log"
 
-	"github.com/ci4rail/io4edge-client-go/pkg/protobufcom/functionblockclients/binaryiotypec"
+	"github.com/ci4rail/io4edge-client-go/v2/pkg/protobufcom/functionblockclients/binaryiotypec"
 	biniopb "github.com/ci4rail/io4edge_api/binaryIoTypeC/go/binaryIoTypeC/v1alpha1"
 )
 

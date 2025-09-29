@@ -7,9 +7,9 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	pbchannelclient "github.com/ci4rail/io4edge-client-go/pkg/protobufcom/common/channel"
-	"github.com/ci4rail/io4edge-client-go/pkg/server"
-	"github.com/ci4rail/io4edge-client-go/pkg/transport"
+	pbchannelclient "github.com/ci4rail/io4edge-client-go/v2/pkg/protobufcom/common/channel"
+	"github.com/ci4rail/io4edge-client-go/v2/pkg/server"
+	"github.com/ci4rail/io4edge-client-go/v2/pkg/transport"
 	"github.com/ci4rail/io4edge_api/tracelet/go/tracelet"
 )
 

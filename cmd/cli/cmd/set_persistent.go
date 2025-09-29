@@ -21,8 +21,8 @@ import (
 	"os"
 	"time"
 
-	e "github.com/ci4rail/io4edge-client-go/internal/errors"
-	"github.com/ci4rail/io4edge-client-go/pkg/core"
+	e "github.com/ci4rail/io4edge-client-go/v2/internal/errors"
+	"github.com/ci4rail/io4edge-client-go/v2/pkg/core"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )

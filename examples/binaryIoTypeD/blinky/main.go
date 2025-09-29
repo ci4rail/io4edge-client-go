@@ -31,7 +31,7 @@ import (
 
 	"log"
 
-	binio "github.com/ci4rail/io4edge-client-go/pkg/protobufcom/functionblockclients/binaryiotyped"
+	binio "github.com/ci4rail/io4edge-client-go/v2/pkg/protobufcom/functionblockclients/binaryiotyped"
 	biniopb "github.com/ci4rail/io4edge_api/binaryIoTypeD/go/binaryIoTypeD/v1"
 )
 

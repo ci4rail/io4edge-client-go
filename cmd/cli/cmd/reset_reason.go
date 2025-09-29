@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"time"
 
-	e "github.com/ci4rail/io4edge-client-go/internal/errors"
+	e "github.com/ci4rail/io4edge-client-go/v2/internal/errors"
 	"github.com/spf13/cobra"
 )
 

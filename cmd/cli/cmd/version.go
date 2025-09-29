@@ -21,7 +21,7 @@ import (
 
 	"runtime/debug"
 
-	"github.com/ci4rail/io4edge-client-go/internal/version"
+	"github.com/ci4rail/io4edge-client-go/v2/internal/version"
 	"github.com/spf13/cobra"
 )
 

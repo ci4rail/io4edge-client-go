@@ -19,7 +19,7 @@ package pbchannelclient
 import (
 	"time"
 
-	"github.com/ci4rail/io4edge-client-go/pkg/transport"
+	"github.com/ci4rail/io4edge-client-go/v2/pkg/transport"
 	"google.golang.org/protobuf/proto"
 )
 

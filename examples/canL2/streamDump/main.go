@@ -23,8 +23,8 @@ import (
 
 	"log"
 
-	"github.com/ci4rail/io4edge-client-go/pkg/protobufcom/common/functionblock"
-	"github.com/ci4rail/io4edge-client-go/pkg/protobufcom/functionblockclients/canl2"
+	"github.com/ci4rail/io4edge-client-go/v2/pkg/protobufcom/common/functionblock"
+	"github.com/ci4rail/io4edge-client-go/v2/pkg/protobufcom/functionblockclients/canl2"
 	fspb "github.com/ci4rail/io4edge_api/canL2/go/canL2/v1alpha1"
 )
 

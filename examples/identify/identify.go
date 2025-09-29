@@ -20,8 +20,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/ci4rail/io4edge-client-go/pkg/core"
-	pbcore "github.com/ci4rail/io4edge-client-go/pkg/protobufcom/core"
+	"github.com/ci4rail/io4edge-client-go/v2/pkg/core"
+	pbcore "github.com/ci4rail/io4edge-client-go/v2/pkg/protobufcom/core"
 )
 
 func main() {

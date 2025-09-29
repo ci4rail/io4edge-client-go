@@ -26,7 +26,7 @@ jobs:
       - uses: wangyoucao577/go-release-action@v1.22
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          ldflags: -X github.com/ci4rail/io4edge-client-go/internal/version.Version=${{ github.event.release.tag_name }}
+          ldflags: -X github.com/ci4rail/io4edge-client-go/v2/internal/version.Version=${{ github.event.release.tag_name }}
           build_flags: -tags netgo,osusergo,static_build
           goos: ${{ matrix.goos }}
           goarch: ${{ matrix.goarch }}

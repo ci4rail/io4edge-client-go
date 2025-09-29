@@ -22,8 +22,8 @@ import (
 	"sort"
 	"time"
 
-	e "github.com/ci4rail/io4edge-client-go/internal/errors"
-	"github.com/ci4rail/io4edge-client-go/pkg/zeroconfservice"
+	e "github.com/ci4rail/io4edge-client-go/v2/internal/errors"
+	"github.com/ci4rail/io4edge-client-go/v2/pkg/zeroconfservice"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )

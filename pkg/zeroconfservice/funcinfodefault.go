@@ -3,7 +3,7 @@ package zeroconfservice
 import (
 	"errors"
 
-	"github.com/ci4rail/io4edge-client-go/pkg/iputil"
+	"github.com/ci4rail/io4edge-client-go/v2/pkg/iputil"
 )
 
 // FuncInfoDefault provides the default FunctionInfo implementation
