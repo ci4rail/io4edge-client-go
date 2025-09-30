@@ -13,6 +13,7 @@ build-io4edge-cli:
 	go mod tidy
 	GOOS=linux go build $(GO_LDFLAGS) -o ${BIN_DIR}/${NAME} cmd/cli/main.go
 	GOOS=linux GOARCH=arm go build $(GO_LDFLAGS) -o ${BIN_DIR}/${NAME}-arm cmd/cli/main.go
+	GOOS=darwin GOARCH=arm64 go build $(GO_LDFLAGS) -o ${BIN_DIR}/${NAME}-darwin-arm64 cmd/cli/main.go
 
 test:
 	go test ./...
