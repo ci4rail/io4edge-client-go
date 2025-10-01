@@ -68,7 +68,7 @@ func Pkt(frameNumber uint64, receiveTime20nsUnits uint64, line int, frameType in
 	r = append(r, 0xc0, 0x01)
 
 	// fill
-	r = append(r, "MVBSNIFFER-Ci4Rail-Format 1.00"...)
+	r = append(r, "BUSSHARK-Ci4Rail-MVB-Vers:1.00"...)
 
 	// insert dummy CRCs, they have been removed by MVB sniffer
 	mvbDataInclCRCs := mvbDataWithCRCs(mvbData)
