@@ -29,8 +29,8 @@ type errorResponse struct {
 	Message string `json:"message"`
 }
 
-// NewClientFromSocketAddress creates a new client for the io4edge core functions via REST API
-func NewClientFromSocketAddress(address string, password string) (*Client, error) {
+// New creates a new client for the io4edge core functions via REST API
+func New(address string, password string) (*Client, error) {
 	// ignore certificate errors, TODO: allow to configure
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},

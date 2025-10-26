@@ -34,7 +34,7 @@ func newCliClientFromIP(ipAddrPort string) (core.If, error) {
 		if password == "" {
 			return nil, errors.New("password required for REST API")
 		}
-		c, err = restcore.NewClientFromSocketAddress(ipAddrPort, password)
+		c, err = restcore.New(ipAddrPort, password)
 	} else {
 		c, err = pbcore.NewClientFromSocketAddress(ipAddrPort)
 	}
