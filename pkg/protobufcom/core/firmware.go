@@ -82,15 +82,12 @@ func (c *Client) LoadFirmwareBinary(r *bufio.Reader, chunkSize uint, timeout tim
 	for {
 		atEOF := false
 
-		_, err := r.Read(data)
-		if err != nil {
-			return restartingNow, errors.New("read firmware failed: " + err.Error())
-		}
-
-		// check if we are at EOF
-		_, err = r.Peek(1)
-		if err == io.EOF {
+		_, err = io.ReadFull(r, data)
+		if err == io.EOF || err == io.ErrUnexpectedEOF {
+			// end of file reached
 			atEOF = true
+		} else if err != nil {
+			return restartingNow, errors.New("read firmware failed: " + err.Error())
 		}
 
 		cmd.GetLoadFirmwareChunk().IsLastChunk = atEOF
