@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ci4rail/io4edge-client-go/pkg/protobufcom/common/functionblock"
+	"github.com/ci4rail/io4edge-client-go/v2/pkg/protobufcom/common/functionblock"
 	fspb "github.com/ci4rail/io4edge_api/mvbSniffer/go/mvbSniffer/v1"
 )
 

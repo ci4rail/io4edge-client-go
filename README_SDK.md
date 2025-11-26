@@ -25,7 +25,7 @@ This package provides a Go API to
 
 # Documentation
 
-https://pkg.go.dev/github.com/ci4rail/io4edge-client-go
+https://pkg.go.dev/github.com/ci4rail/io4edge-client-go/v2/
 
 
 ## System Dependencies
@@ -35,7 +35,7 @@ This sdk uses the Avahi Go package to browse for mdns services, which provides b
 ## Installation
 
 ```bash
-$ go get github.com/ci4rail/io4edge-client-go
+$ go get github.com/ci4rail/io4edge-client-go/v2/
 ```
 
 ## Examples for Management of io4edge Devices
@@ -51,7 +51,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/ci4rail/io4edge-client-go/pkg/core"
+	"github.com/ci4rail/io4edge-client-go/v2/pkg/core"
 )
 
 func main() {
@@ -90,7 +90,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/ci4rail/io4edge-client-go/pkg/core"
+	"github.com/ci4rail/io4edge-client-go/v2/pkg/core"
 )
 
 func main() {
@@ -129,7 +129,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/ci4rail/io4edge-client-go/pkg/core"
+	"github.com/ci4rail/io4edge-client-go/v2/pkg/core"
 )
 
 func main() {

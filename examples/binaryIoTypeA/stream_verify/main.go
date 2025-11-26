@@ -23,7 +23,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	binio "github.com/ci4rail/io4edge-client-go/pkg/protobufcom/functionblockclients/binaryiotypea"
+	binio "github.com/ci4rail/io4edge-client-go/v2/pkg/protobufcom/functionblockclients/binaryiotypea"
 	fspb "github.com/ci4rail/io4edge_api/binaryIoTypeA/go/binaryIoTypeA/v1alpha1"
 )
 

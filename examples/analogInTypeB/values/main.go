@@ -21,7 +21,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	anain "github.com/ci4rail/io4edge-client-go/pkg/protobufcom/functionblockclients/analogintypeb"
+	anain "github.com/ci4rail/io4edge-client-go/v2/pkg/protobufcom/functionblockclients/analogintypeb"
 )
 
 func main() {

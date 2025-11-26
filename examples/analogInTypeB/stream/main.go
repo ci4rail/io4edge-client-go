@@ -23,8 +23,8 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/ci4rail/io4edge-client-go/pkg/protobufcom/common/functionblock"
-	anain "github.com/ci4rail/io4edge-client-go/pkg/protobufcom/functionblockclients/analogintypeb"
+	"github.com/ci4rail/io4edge-client-go/v2/pkg/protobufcom/common/functionblock"
+	anain "github.com/ci4rail/io4edge-client-go/v2/pkg/protobufcom/functionblockclients/analogintypeb"
 	fspb "github.com/ci4rail/io4edge_api/analogInTypeB/go/analogInTypeB/v1"
 )
 

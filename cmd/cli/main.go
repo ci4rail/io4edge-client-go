@@ -13,7 +13,7 @@ limitations under the License.
 
 package main
 
-import "github.com/ci4rail/io4edge-client-go/cmd/cli/cmd"
+import "github.com/ci4rail/io4edge-client-go/v2/cmd/cli/cmd"
 
 func main() {
 	cmd.Execute()

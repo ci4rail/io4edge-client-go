@@ -4,10 +4,10 @@ import (
 	"errors"
 	"time"
 
-	"github.com/ci4rail/io4edge-client-go/pkg/core"
-	"github.com/ci4rail/io4edge-client-go/pkg/iputil"
-	pbcore "github.com/ci4rail/io4edge-client-go/pkg/protobufcom/core"
-	restcore "github.com/ci4rail/io4edge-client-go/pkg/restcom/core"
+	"github.com/ci4rail/io4edge-client-go/v2/pkg/core"
+	"github.com/ci4rail/io4edge-client-go/v2/pkg/iputil"
+	pbcore "github.com/ci4rail/io4edge-client-go/v2/pkg/protobufcom/core"
+	restcore "github.com/ci4rail/io4edge-client-go/v2/pkg/restcom/core"
 )
 
 const (
@@ -34,7 +34,7 @@ func newCliClientFromIP(ipAddrPort string) (core.If, error) {
 		if password == "" {
 			return nil, errors.New("password required for REST API")
 		}
-		c, err = restcore.NewClientFromSocketAddress(ipAddrPort, password)
+		c, err = restcore.New(ipAddrPort, password)
 	} else {
 		c, err = pbcore.NewClientFromSocketAddress(ipAddrPort)
 	}

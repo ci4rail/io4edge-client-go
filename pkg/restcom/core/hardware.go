@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/ci4rail/io4edge-client-go/pkg/core"
+	"github.com/ci4rail/io4edge-client-go/v2/pkg/core"
 )
 
 // IdentifyHardware gets the firmware name and version from the device

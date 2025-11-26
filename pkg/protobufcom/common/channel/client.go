@@ -22,10 +22,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ci4rail/io4edge-client-go/pkg/iputil"
-	"github.com/ci4rail/io4edge-client-go/pkg/transport"
-	"github.com/ci4rail/io4edge-client-go/pkg/transport/socket"
-	"github.com/ci4rail/io4edge-client-go/pkg/zeroconfservice"
+	"github.com/ci4rail/io4edge-client-go/v2/pkg/iputil"
+	"github.com/ci4rail/io4edge-client-go/v2/pkg/transport"
+	"github.com/ci4rail/io4edge-client-go/v2/pkg/transport/socket"
+	"github.com/ci4rail/io4edge-client-go/v2/pkg/zeroconfservice"
 	"google.golang.org/protobuf/proto"
 )
 

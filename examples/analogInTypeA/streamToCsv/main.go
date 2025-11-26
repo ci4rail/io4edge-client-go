@@ -24,8 +24,8 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/ci4rail/io4edge-client-go/pkg/protobufcom/common/functionblock"
-	anain "github.com/ci4rail/io4edge-client-go/pkg/protobufcom/functionblockclients/analogintypea"
+	"github.com/ci4rail/io4edge-client-go/v2/pkg/protobufcom/common/functionblock"
+	anain "github.com/ci4rail/io4edge-client-go/v2/pkg/protobufcom/functionblockclients/analogintypea"
 )
 
 func streamToCsv(c *anain.Client, fileName string, duration time.Duration) {

@@ -5,7 +5,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/ci4rail/io4edge-client-go/pkg/protobufcom/tracelet"
+	"github.com/ci4rail/io4edge-client-go/v2/pkg/protobufcom/tracelet"
 	proto "github.com/ci4rail/io4edge_api/tracelet/go/tracelet"
 )
 

@@ -22,7 +22,7 @@ import (
 
 	"log"
 
-	"github.com/ci4rail/io4edge-client-go/pkg/protobufcom/functionblockclients/canl2"
+	"github.com/ci4rail/io4edge-client-go/v2/pkg/protobufcom/functionblockclients/canl2"
 )
 
 func main() {

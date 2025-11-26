@@ -22,8 +22,8 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/ci4rail/io4edge-client-go/pkg/protobufcom/common/functionblock"
-	binio "github.com/ci4rail/io4edge-client-go/pkg/protobufcom/functionblockclients/binaryiotypea"
+	"github.com/ci4rail/io4edge-client-go/v2/pkg/protobufcom/common/functionblock"
+	binio "github.com/ci4rail/io4edge-client-go/v2/pkg/protobufcom/functionblockclients/binaryiotypea"
 	"github.com/ci4rail/io4edge_api/io4edge/go/functionblock/v1alpha1"
 )
 

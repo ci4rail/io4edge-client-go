@@ -24,8 +24,8 @@ import (
 
 	"log"
 
-	"github.com/ci4rail/io4edge-client-go/pkg/protobufcom/common/functionblock"
-	"github.com/ci4rail/io4edge-client-go/pkg/protobufcom/functionblockclients/motionsensor"
+	"github.com/ci4rail/io4edge-client-go/v2/pkg/protobufcom/common/functionblock"
+	"github.com/ci4rail/io4edge-client-go/v2/pkg/protobufcom/functionblockclients/motionsensor"
 )
 
 func main() {

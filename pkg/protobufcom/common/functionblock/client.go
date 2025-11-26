@@ -21,7 +21,7 @@ import (
 	"sync"
 	"time"
 
-	pbchannelclient "github.com/ci4rail/io4edge-client-go/pkg/protobufcom/common/channel"
+	pbchannelclient "github.com/ci4rail/io4edge-client-go/v2/pkg/protobufcom/common/channel"
 	fbv1 "github.com/ci4rail/io4edge_api/io4edge/go/functionblock/v1alpha1"
 )
 

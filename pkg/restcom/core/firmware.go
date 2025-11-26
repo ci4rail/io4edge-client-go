@@ -6,10 +6,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
-	"github.com/ci4rail/io4edge-client-go/pkg/core"
+	"github.com/ci4rail/io4edge-client-go/v2/pkg/core"
 )
 
 type getFirmwareResponse struct {
@@ -66,13 +67,12 @@ func (c *Client) LoadFirmwareBinary(r *bufio.Reader, chunkSize uint, timeout tim
 		var err error
 		atEOF := false
 
-		n, err := r.Read(data)
-		if err != nil {
-			return restartingNow, errors.New("read firmware failed: " + err.Error())
-		}
-
-		if n < int(chunkSize) {
+		_, err = io.ReadFull(r, data)
+		if err == io.EOF || err == io.ErrUnexpectedEOF {
+			// end of file reached
 			atEOF = true
+		} else if err != nil {
+			return restartingNow, errors.New("read firmware failed: " + err.Error())
 		}
 
 		urlParams := map[string]string{
