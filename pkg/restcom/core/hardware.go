@@ -2,6 +2,7 @@ package core
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -13,7 +14,9 @@ import (
 // IdentifyHardware gets the firmware name and version from the device
 // TODO: support customer part number
 func (c *Client) IdentifyHardware(timeout time.Duration) (*core.HardwareInventory, error) {
-	resp, err := c.requestMustBeOk("/hardware", http.MethodGet, nil, nil, timeout)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	resp, err := c.requestMustBeOk(ctx, "/hardware", http.MethodGet, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +74,9 @@ func (c *Client) ProgramHardwareIdentification(i *core.HardwareInventory, timeou
 	if err != nil {
 		return fmt.Errorf("failed to encode value: %w", err)
 	}
-	resp, err := c.requestMustBeOk("/hardware", http.MethodPut, bytes.NewReader(body), nil, timeout)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	resp, err := c.requestMustBeOk(ctx, "/hardware", http.MethodPut, bytes.NewReader(body), nil)
 	if err != nil {
 		return fmt.Errorf("failed to program hardware info: %w", err)
 	}

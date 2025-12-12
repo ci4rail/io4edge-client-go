@@ -27,7 +27,9 @@ func (c *Client) SetPersistentParameter(name string, value string, timeout time.
 	if err != nil {
 		return false, fmt.Errorf("failed to encode value: %w", err)
 	}
-	resp, err := c.requestMustBeOk(parameterURLFromName(name), http.MethodPut, bytes.NewReader(body), nil, timeout)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	resp, err := c.requestMustBeOk(ctx, parameterURLFromName(name), http.MethodPut, bytes.NewReader(body), nil)
 	if err != nil {
 		return false, fmt.Errorf("failed to set parameter: %w", err)
 	}

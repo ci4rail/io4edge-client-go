@@ -2,6 +2,7 @@ package core
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -10,7 +11,9 @@ import (
 
 // GetParameterSet gets the parameter set from the device
 func (c *Client) GetParameterSet(timeout time.Duration, namespace string) ([]byte, error) {
-	resp, err := c.requestMustBeOk(parameterSetURL(namespace), http.MethodGet, nil, nil, timeout)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	resp, err := c.requestMustBeOk(ctx, parameterSetURL(namespace), http.MethodGet, nil, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get parameter set: %w", err)
 	}
@@ -25,8 +28,9 @@ func (c *Client) GetParameterSet(timeout time.Duration, namespace string) ([]byt
 // LoadParameterSet loads the parameter set to the device
 func (c *Client) LoadParameterSet(timeout time.Duration, namespace string, data []byte) ([]byte, error) {
 	reader := bytes.NewReader(data)
-
-	resp, err := c.requestMustBeOk(parameterSetURL(namespace), http.MethodPut, reader, nil, timeout)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	resp, err := c.requestMustBeOk(ctx, parameterSetURL(namespace), http.MethodPut, reader, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load parameter set: %w", err)
 	}

@@ -3,6 +3,7 @@ package core
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -20,7 +21,9 @@ type getFirmwareResponse struct {
 
 // IdentifyFirmware gets the firmware name and version from the device
 func (c *Client) IdentifyFirmware(timeout time.Duration) (name string, version string, err error) {
-	resp, err := c.requestMustBeOk("/firmware", http.MethodGet, nil, nil, timeout)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	resp, err := c.requestMustBeOk(ctx, "/firmware", http.MethodGet, nil, nil)
 	if err != nil {
 		return "", "", err
 	}
@@ -85,8 +88,9 @@ func (c *Client) LoadFirmwareBinary(r *bufio.Reader, chunkSize uint, timeout tim
 		for try = 3; try >= 0; try-- {
 			// create io.reader from data
 			body := bytes.NewReader(data)
-
-			_, err = c.requestMustBeOk("/firmware", http.MethodPut, body, urlParams, timeout)
+			ctx, cancel := context.WithTimeout(context.Background(), timeout)
+			_, err = c.requestMustBeOk(ctx, "/firmware", http.MethodPut, body, urlParams)
+			cancel()
 			if err == nil {
 				break
 			}
