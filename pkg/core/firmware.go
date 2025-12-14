@@ -17,7 +17,7 @@ import (
 // AssertFirmwareIsCompatibleWithHardware checks if the firmware specified by fwHw and fwMajorRevs is compatible
 // with hardware hwName, hwMajor
 func AssertFirmwareIsCompatibleWithHardware(fwHw string, fwMajorRevs []int, hwName string, hwMajor int) error {
-	// only compart the part that is specified in fwHw
+	// only compare the part that is specified in fwHw
 	fwHwLen := len(fwHw)
 	if fwHwLen > len(hwName) {
 		return errors.New("firmware " + fwHw + " not suitable for hardware " + hwName)
