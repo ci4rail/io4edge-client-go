@@ -84,6 +84,16 @@ func (c *Client) LoadParameterSet(timeout time.Duration, namespace string, data 
 	return nil, fmt.Errorf("not implemented")
 }
 
+// ReplCommand sends a REPL command to the device and returns the response
+func (c *Client) ReplCommand(cmd string, timeout time.Duration) (response string, err error) {
+	return "", fmt.Errorf("not implemented")
+}
+
+// ChangeAPIPassword changes the API password of the device
+func (c *Client) ChangeAPIPassword(newPassword string, timeout time.Duration) error {
+	return fmt.Errorf("not implemented")
+}
+
 // Close closes the core function client
 func (c *Client) Close() {
 	c.funcClient.Close()
