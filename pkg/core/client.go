@@ -24,6 +24,8 @@ type If interface {
 	StreamLogs(streamTimeout time.Duration, infoCb func(msg string)) (io.ReadCloser, error)
 	GetParameterSet(timeout time.Duration, namespace string) ([]byte, error)
 	LoadParameterSet(timeout time.Duration, namespace string, data []byte) ([]byte, error)
+	ReplCommand(cmd string, timeout time.Duration) (response string, err error)
+	ChangeAPIPassword(newPassword string, timeout time.Duration) error
 	Close()
 }
 
