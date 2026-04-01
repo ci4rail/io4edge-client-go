@@ -113,7 +113,7 @@ func (c *Client) DownloadConfiguration() (*Configuration, error) {
 
 // SetOutput sets a single output channel
 // a "true" state turns on the output switch, a "false" state turns it off.
-func (c *Client) SetOutput(channel int, state bool) error {
+func (c *Client) SetOutput(channel int, state bool) (inputs uint32, diag []uint32, err error) {
 	fsCmd := &fspb.FunctionControlSet{
 
 		Type: &fspb.FunctionControlSet_Single{
@@ -123,8 +123,19 @@ func (c *Client) SetOutput(channel int, state bool) error {
 			},
 		},
 	}
-	_, err := c.fbClient.FunctionControlSet(fsCmd)
-	return err
+	any, err := c.fbClient.FunctionControlSet(fsCmd)
+	if err != nil {
+		return 0, nil, err
+	}
+	res := new(fspb.FunctionControlSetResponse)
+	if err := any.UnmarshalTo(res); err != nil {
+		return 0, nil, err
+	}
+	single := res.GetSingle()
+	if single == nil {
+		return 0, nil, errors.New("unexpected FunctionControlSetResponse type")
+	}
+	return single.GetInputs(), single.GetDiag(), nil
 }
 
 // SetOutputs sets all or a group of output channels
@@ -132,7 +143,7 @@ func (c *Client) SetOutput(channel int, state bool) error {
 // states: binary coded map of outputs. 0 means switch off, 1 means switch on, LSB is Channel0
 //
 // mask: binary coded map of outputs to be set. 0 means do not change, 1 means change, LSB is Channel0
-func (c *Client) SetOutputs(states uint32, mask uint32) error {
+func (c *Client) SetOutputs(states uint32, mask uint32) (inputs uint32, diag []uint32, err error) {
 	fsCmd := &fspb.FunctionControlSet{
 
 		Type: &fspb.FunctionControlSet_All{
@@ -142,8 +153,19 @@ func (c *Client) SetOutputs(states uint32, mask uint32) error {
 			},
 		},
 	}
-	_, err := c.fbClient.FunctionControlSet(fsCmd)
-	return err
+	any, err := c.fbClient.FunctionControlSet(fsCmd)
+	if err != nil {
+		return 0, nil, err
+	}
+	res := new(fspb.FunctionControlSetResponse)
+	if err := any.UnmarshalTo(res); err != nil {
+		return 0, nil, err
+	}
+	all := res.GetAll()
+	if all == nil {
+		return 0, nil, errors.New("unexpected FunctionControlSetResponse type")
+	}
+	return all.GetInputs(), all.GetDiag(), nil
 }
 
 // Inputs gets the state of all channels, regardless whether they are configured as input or output.

@@ -144,7 +144,7 @@ func manipulateOutputs(c *binio.Client, numberOfChannels int, wg *sync.WaitGroup
 				return
 			default:
 				fmt.Printf("Setting outputs to %08b\n", i)
-				err := c.SetOutputs(i, chMask)
+				_, _, err := c.SetOutputs(i, chMask)
 				if err != nil {
 					log.Printf("can't set outputs: %v", err)
 				}
