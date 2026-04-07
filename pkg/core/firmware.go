@@ -98,6 +98,10 @@ func loadFirmwareFromFirmwarePackageConsumer(c If, pkg *fwpkg.FirmwarePackageCon
 	}
 
 	// check if fw already running
+	if !strings.HasPrefix(manifest.Name, "fw-") {
+		// some packages don't have the "fw-" prefix in the name, but the device's firmware name has it. So add it if not present.
+		manifest.Name = "fw-" + manifest.Name
+	}
 	if strings.EqualFold(fwName, manifest.Name) && fwVersion == manifest.Version {
 		return restartingNow, &FirmwareAlreadyPresentError{}
 	}
