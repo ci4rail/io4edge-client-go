@@ -90,7 +90,7 @@ func main() {
 	for {
 		for channel := 0; channel < numberOfChannels/2; channel++ {
 			for _, state := range []bool{true, false} {
-				_, _, err := c.SetOutput(channel, state)
+				err := c.SetOutput(channel, state)
 				if err != nil {
 					log.Printf("can't switch channel %d to %v: %v", channel, state, err)
 					errorCount++
