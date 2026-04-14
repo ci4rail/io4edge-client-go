@@ -18,6 +18,7 @@ limitations under the License.
 package binaryiotyped
 
 import (
+	"errors"
 	"time"
 
 	"github.com/ci4rail/io4edge-client-go/v2/pkg/protobufcom/common/functionblock"
@@ -37,6 +38,12 @@ type ConfigOption func(*fspb.ConfigurationSet)
 type Configuration struct {
 	// ChannelConfig describes the configuration of each channel
 	ChannelConfig []*fspb.ChannelConfig
+}
+
+// StreamData contains the meta data of the stream and the unmarshalled function specific data
+type StreamData struct {
+	functionblock.StreamDataMeta
+	FSData *fspb.StreamData
 }
 
 // NewClientFromUniversalAddress creates a new binaryIoTypeD client from addrOrService.
@@ -154,4 +161,65 @@ func (c *Client) Inputs() (states uint32, diag []uint32, err error) {
 		return 0, nil, err
 	}
 	return res.Inputs, res.Diag, nil
+}
+
+// StreamConfigOption is a type to pass options to StartStream()
+type StreamConfigOption func(*StreamConfiguration)
+
+// StreamConfiguration defines the configuration of a stream
+type StreamConfiguration struct {
+	FBOptions []functionblock.StreamConfigOption
+}
+
+// WithFBStreamOption may be passed to StartStream.
+//
+// opt is one of the functions that may be passed to functionblock.StartStream, e.g. WithBucketSamples()
+func WithFBStreamOption(opt functionblock.StreamConfigOption) StreamConfigOption {
+	return func(c *StreamConfiguration) {
+		c.FBOptions = append(c.FBOptions, opt)
+	}
+}
+
+// StartStream starts the stream on this connection.
+// Arguments may be one or more of the following functions:
+//   - WithFBStreamOption(functionblock.WithXXXX(...))
+//
+// Options that are not specified take default values.
+func (c *Client) StartStream(opts ...StreamConfigOption) error {
+	config := &StreamConfiguration{}
+	for _, opt := range opts {
+		opt(config)
+	}
+
+	err := c.fbClient.StartStream(config.FBOptions, &fspb.StreamControlStart{})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// StopStream stops the stream on this connection
+func (c *Client) StopStream() error {
+	return c.fbClient.StopStream()
+}
+
+// ReadStream reads the next stream data object from the buffer.
+//
+// Returns the meta data and the unmarshalled function specific stream data
+func (c *Client) ReadStream(timeout time.Duration) (*StreamData, error) {
+	genericSD, err := c.fbClient.ReadStream(timeout)
+	if err != nil {
+		return nil, err
+	}
+
+	fsSD := new(fspb.StreamData)
+	if err := genericSD.FSData.UnmarshalTo(fsSD); err != nil {
+		return nil, errors.New("can't unmarshall samples")
+	}
+
+	sd := &StreamData{
+		StreamDataMeta: genericSD.StreamDataMeta,
+		FSData:         fsSD,
+	}
+	return sd, nil
 }
