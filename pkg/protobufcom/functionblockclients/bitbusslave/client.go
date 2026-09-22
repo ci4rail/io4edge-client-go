@@ -72,6 +72,7 @@ func WithSlaveAddress(slaveAddress int32) ConfigOption {
 }
 
 // WithMaxFrameLength may be passed to UploadConfiguration.
+// A value of 0 allows frames of up to 255 bytes.
 func WithMaxFrameLength(maxFrameLength int32) ConfigOption {
 	return func(c *fspb.ConfigurationSet) {
 		c.MaxFrameLength = maxFrameLength
@@ -79,6 +80,8 @@ func WithMaxFrameLength(maxFrameLength int32) ConfigOption {
 }
 
 // WithAppWDTimeoutMS may be passed to UploadConfiguration.
+// The timeout must be in the range 500..60000 ms and is checked with
+// approximately 50 ms resolution.
 func WithAppWDTimeoutMS(timeoutMS int32) ConfigOption {
 	return func(c *fspb.ConfigurationSet) {
 		c.AppWdTimeoutMs = timeoutMS
@@ -86,6 +89,8 @@ func WithAppWDTimeoutMS(timeoutMS int32) ConfigOption {
 }
 
 // WithIdleResponse may be passed to UploadConfiguration.
+// It sets the INFORMATION field sent when no application tx message is pending.
+// An empty response makes the slave answer with RR instead.
 func WithIdleResponse(idleResponse []byte) ConfigOption {
 	return func(c *fspb.ConfigurationSet) {
 		c.IdleResponse = idleResponse
@@ -102,7 +107,7 @@ func WithBaud62500(enable bool) ConfigOption {
 // UploadConfiguration configures the bitbusSlave function block.
 // Arguments may be one or more of the following functions:
 //   - WithSlaveAddress (mandatory)
-//   - WithMaxFrameLength (optional, default 255)
+//   - WithMaxFrameLength (optional, default 0, allowing up to 255 bytes)
 //   - WithAppWDTimeoutMS (optional, default 5000)
 //   - WithIdleResponse (optional, default nil)
 //   - WithBaud62500 (optional, default false)
@@ -118,7 +123,9 @@ func (c *Client) UploadConfiguration(opts ...ConfigOption) error {
 
 // SetPreparedTxMsg sets the next application tx message sent when the master addresses this slave.
 // The firmware rejects it if
+//   - the slave is in disconnected (NDM) mode
 //   - the length of bitbusInformation exceeds the configured MaxFrameLength
+//   - bitbusInformation is empty
 //   - the last prepared message has not been sent yet (i.e. there is still a pending tx message)
 func (c *Client) SetPreparedTxMsg(bitbusInformation []byte) error {
 	fsCmd := &fspb.FunctionControlSet{
